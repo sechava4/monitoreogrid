@@ -1,0 +1,64 @@
+{% extends "layout.html" %}
+{% block body %}
+  {% if session.logged_in %}
+    <style type="text/css">
+    .divLeft        {margin:2em auto;width:240px; height:auto; border: 5px solid #ccc; padding: 0.8em;
+                    display:block;float: left;background: white;}
+
+    .divRight       {margin:2em auto;width:240px; height:auto; border: 5px solid #ccc; padding: 0.8em;
+                    display:block;float: right;background: white;}
+
+    </style>
+
+    <form action="{{ url_for('add_line') }}" method=post class=add-line>
+      <dl>
+        <p><h2>Dashboard</h2></p>
+        <dt>Medida:
+        <dd><input type=number size=30 name=medida min=0 max = 500 >
+        <p> </p>
+        <dt>Color:
+        <select name = color>
+           <option value = "Azul">Azul</option>
+           <option value = "Rojo">Rojo</option>
+           <option value = "Verde">Verde</option>
+           <option value = "Naranja">Naranja</option>
+           <option value = "Amarillo">Amarillo</option>
+           <option value = "Plata">Plata</option>
+           <option value = "Gris">Gris</option>
+        </select>
+        <p> </p>
+        <dd><input type=submit value=Subir>
+      </dl>
+     </form>
+
+    <body>
+      <div id="line_top_x"></div>
+    </body>
+
+<p align="center"><b>Estado de los pedidos</b> </p>
+    <div class="divLeft">
+      <p align="center">Pendientes </p>
+      <ul class=entries>
+      {% for entry in entries %}
+        <li><h2> -   {{ entry.color }} de {{ entry.medida }}</h2>
+      {% else %}
+        <li><em>No hay pedidos en el momento</em>
+      {% endfor %}
+      </ul>
+    </div>
+
+    <div class="divRight">
+      <p align="center">Listos </p>
+      <ul class=listas>
+      {% for lista in listas %}
+        <li><h2> - {{ lista.color }} de {{ lista.medida }}</h2>
+      {% else %}
+        <li><em>No hay hechas en el momento</em>
+      {% endfor %}
+      </ul>
+    </div>
+
+
+
+  {% endif %}
+{% endblock %}
