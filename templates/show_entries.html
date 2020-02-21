@@ -1,63 +1,194 @@
-{% extends "layout.html" %}
-{% block body %}
-  {% if session.logged_in %}
-    <style type="text/css">
-    .divLeft        {margin:2em auto;width:240px; height:auto; border: 5px solid #ccc; padding: 0.8em;
-                    display:block;float: left;background: white;}
+  {% extends "layout.html" %}
+  {% block body %}
+    {% if session.logged_in %}
+      <style type="text/css">
+      .divMap        {margin:0em auto;width:70vw; height:60vh; border: 1px solid #ccc; padding: 0em;
+                      display:block;float: center;background: white;}
+      .container     {margin:0em auto;width:auto; height:auto;float: center; }
+      </style>
 
-    .divRight       {margin:2em auto;width:240px; height:auto; border: 5px solid #ccc; padding: 0.8em;
-                    display:block;float: right;background: white;}
 
+      <body>
+        <div id="line_top_x"></div>
+      </body>
+   <div style="background-color:lightblue">
+      <h3>Visualización Geográfica</h3>
+   </div>
+
+
+  <form action="{{ url_for('map_var') }}" method=post class=add-line>
+      <select name = variable>
+        <option value="Seleccione variable"> {{var_map}}</option>
+        <option value="altitude">Altitud</option>
+        <option value="powerKw">Potencia</option>
+        <option value="soc">SOC</option>
+        <option value="soh">SOH</option>
+        <option value="batt_temp">Temperatura de batería</option>
+        <option value="ext_temp">Temperatura externa</option>
+        <option value="voltage">Voltage</option>
+        <option value="batt_current">Corriente</option>
+        <option value="engine_acceleration">Aceleración motor</option>
+        <option value="throttle">% de aceleración</option>
+        <option value="regenbrake">Freno regenerativo</option>
+        <option value="consumption">Consumo</option>
+        <option value="range_est">Rango estimado</option>
+        <option value="range_ideal">Rango ideal</option>
+        <option value="drivetime">Tiempo de manejo</option>
+        <option value="footbrake">Freno de pedal</option>
+        <option value="engine_temp">Temperatura de motor</option>
+        <option value="is_charging">Está cargando</option>
+      </select>
+
+      <select name = Vehiculo>
+        <option value="Seleccione vehiculo">{{car}}</option>
+        <option value="Renault Twizy">Renault Twizy</option>
+        <option value="Nissan Leaf">Nissan Leaf</option>
+        <option value="Kia SOUL">Kia SOUL</option>
+        <option value="BYD">BYD</option>
+      </select>
+      <dd><input type=submit value=Monitorear >
+  </form>
+
+
+  <!-- Map. -->
+
+
+
+  <div class="divMap">
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@deck.gl/jupyter-widget@^8.0.0/dist/index.js"></script>
+    <style>
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+
+    #deck-map-container {
+      width: 70vw;
+      height: 60vh;
+      background-color: black;
+      float: left;
+    }
+
+    #map {
+      pointer-events: none;
+      width: 70vw;
+      height: 60vh;
+      position: absolute;
+      z-index: 1;
+    }
+
+    #deckgl-overlay {
+      z-index: 2;
+    }
+
+    #deck-map-wrapper {
+      width: 100%;
+      height: 100%;
+    }
+
+    #deck-container {
+      width: 70vw;
+      height: 60vh;
+      float: left;
+    }
     </style>
 
-    <form action="{{ url_for('add_line') }}" method=post class=add-line>
-      <dl>
-        <p><h2>Dashboard</h2></p>
-        <dt>Medida:
-        <dd><input type=number size=30 name=medida min=0 max = 500 >
-        <p> </p>
-        <dt>Color:
-        <select name = color>
-           <option value = "Azul">Azul</option>
-           <option value = "Rojo">Rojo</option>
-           <option value = "Verde">Verde</option>
-           <option value = "Naranja">Naranja</option>
-           <option value = "Amarillo">Amarillo</option>
-           <option value = "Plata">Plata</option>
-           <option value = "Gris">Gris</option>
-        </select>
-        <p> </p>
-        <dd><input type=submit value=Subir>
-      </dl>
-     </form>
+  <body>
+    <div id="deck-container">
 
-    <body>
-      <div id="line_top_x"></div>
-    </body>
+    </div>
+  </body>
+      <script>
+        const jsonInput = {"initialViewState": {"bearing": -27.36, "latitude": 52.2323, "longitude": -1.415, "maxZoom": 15, "minZoom": 5, "pitch": 40.5, "zoom": 6}, "layers": [{"@@type": "HexagonLayer", "autoHighlight": true, "coverage": 1, "data": "https://raw.githubusercontent.com/uber-common/deck.gl-data/master/examples/3d-heatmap/heatmap-data.csv", "elevationRange": [0, 3000], "elevationScale": 50, "extruded": true, "getPosition": "@@=[lng, lat]", "id": "149bd184-76dd-45fe-9fdb-bc65e879bf51", "pickable": true}], "mapStyle": "mapbox://styles/mapbox/dark-v9", "views": [{"@@type": "MapView", "controller": true}]};
+        const MAPBOX_API_KEY = 'pk.eyJ1Ijoic2VjaGF2YTQiLCJhIjoiY2s2dTF0eHQ0MDViaTNmbXRhaHVoaG85cSJ9.xMh2vZNuj2PfxsUksteApQ';
+        const tooltip = true;
 
-<p align="center"><b>Estado de los pedidos</b> </p>
-    <div class="divLeft">
-      <p align="center">Pendientes </p>
-      <ul class=entries>
-      {% for entry in entries %}
-        <li><h2> -   {{ entry.color }} de {{ entry.medida }}</h2>
-      {% else %}
-        <li><em>No hay pedidos en el momento</em>
-      {% endfor %}
-      </ul>
+        const deck = createDeck({
+          mapboxApiKey: MAPBOX_API_KEY,
+          container: document.getElementById('deck-container'),
+          jsonInput,
+          tooltip
+        });
+      </script>
+  </div>
+  <div>
+
+  </div>
+  <div style="background-color:lightblue;margin: 1vh;padding: 1vh;overflow: hidden;">
+      <h3>Visualización de datos</h3>
+   </div>
+    <!-- plotly graph. -->
+
+
+
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6">
+               <div class="chart" id="bargraph">
+
+                    <script>
+                        var graphs = {{plot | safe}};
+                        Plotly.plot('bargraph',graphs,{});
+                    </script>
+
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div class="divRight">
-      <p align="center">Listos </p>
-      <ul class=listas>
-      {% for lista in listas %}
-        <li><h2> - {{ lista.color }} de {{ lista.medida }}</h2>
-      {% else %}
-        <li><em>No hay hechas en el momento</em>
-      {% endfor %}
-      </ul>
-    </div>
-
+<div style=" margin:10vh">
+<script src="/static/gauge.min.js"></script>
+<canvas data-type="radial-gauge"
+    data-width="300"
+    data-height="300"
+    data-units="°C"
+    data-title="Temperature"
+    data-min-value="-50"
+    data-max-value="50"
+    data-major-ticks="[-50,-40,-30,-20,-10,0,10,20,30,40,50]"
+    data-minor-ticks="2"
+    data-stroke-ticks="true"
+    data-highlights='[ {"from": -50, "to": 0, "color": "rgba(0,0, 255, .3)"},
+        {"from": 0, "to": 50, "color": "rgba(255, 0, 0, .3)"} ]'
+    data-ticks-angle="225"
+    data-start-angle="67.5"
+    data-color-major-ticks="#ddd"
+    data-color-minor-ticks="#ddd"
+    data-color-title="#eee"
+    data-color-units="#ccc"
+    data-color-numbers="#eee"
+    data-color-plate="#222"
+    data-border-shadow-width="0"
+    data-borders="true"
+    data-needle-type="arrow"
+    data-needle-width="2"
+    data-needle-circle-size="7"
+    data-needle-circle-outer="true"
+    data-needle-circle-inner="false"
+    data-animation-duration="1500"
+    data-animation-rule="linear"
+    data-color-border-outer="#333"
+    data-color-border-outer-end="#111"
+    data-color-border-middle="#222"
+    data-color-border-middle-end="#111"
+    data-color-border-inner="#111"
+    data-color-border-inner-end="#333"
+    data-color-needle-shadow-down="#333"
+    data-color-needle-circle-outer="#333"
+    data-color-needle-circle-outer-end="#111"
+    data-color-needle-circle-inner="#111"
+    data-color-needle-circle-inner-end="#222"
+    data-value-box-border-radius="0"
+    data-color-value-box-rect="#222"
+    data-color-value-box-rect-end="#333"
+></canvas>
+</div>
 
 
   {% endif %}

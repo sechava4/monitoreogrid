@@ -22,3 +22,4 @@ footbrake smallint,
 engine_temp smallint,
 is_charging bool);
 
+
