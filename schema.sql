@@ -20,6 +20,7 @@ range_ideal SMALLINT,
 drivetime int,
 footbrake smallint,
 engine_temp smallint,
+tiempo time,
 is_charging bool);
 
 
