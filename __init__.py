@@ -52,13 +52,14 @@ def graph_var():
 @app.route('/')
 def show_entries():
     try:
-        session["graph_var"]
+        session["map_var"]
     except KeyError:
-        session["graph_var"] = "seleccione variable"
-        session["graph_car"] = "seleccione vehiculo"
+        session["map_var"] = "soc"
+        session["map_car"] = "seleccione vehiculo"
 
     try:
         session["graph_var_x"]
+        session["graph_var_y"]
     except KeyError:
         session["graph_var_x"] = "tiempo"
         session["graph_var_y"] = "soc"
@@ -67,12 +68,15 @@ def show_entries():
     df = pd.read_sql_query("SELECT * from entries", db)
 
     session["battery_temp"] = 40
-    r = pdk.Deck(layers=[map.layer], initial_view_state=map.view_state)
 
+    # Map rendering
+    map_df = df[['longitude', 'latitude',session["map_var"]]]
+    map.plot_data(map_df,session["map_var"])
+
+    # Plotting variables
     plot_df = df[[session["graph_var_x"], session["graph_var_y"]]]
     bar = plot.create_plot(plot_df, session["graph_var_x"],session["graph_var_y"])
     return render_template('show_entries.html', plot=bar)
-    # return render_template('show_entries.html', entries=entries)
 
 
 
