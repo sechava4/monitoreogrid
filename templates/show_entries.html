@@ -18,7 +18,7 @@
 
         <form action="{{ url_for('map_var') }}" method=post>
             <select name = variable>
-                <option value="Seleccione variable"> {{session.map_var}}</option>
+                <option value="soc"> {{session.map_var}}</option>
                 <option value="altitude">Altitud</option>
                 <option value="powerKw">Potencia</option>
                 <option value="soc">SOC</option>
@@ -121,7 +121,7 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
         <form action="{{ url_for('graph_var') }}" method=post>
             <select name = variable_x>
-                <option value="Seleccione variable X"> {{session.graph_var_x}}</option>
+                <option value="tiempo"> {{session.graph_var_x}}</option>
                 <option value="tiempo">Tiempo</option>
                 <option value="altitude">Altitud</option>
                 <option value="powerKw">Potencia</option>
@@ -140,11 +140,10 @@
                 <option value="drivetime">Tiempo de manejo</option>
                 <option value="footbrake">Freno de pedal</option>
                 <option value="engine_temp">Temperatura de motor</option>
-                <option value="is_charging">Está cargando</option>
             </select>
 
             <select name = variable_y>
-                <option value="Seleccione variable Y"> {{session.graph_var_y}}</option>
+                <option value="soc"> {{session.graph_var_y}}</option>
                 <option value="altitude">Altitud</option>
                 <option value="powerKw">Potencia</option>
                 <option value="soc">SOC</option>
@@ -185,7 +184,7 @@
             data-width="200"
             data-height="200"
             data-units="°C"
-            data-title="Battery Temperature"
+            data-title="Temperatura de batería"
             data-min-value="-50"
             data-max-value="50"
             data-major-ticks="[-50,-40,-30,-20,-10,0,10,20,30,40,50]"
@@ -253,10 +252,13 @@
         ></canvas>
 
 
-        <canvas data-type="radial-gauge">
+        <canvas data-type="radial-gauge"
+            data-width="200"
+            data-height="200"
             data-title="Voltaje de Bateria"
             data-value = {{session.battery_temp}}
-        </canvas>
+        ></canvas>
+
         <canvas data-type="linear-gauge"
             data-width="120"
             data-height="300"
