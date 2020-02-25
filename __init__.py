@@ -5,7 +5,6 @@ import os
 import time
 import plot
 import map
-import pydeck as pdk
 import sqlite3
 import pandas as pd
 from flask import Flask, request, session, g, redirect, url_for, abort, \
@@ -23,6 +22,7 @@ app.config.update(dict(
     PASSWORD='admin'
 ))
 app.config.from_envvar('FLASKR_SETTINGS', silent=True)
+# Default
 
 
 
@@ -106,6 +106,9 @@ def add_entry():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     error = None
+    session["map_var"] = "soc"
+    session["graph_var_x"] = "tiempo"
+    session["graph_var_y"] = "soc"
     if request.method == 'POST':
         if request.form['username'] != app.config['USERNAME']:
             error = 'Invalid username'
@@ -157,7 +160,7 @@ def close_db(error):
 # Run a test server.
 
 
-app.run(host='0.0.0.0', debug=True, port=8080)
+app.run(host='0.0.0.0', debug=True, port=8081)
 app.add_url_rule('/favicon.ico',redirect_to=url_for('static', filename='monitor.ico'))
 # from extern devices use computer ip adress http://192.168.1.53:8080/
 # para que sea visible tiene que estar todos los dispositivos conectados a la misma red

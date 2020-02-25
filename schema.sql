@@ -1,16 +1,19 @@
 
 create table entries (id integer primary key autoincrement,
+tiempo text,
 vin varchar(255),
 latitude float(10),
 longitude float(10),
 altitude float(10),
-powerKw float,
 soc float,
 soh SMALLINT,
+speed smallint,
+car_model text,
 batt_temp float,
 ext_temp float,
 voltage float,
 batt_current float,
+powerKw float,
 engine_acceleration float,
 throttle SMALLINT,
 regenbrake SMALLINT,
@@ -20,7 +23,6 @@ range_ideal SMALLINT,
 drivetime int,
 footbrake smallint,
 engine_temp smallint,
-tiempo time,
 is_charging bool);
 
 
