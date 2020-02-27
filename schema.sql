@@ -1,7 +1,7 @@
 
-create table entries (id integer primary key autoincrement,
+create table entries (
+id integer primary key autoincrement,
 tiempo text,
-vin varchar(255),
 latitude float(10),
 longitude float(10),
 altitude float(10),

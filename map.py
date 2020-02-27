@@ -21,8 +21,8 @@ def plot_data(data_frame, elevation):
 
     # Set the viewport location
     view_state = pdk.ViewState(
-        longitude=-1.415,
-        latitude=52.2323,
+        longitude=-75.56359,
+        latitude=6.25184,
         zoom=6,
         min_zoom=5,
         max_zoom=15,

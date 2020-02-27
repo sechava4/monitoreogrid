@@ -1,12 +1,16 @@
 # Santiago Echavarría Correa
 # 201220005014
 
+
 import os
 import time
+import math
 import plot
 import map
 import sqlite3
+import requests
 import pandas as pd
+import numpy as np
 from flask import Flask, request, session, g, redirect, url_for, abort, \
     render_template, flash,send_from_directory # g stands for global
 
@@ -87,10 +91,31 @@ def show_entries():
 def add_entry():
 
     db = get_db()
-    content = request.get_json()  # Guarde el json que recibe de OVMS
-    print(content)
-    db.execute('insert into entries (id , medida , color) values (?, ? ,?)', [content["id"], medida, color, ])
-    db.commit()
+    df = pd.read_sql_query("SELECT * from entries", db,index_col="id")
+    print(df)
+    #if math.isnan(df.index.max()) :
+    #    aux = 0
+    #else:
+    #    aux = df.index.max()+1
+    #content = np.array(1)
+    content = {}
+    for col in df.head():
+        if col == "id":
+            continue
+        # Create dict
+        content[col]=request.args[col]
+
+    # print(content)
+
+    #df.loc[aux] = content
+
+
+    df = df.append(content, ignore_index=True)
+    print(df)
+    #df.to_sql("entries", db, if_exists="replace")
+    df.to_sql('entries', db, schema="schema.sql", if_exists="append", index=False)
+    #db.execute('insert into entries (id , medida , color) values (?, ? ,?)', [content["id"], medida, color, ])
+    #db.commit()
     flash('New data arrived')
     return redirect(url_for('show_entries'))
 
@@ -160,7 +185,6 @@ def close_db(error):
 # Run a test server.
 
 
-app.run(host='0.0.0.0', debug=True, port=8081)
+app.run(host='0.0.0.0', debug=True, port=8082)
 app.add_url_rule('/favicon.ico',redirect_to=url_for('static', filename='monitor.ico'))
-# from extern devices use computer ip adress http://192.168.1.53:8080/
-# para que sea visible tiene que estar todos los dispositivos conectados a la misma red
+
