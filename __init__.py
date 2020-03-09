@@ -2,16 +2,16 @@
 # 201220005014
 
 
+import openstations
 import os
 import time
 import math
 import plot
-import map
+import stations_map
 import sqlite3
-import requests
 import pandas as pd
 import numpy as np
-from flask import Flask, request, session, g, redirect, url_for, abort, \
+from flask import Flask, request, session, g, redirect, url_for, Markup, \
     render_template, flash,send_from_directory # g stands for global
 
 app = Flask(
@@ -25,6 +25,7 @@ app.config.update(dict(
     USERNAME='grid',
     PASSWORD='admin'
 ))
+#os.environ['MAPBOX_API_KEY'] ='pk.eyJ1Ijoic2VjaGF2YTQiLCJhIjoiY2s2dTF0eHQ0MDViaTNmbXRhaHVoaG85cSJ9.xMh2vZNuj2PfxsUksteApQ'
 app.config.from_envvar('FLASKR_SETTINGS', silent=True)
 # Default
 
@@ -40,7 +41,7 @@ app.config.from_envvar('FLASKR_SETTINGS', silent=True)
 def map_var():
     session["map_var"] = (request.form['variable'])
     session["map_car"] = (request.form['Vehiculo'])
-    return redirect(url_for('show_entries'))
+    return redirect(url_for('show_vehicle_map'))
     # return render_template('show_entries.html')
 
 
@@ -53,8 +54,35 @@ def graph_var():
 
 
 
+
 @app.route('/')
 def show_entries():
+
+    db = get_db()
+    df = pd.read_sql_query("SELECT * from entries", db)
+
+    session["battery_temp"] = 40
+
+    # map_df = df[['longitude', 'latitude',session["map_var"]]]
+    # stations_map.plot_data(stations_df)
+
+    # Plotting variables
+    plot_df = df[[session["graph_var_x"], session["graph_var_y"]]]
+    bar = plot.create_plot(plot_df, session["graph_var_x"],session["graph_var_y"])
+    return render_template('show_entries.html', plot=bar)
+
+
+
+@app.route('/stations_map')
+def show_stations_map():
+    # Map rendering
+    stations_df = openstations.get_stations()
+    session["json_stations"] = Markup(stations_df.to_json(orient='records'))
+    return render_template('stations_map.html')
+
+
+@app.route('/vehicle_map')
+def show_vehicle_map():
     try:
         session["map_var"]
     except KeyError:
@@ -67,22 +95,17 @@ def show_entries():
     except KeyError:
         session["graph_var_x"] = "tiempo"
         session["graph_var_y"] = "soc"
-
     db = get_db()
     df = pd.read_sql_query("SELECT * from entries", db)
+    session["json_operation"] = Markup(df.to_json(orient='records'))
 
-    session["battery_temp"] = 40
-
-    # Map rendering
-    map_df = df[['longitude', 'latitude',session["map_var"]]]
-    map.plot_data(map_df,session["map_var"])
-
-    # Plotting variables
-    plot_df = df[[session["graph_var_x"], session["graph_var_y"]]]
-    bar = plot.create_plot(plot_df, session["graph_var_x"],session["graph_var_y"])
-    return render_template('show_entries.html', plot=bar)
+    return render_template('vehicle_map.html')
 
 
+
+@app.route('/gauges')
+def show_indicators():
+    return render_template('indicators.html')
 
 
 
@@ -93,11 +116,6 @@ def add_entry():
     db = get_db()
     df = pd.read_sql_query("SELECT * from entries", db,index_col="id")
     print(df)
-    #if math.isnan(df.index.max()) :
-    #    aux = 0
-    #else:
-    #    aux = df.index.max()+1
-    #content = np.array(1)
     content = {}
     for col in df.head():
         if col == "id":
@@ -105,21 +123,11 @@ def add_entry():
         # Create dict
         content[col]=request.args[col]
 
-    # print(content)
-
-    #df.loc[aux] = content
-
 
     df = df.append(content, ignore_index=True)
-    print(df)
-    #df.to_sql("entries", db, if_exists="replace")
     df.to_sql('entries', db, schema="schema.sql", if_exists="append", index=False)
-    #db.execute('insert into entries (id , medida , color) values (?, ? ,?)', [content["id"], medida, color, ])
-    #db.commit()
     flash('New data arrived')
     return redirect(url_for('show_entries'))
-
-
 
 
 
@@ -185,6 +193,6 @@ def close_db(error):
 # Run a test server.
 
 
-app.run(host='0.0.0.0', debug=True, port=8082)
+app.run(host='0.0.0.0', debug=True, port=8077)
 app.add_url_rule('/favicon.ico',redirect_to=url_for('static', filename='monitor.ico'))
 

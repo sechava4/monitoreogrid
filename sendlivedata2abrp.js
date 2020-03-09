@@ -33,7 +33,8 @@
  *   URL : url to send telemetry to abrp following: https://iternio.com/index.php/iternio-telemetry-api/
  */
  
-  const CAR_MODEL = "nissan:leaf:18:40:other";  
+  const CAR_MODEL = "nissan:leaf";
+  const placa = "ASD089";
   const URL = "http://10.161.62.129:8080/addjson";
   const CR = '\n';
   var objTLM;
@@ -50,6 +51,7 @@
       "soc": 0,
       "soh": 0,
       "speed": 0,
+      "odometer": 0,
       "car_model": CAR_MODEL,
       "batt_temp": 0,
       "ext_temp": 0, 
@@ -64,6 +66,7 @@
       "range_ideal": 0,
       "drivetime": 0,
       "footbrake": 0,
+      "Qn_Ah": 0,
       "engine_temp": 0,
       "is_charging": 0
     };
@@ -82,6 +85,7 @@
     myJSON.soc = OvmsMetrics.AsFloat("v.b.soc");
     myJSON.soh = OvmsMetrics.AsFloat("v.b.soh");
     myJSON.speed = OvmsMetrics.AsFloat("v.p.speed");
+    myJSON.odometer = OvmsMetrics.AsFloat("v.p.odometer");
     myJSON.batt_temp = OvmsMetrics.AsFloat("v.b.temp");
     myJSON.ext_temp = OvmsMetrics.AsFloat("v.e.temp");
     myJSON.voltage = OvmsMetrics.AsFloat("v.b.voltage");
@@ -95,6 +99,7 @@
     myJSON.range_ideal = OvmsMetrics.AsFloat("v.b.range.ideal");
     myJSON.drivetime = OvmsMetrics.AsFloat("v.e.drivetime");
     myJSON.footbrake = OvmsMetrics.AsFloat("v.e.footbrake");
+    myJSON.Qn_Ah = OvmsMetrics.AsFloat("v.b.cac");
     myJSON.engine_temp = OvmsMetrics.AsFloat("v.m.temp");
 
 
@@ -122,6 +127,7 @@
     newcontent += "soc=" + myJSON.soc + CR;    //State of charge
     newcontent += "soh=" + myJSON.soh + CR;    //State of health
     newcontent += "speed=" + myJSON.speed + CR;    //State of health
+    newcontent += "odometer=" + myJSON.odometer + CR;    //State of health
     newcontent += "bat_temp=" + myJSON.batt_temp + CR;    //Main battery momentary temperature
     newcontent += "ext temp=" + myJSON.ext_temp + CR;    //Ambient temperature
     newcontent += "voltage=" + myJSON.voltage + CR;    //Main battery momentary voltage
@@ -134,6 +140,7 @@
     newcontent += "range_ideal=" + myJSON.range_ideal + CR;
     newcontent += "drivetime=" + myJSON.drivetime + CR;
     newcontent += "footbrake=" + myJSON.footbrake + CR;
+    newcontent += "Qn_Ah=" + myJSON.Qn_Ah + CR;
     newcontent += "engine_temp=" + myJSON.engine_temp + CR;
     newcontent += "powerKw=" + myJSON.powerKw + CR;    //Main battery momentary power
     newcontent += "is_charging=" + myJSON.is_charging + CR;         //yes = currently charging
@@ -210,6 +217,7 @@
   exports.send = function(onoff) {
     if (onoff) {
       onetime();
+      //Periodically perform subscribed function
       objTimer = PubSub.subscribe("ticker.60", SendLiveData); // update each 60s
     } else {
       PubSub.unsubscribe(objTimer);

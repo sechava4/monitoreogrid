@@ -1,0 +1,165 @@
+{% extends "layout.html" %}
+{% block body %}
+{% if session.logged_in %}
+<meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <title>Indicadores</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css" />
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@deck.gl/jupyter-widget@^8.0.0/dist/index.js"></script>
+    <script src="/static/gauge.min.js"></script>
+    <link rel=stylesheet type=text/css href="{{ url_for('static', filename='style.css') }}">
+    <ul class="nav nav-tabs">
+      <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('show_entries') }}">Grafica de operación</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('show_stations_map') }}" >Mapas</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link active" href="{{ url_for('show_indicators') }}">Indicadores</a>
+      </li>
+    </ul>
+    <canvas data-type="radial-gauge"
+        data-width="230"
+        data-height="230"
+        data-title="SOC"
+        data-value = {{session.battery_temp}}
+    ></canvas>
+
+    <canvas data-type="radial-gauge"
+        data-width="230"
+        data-height="230"
+        data-title="Voltaje"
+        data-value = {{session.battery_temp}}
+    ></canvas>
+    <canvas data-type="radial-gauge"
+        data-value="33.77"
+        data-width="230"
+        data-height="230"
+        data-units="°C"
+        data-title="°C Batería"
+        data-min-value="0"
+        data-max-value="60"
+        data-major-ticks="[0,5,10, 15,20, 25, 30 ,35 ,40 , 45, 50, 55, 60]"
+        data-minor-ticks="2"
+        data-stroke-ticks="true"
+        data-highlights='[ {"from": 0, "to": 25, "color": "rgba(0,0, 255, .3)"},
+        {"from": 40, "to": 60, "color": "rgba(255, 0, 0, .3)"} ]'
+        data-ticks-angle="225"
+        data-start-angle="67.5"
+        data-color-major-ticks="#ddd"
+        data-color-minor-ticks="#ddd"
+        data-color-title="#eee"
+        data-color-units="#ccc"
+        data-color-numbers="#eee"
+        data-color-plate="#222"
+        data-border-shadow-width="0"
+        data-borders="true"
+        data-needle-type="arrow"
+        data-needle-width="2"
+        data-needle-circle-size="7"
+        data-needle-circle-outer="true"
+        data-needle-circle-inner="false"
+        data-animation-duration="1500"
+        data-animation-rule="linear"
+        data-color-border-outer="#333"
+        data-color-border-outer-end="#111"
+        data-color-border-middle="#222"
+        data-color-border-middle-end="#111"
+        data-color-border-inner="#111"
+        data-color-border-inner-end="#333"
+        data-color-needle-shadow-down="#333"
+        data-color-needle-circle-outer="#333"
+        data-color-needle-circle-outer-end="#111"
+        data-color-needle-circle-inner="#111"
+        data-color-needle-circle-inner-end="#222"
+        data-value-box-border-radius="10"
+        data-color-value-box-rect="#222"
+        data-color-value-box-rect-end="#333"
+    ></canvas>
+
+    <canvas data-type="radial-gauge"
+        data-title="Velocidad"
+        data-value="96"
+        data-width="230"
+        data-height="230"
+        data-units="km/h"
+        data-min-value="0"
+        data-max-value="220"
+        data-major-ticks="0,20,40,60,80,100,120,140,160,180,200,220"
+        data-minor-ticks="2"
+        data-stroke-ticks="true"
+        data-highlights='[
+        {"from": 160, "to": 220, "color": "rgba(200, 50, 50, .75)"}
+        ]'
+        data-color-plate="#fff"
+        data-border-shadow-width="0"
+        data-borders="false"
+        data-needle-type="arrow"
+        data-needle-width="2"
+        data-needle-circle-size="7"
+        data-needle-circle-outer="true"
+        data-needle-circle-inner="false"
+        data-animation-duration="1500"
+        data-animation-rule="linear"
+    ></canvas>
+
+
+
+
+    <canvas data-type="linear-gauge"
+        data-width="120"
+        data-height="300"
+        data-units="%"
+        data-title="SOH"
+        data-min-value="0"
+        data-max-value="100"
+        data-major-ticks="0,10,20,30,40,50,60,70,80,90,100"
+        data-minor-ticks="2"
+        data-stroke-ticks="true"
+        data-highlights='[ {"from": 0, "to": 70, "color": "rgba(200, 50, 50, .75)"} ]'
+        data-color-plate="#fff"
+        data-border-shadow-width="0"
+        data-borders="false"
+        data-needle-type="arrow"
+        data-needle-width="2"
+        data-animation-rule="linear"
+        data-tick-side="left"
+        data-number-side="left"
+        data-needle-side="left"
+        data-bar-stroke-width="7"
+        data-bar-begin-circle="false"
+        data-value={{session.battery_temp}}
+    ></canvas>
+
+    <canvas data-type="linear-gauge"
+        data-width="120"
+        data-height="300"
+        data-units="°C"
+        data-title="°C Motor"
+        data-min-value="0"
+        data-max-value="100"
+        data-major-ticks="0,10,20,30,40,50,60,70,80,90,100"
+        data-minor-ticks="2"
+        data-stroke-ticks="true"
+        data-highlights='[ {"from": 50, "to": 100, "color": "rgba(200, 50, 50, .75)"} ]'
+        data-color-plate="#fff"
+        data-border-shadow-width="0"
+        data-borders="false"
+        data-needle-type="arrow"
+        data-needle-width="2"
+        data-animation-duration="1500"
+        data-animation-rule="linear"
+        data-tick-side="left"
+        data-number-side="left"
+        data-needle-side="left"
+        data-bar-stroke-width="7"
+        data-bar-begin-circle="false"
+        data-value={{session.battery_temp}}
+    ></canvas>
+{% endif %}
+{% endblock %}
