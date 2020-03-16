@@ -35,8 +35,8 @@
  
   const CAR_MODEL = "nissan:leaf";
   const placa = "ASD089";
-  const URL = "http://10.161.62.129:8080/addjson";
-  const CR = '\n';
+  const URL = "http://ec2-3-81-87-225.compute-1.amazonaws.com:8080/addjson";
+  const CR = '&';
   var objTLM;
   var objTimer;
 
@@ -173,6 +173,7 @@
     var urljson = URL;
     urljson += "?";
     //urljson += "api_key=" + OVMS_API_KEY;
+    url += car_model;
     //urljson += "&";
     //urljson += "token=" + MY_TOKEN;
     //urljson += "&";
