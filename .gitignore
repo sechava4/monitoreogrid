@@ -1,4 +1,13 @@
+<<<<<<< HEAD
 .idea/
 __pycache__/
 venv/
 
+=======
+
+venv/
+
+.idea/
+
+__pycache__/
+>>>>>>> master

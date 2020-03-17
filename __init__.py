@@ -2,12 +2,12 @@
 # 201220005014
 
 
-import openstations
+import openmaps
 import os
 import time
 import math
 import plot
-import stations_map
+import map
 import sqlite3
 import pandas as pd
 import numpy as np
@@ -60,6 +60,12 @@ def show_entries():
 
     db = get_db()
     df = pd.read_sql_query("SELECT * from entries", db)
+    try:
+        session["graph_var_x"]
+        session["graph_var_y"]
+    except KeyError:
+        session["graph_var_x"] = "tiempo"
+        session["graph_var_y"] = "soc"
 
     session["battery_temp"] = 40
 
@@ -76,9 +82,17 @@ def show_entries():
 @app.route('/stations_map')
 def show_stations_map():
     # Map rendering
-    stations_df = openstations.get_stations()
+    stations_df = openmaps.get_stations()
     session["json_stations"] = Markup(stations_df.to_json(orient='records'))
     return render_template('stations_map.html')
+
+@app.route('/zones_map')
+def show_zones_map():
+    # Map rendering
+    stations_df = openmaps.get_zones()
+    session["json_zones"] = Markup(stations_df.to_json(orient='records'))
+    print(session["json_zones"])
+    return render_template('zones_map.html')
 
 
 @app.route('/vehicle_map')
@@ -89,12 +103,7 @@ def show_vehicle_map():
         session["map_var"] = "soc"
         session["map_car"] = "seleccione vehiculo"
 
-    try:
-        session["graph_var_x"]
-        session["graph_var_y"]
-    except KeyError:
-        session["graph_var_x"] = "tiempo"
-        session["graph_var_y"] = "soc"
+
     db = get_db()
     df = pd.read_sql_query("SELECT * from entries", db)
     session["json_operation"] = Markup(df.to_json(orient='records'))
@@ -105,6 +114,17 @@ def show_vehicle_map():
 
 @app.route('/gauges')
 def show_indicators():
+    db = get_db()
+    df = pd.read_sql_query("SELECT * from entries limit 1", db)
+    for col in df.head():
+        if col == "id":
+            continue
+        # Create dict
+        session[col] = df[col]
+        s = df['A']
+        print(s)
+
+
     return render_template('indicators.html')
 
 
@@ -193,6 +213,6 @@ def close_db(error):
 # Run a test server.
 
 
-app.run(host='0.0.0.0', debug=True, port=8077)
+app.run(host='0.0.0.0', debug=True, port=8080)
 app.add_url_rule('/favicon.ico',redirect_to=url_for('static', filename='monitor.ico'))
 

@@ -29,7 +29,7 @@
         <div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">
           <a class="nav-link" id="v-pills-home-tab"  href="{{ url_for('show_stations_map') }}" >Estaciones</a>
           <a class="nav-link active" id="v-pills-profile-tab"  href="{{ url_for('show_vehicle_map') }}" >Vehículos</a>
-          <a class="nav-link" id="v-pills-settings-tab"  href="#v-pills-settings" role="tab" aria-controls="v-pills-settings" aria-selected="false">Settings</a>
+          <a class="nav-link" href="{{ url_for('show_zones_map') }}" >Zonas</a>
         </div>
       </div>
     </div>
@@ -112,7 +112,7 @@
     </div>
   </body>
   <script>
-    const jsonInput = {"initialViewState": {"bearing": -27.36, "latitude": 6.25184, "longitude": -75.56359, "maxZoom": 15, "minZoom": 5, "pitch": 40.5, "zoom": 10}, "layers": [{"@@type": "ScatterplotLayer", "data":{{session.json_stations}}, "filled": true, "getFillColor": [255, 140, 0], "getLineColor": [0, 0, 0], "getPosition": "@@=[longitude, latitude]", "id": "2695882c-7d5e-4f89-9e8a-049b84822d70", "lineWidthMinPixels": 1, "opacity": 0.8, "pickable": true, "radiusMaxPixels": 8, "radiusMinPixels": 8, "radiusScale": 6, "stroked": true}], "mapStyle": "mapbox://styles/mapbox/dark-v9", "views": [{"@@type": "MapView", "controller": true}]};
+    const jsonInput = {"initialViewState": {"bearing": -27.36, "latitude": 6.25184, "longitude": -75.56359, "maxZoom": 15, "minZoom": 5, "pitch": 40.5, "zoom": 6}, "layers": [{"@@type": "ScatterplotLayer", "data":{{session.json_stations}}, "filled": true, "getFillColor": [255, 140, 0], "getLineColor": [0, 0, 0], "getPosition": "@@=[longitude, latitude]", "id": "2695882c-7d5e-4f89-9e8a-049b84822d70", "lineWidthMinPixels": 1, "opacity": 0.8, "pickable": true, "radiusMaxPixels": 8, "radiusMinPixels": 8, "radiusScale": 6, "stroked": true}], "mapStyle": "mapbox://styles/mapbox/dark-v9", "views": [{"@@type": "MapView", "controller": true}]};
     const MAPBOX_API_KEY = 'pk.eyJ1Ijoic2VjaGF2YTQiLCJhIjoiY2s2dTF0eHQ0MDViaTNmbXRhaHVoaG85cSJ9.xMh2vZNuj2PfxsUksteApQ';
     const tooltip = {'text': '{name}\n{charger_types}'};
   
