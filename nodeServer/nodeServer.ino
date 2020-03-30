@@ -1,6 +1,5 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
-
 /*Put your SSID & Password*/
 const char* ssid = "OVMS1";  // Enter SSID here
 const char* password = "OVMSinit";  //Enter Password here
