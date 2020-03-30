@@ -1,7 +1,5 @@
 {% extends "layout.html" %}
 {% block body %}
-{% if session.logged_in %}
-
     <body>
         <div id="line_top_x"></div>
         <ul class="nav nav-tabs">
@@ -15,8 +13,7 @@
             <a class="nav-link" href="{{ url_for('show_indicators') }}">Indicadores</a>
           </li>
         </ul>
-
-
+        Hi, {{ current_user.username }}
         <!-- plotly graph. -->
 
 
@@ -84,5 +81,4 @@
 
 
     </body>
-{% endif %}
 {% endblock %}

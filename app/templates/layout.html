@@ -12,16 +12,23 @@
   <div class=page>
     <h1>Monitoreo de vehiculos eléctricos</h1>
     <div class=metanav>
-
-    {% if not session.logged_in %}
-      <a class="btn btn-primary" href="{{ url_for('login') }}" role="button" >Log in</a>
-    {% else %}
-      <a class="btn btn-primary" href="{{ url_for('logout') }}" role="button" >log out</a>
-    {% endif %}
+        <a href="{{ url_for('show_entries') }}">Home</a>
+        {% if current_user.is_anonymous %}
+        <a href="{{ url_for('login') }}">Login</a>
+        {% else %}
+        <a href="{{ url_for('logout') }}">Logout</a>
+        {% endif %}
     </div>
-    {% for message in get_flashed_messages() %}
-      <div class=flash>{{ message }}</div>
-    {% endfor %}
-    {% block body %}{% endblock %}
+    <hr>
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    <ul>
+        {% for message in messages %}
+        <li>{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    {% endwith %}
+    {% block body %} {% endblock %}
 
   </div>

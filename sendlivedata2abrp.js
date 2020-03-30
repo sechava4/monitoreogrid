@@ -1,20 +1,19 @@
- 
 /**
  *       /store/scripts/sendlivedata2abrp.js
- * 
+ *
  * Module plugin:
  *  Send live data to a better route planner
  *  This version uses the embedded GSM of OVMS, so there's an impact on data consumption
  *  /!\ requires OVMS firmware version 3.2.008-147 minimum (for HTTP call)
- * 
+ *
  * Version 1.0   2019   dar63 (forum https://www.openvehicles.com)
- * 
+ *
  * Enable:
  *  - install at above path
  *  - add to /store/scripts/ovmsmain.js:
  *                 abrp = require("sendlivedata2abrp");
  *  - script reload
- * 
+ *
  * Usage:
  *  - script eval abrp.info()         => to display vehicle data to be sent to abrp
  *  - script eval abrp.onetime()      => to launch one time the request to abrp server
@@ -32,7 +31,7 @@
  *   MY_TOKEN : Your token (corresponding to your abrp profile)
  *   URL : url to send telemetry to abrp following: https://iternio.com/index.php/iternio-telemetry-api/
  */
- 
+
   const CAR_MODEL = "nissan:leaf";
   const placa = "ASD089";
   const URL = "http://ec2-3-81-87-225.compute-1.amazonaws.com:8080/addjson";
@@ -43,7 +42,7 @@
 
   // Make json telemetry object
   function GetTelemetryObj() {
-    var myJSON = { 
+    var myJSON = {
       "tiempo": 0,
       "latitude": 0,
       "longitude": 0,
@@ -54,7 +53,7 @@
       "odometer": 0,
       "car_model": CAR_MODEL,
       "batt_temp": 0,
-      "ext_temp": 0, 
+      "ext_temp": 0,
       "voltage": 0,
       "batt_current": 0,
       "powerKw": 0,
@@ -110,7 +109,7 @@
     read_bool = Boolean(OvmsMetrics.Value("v.c.charging"));
     if (read_bool == true) {
       myJSON.is_charging = 1;
-    } 
+    }
     else {
       myJSON.is_charging = 0;
     }
@@ -152,7 +151,7 @@
   function InitObjTelemetry() {
     objTLM = GetTelemetryObj();
   }
-  
+
   function UpdateObjTelemetry() {
     UpdateTelemetryObj(objTLM);
     DisplayLiveData(objTLM);
@@ -180,11 +179,11 @@
     urljson += encodeURIComponent(JSON.stringify(objTLM));
     print(urljson + CR);
     return urljson;
-  }    
+  }
 
   // Return config object for HTTP request
   function GetURLcfg() {
-    var cfg = { 
+    var cfg = {
       url: GetUrlABRP(),
       done: function(resp) {OnRequestDone(resp)},
       fail: function(err)  {OnRequestFail(err)}
