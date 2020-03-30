@@ -1,6 +1,5 @@
 {% extends "layout.html" %}
 {% block body %}
-{% if session.logged_in %}
 <html>
   <head>
     <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
@@ -23,7 +22,11 @@
       <li class="nav-item">
         <a class="nav-link" href="{{ url_for('show_indicators') }}">Indicadores</a>
       </li>
+      <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('show_tables') }}" >Tablas</a>
+      </li>
     </ul>
+
     <div class="row">
       <div class="col-3">
         <div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">
@@ -35,7 +38,7 @@
     </div>
     <form action="{{ url_for('map_var') }}" method=post>
         <select name = variable>
-            <option value="soc"> {{session.map_var}}</option>
+            <option value="soc"> {{session.title_var}}</option>
             <option value="altitude">Altitud</option>
             <option value="powerKw">Potencia</option>
             <option value="soc">SOC</option>
@@ -127,5 +130,5 @@
   hh
 </div>
 </html>
-{% endif %}
+
 {% endblock %}

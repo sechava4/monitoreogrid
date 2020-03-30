@@ -1,8 +1,8 @@
-"""vehicles table
+"""empty message
 
-Revision ID: 8e7a5cf75ea1
-Revises: 90816898705e
-Create Date: 2020-03-28 20:25:22.577216
+Revision ID: afcab6a9780a
+Revises: 0738ca9ca091
+Create Date: 2020-03-30 08:50:07.120029
 
 """
 from alembic import op
@@ -10,8 +10,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '8e7a5cf75ea1'
-down_revision = '90816898705e'
+revision = 'afcab6a9780a'
+down_revision = '0738ca9ca091'
 branch_labels = None
 depends_on = None
 
@@ -26,6 +26,7 @@ def upgrade():
     sa.Column('year', sa.Integer(), nullable=True),
     sa.Column('capacity_nominal', sa.Float(), nullable=True),
     sa.Column('soh', sa.Float(), nullable=True),
+    sa.Column('rul', sa.Integer(), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_vehicle_placa'), 'vehicle', ['placa'], unique=True)

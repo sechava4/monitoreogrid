@@ -1,55 +1,39 @@
-from app import app, openmaps, map, plot,db
+from app import app, openmaps, map, plot, db
 from app.forms import LoginForm, RegistrationForm
 from flask import Flask, request, session, g, redirect, url_for, Markup, \
     render_template, flash,send_from_directory # g stands for global
 import pandas as pd
 from flask_login import current_user, login_user, logout_user, login_required
 from werkzeug.urls import url_parse
-from app.models import User
-
-
-
-@app.route('/map_var', methods=['POST'])
-def map_var():
-    session["map_var"] = (request.form['variable'])
-    session["map_car"] = (request.form['Vehiculo'])
-    return redirect(url_for('show_vehicle_map'))
-    # return render_template('show_entries.html')
-
-
-@app.route('/graph_var', methods=['POST'])
-def graph_var():
-    session["graph_var_x"] = (request.form['variable_x'])
-    session["graph_var_y"] = (request.form['variable_y'])
-    return redirect(url_for('show_entries'))
-    # return render_template('show_entries.html')
-
-
+from app.models import User, Operation
+import os
 
 
 @app.route('/')
 @login_required
 def show_entries():
 
-    #db = get_db()
-    #df = pd.read_sql_query("SELECT * from entries", db)
-    #try:
-    #    session["graph_var_x"]
-    #    session["graph_var_y"]
-    #except KeyError:
-    #    session["graph_var_x"] = "tiempo"
-    #    session["graph_var_y"] = "soc"
-
-    #session["battery_temp"] = 40
-
-    # map_df = df[['longitude', 'latitude',session["map_var"]]]
+    try:
+        session["graph_var_x"]
+        session["graph_var_y"]
+    except KeyError:
+        session["graph_var_x"] = "timestamp"
+        session["graph_var_y"] = "soc"
+    query = "SELECT " + session["graph_var_x"] + " ," + session["graph_var_y"] + " from operation"
+    df = pd.read_sql_query(query, db.engine)
     # stations_map.plot_data(stations_df)
+    bar = plot.create_plot(df, session["graph_var_x"],session["graph_var_y"])
 
-    # Plotting variables
-    #plot_df = df[[session["graph_var_x"], session["graph_var_y"]]]
-    #bar = plot.create_plot(plot_df, session["graph_var_x"],session["graph_var_y"])
     return render_template('show_entries.html', plot=bar)
 
+
+
+@app.route('/tables')
+@login_required
+def show_tables():
+    df = pd.read_sql_query("SELECT * from vehicle", db.engine,index_col="id")
+    # df.drop(["password_hash"], axis=1, inplace=True)
+    return render_template('tables.html', tables=[df.to_html(classes='data')], titles=df.columns.values)
 
 
 @app.route('/stations_map')
@@ -59,6 +43,7 @@ def show_stations_map():
     stations_df = openmaps.get_stations()
     session["json_stations"] = Markup(stations_df.to_json(orient='records'))
     return render_template('stations_map.html')
+
 
 @app.route('/zones_map')
 @login_required
@@ -80,8 +65,9 @@ def show_vehicle_map():
         session["map_car"] = "seleccione vehiculo"
 
 
-    db = get_db()
-    df = pd.read_sql_query("SELECT * from entries", db)
+    session["title_var"] = str(session["map_var"]).replace('_', ' ').lower()
+    print(session["title_var"])
+    df = pd.read_sql_query("SELECT * from operation", db.engine)
     session["json_operation"] = Markup(df.to_json(orient='records'))
 
     return render_template('vehicle_map.html')
@@ -91,46 +77,28 @@ def show_vehicle_map():
 @app.route('/gauges')
 @login_required
 def show_indicators():
-    db = get_db()
-    df = pd.read_sql_query("SELECT * from entries limit 1", db)
-    for col in df.head():
-        if col == "id":
-            continue
-        # Create dict
-        session[col] = df[col]
-        s = df['A']
-        print(s)
-
-
+    df = pd.read_sql_query("SELECT * from entries limit 1", db.engine)
+    titles = df.columns.values
     return render_template('indicators.html')
-
-
 
 
 @app.route('/addjson', methods=['POST'])
 def add_entry():
 
-    db = get_db()
-    df = pd.read_sql_query("SELECT * from entries", db,index_col="id")
-    print(df)
+    df = pd.read_sql_query("SELECT * from entries", db.engine,index_col="id")
+    titles = df.columns.values
     content = {}
-    for col in df.head():
+    for col in titles:
         if col == "id":
             continue
         # Create dict
-        content[col]=request.args[col]
+        content[col] = request.args[col]
 
-
-    df = df.append(content, ignore_index=True)
-    df.to_sql('entries', db, schema="schema.sql", if_exists="append", index=False)
+    operation = User(content)
+    db.session.add(operation)
+    db.session.commit()
     flash('New data arrived')
     return redirect(url_for('show_entries'))
-
-
-
-
-
-
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -150,10 +118,11 @@ def login():
         return redirect(next_page)
     return render_template('login.html', title='Sign In', form=form)
 
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if current_user.is_authenticated:
-        return redirect(url_for('index'))
+        return redirect(url_for('show_entries'))
     form = RegistrationForm()
     if form.validate_on_submit():
         user = User(username=form.username.data, email=form.email.data)
@@ -170,6 +139,20 @@ def logout():
     logout_user()
     return redirect(url_for('show_entries'))
 
+@app.route('/map_var', methods=['POST'])
+def map_var():
+    session["map_var"] = (request.form['variable'])
+    session["map_car"] = (request.form['Vehiculo'])
+    return redirect(url_for('show_vehicle_map'))
+    # return render_template('show_entries.html')
+
+
+@app.route('/graph_var', methods=['POST'])
+def graph_var():
+    session["graph_var_x"] = (request.form['variable_x'])
+    session["graph_var_y"] = (request.form['variable_y'])
+    return redirect(url_for('show_entries'))
+    # return render_template('show_entries.html')
 
 # Icon webpage
 @app.route('/favicon.ico')

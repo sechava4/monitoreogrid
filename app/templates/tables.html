@@ -1,0 +1,28 @@
+{% extends "layout.html" %}
+{% block body %}
+    <body>
+        <div id="line_top_x"></div>
+        <ul class="nav nav-tabs">
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('show_entries') }}">Grafica de operación</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('show_stations_map') }}" >Mapas</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('show_indicators') }}">Indicadores</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link active" href="{{ url_for('show_tables') }}" >Tablas</a>
+          </li>
+        </ul>
+
+        <h1>Hola, {{ current_user.username }}</h1>
+
+
+{% for table in tables %}
+            {{titles[loop.index]}}
+            {{ table|safe }}
+{% endfor %}
+</body>
+{% endblock %}

@@ -1,8 +1,8 @@
-"""operations table
+"""empty message
 
-Revision ID: 6276f5147920
-Revises: 8e7a5cf75ea1
-Create Date: 2020-03-28 20:26:10.234635
+Revision ID: 5a22b934e23d
+Revises: fac5de52a14c
+Create Date: 2020-03-30 08:51:08.160753
 
 """
 from alembic import op
@@ -10,8 +10,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '6276f5147920'
-down_revision = '8e7a5cf75ea1'
+revision = '5a22b934e23d'
+down_revision = 'fac5de52a14c'
 branch_labels = None
 depends_on = None
 
@@ -38,17 +38,22 @@ def upgrade():
     sa.Column('soh', sa.Float(), nullable=True),
     sa.Column('voltage', sa.Float(), nullable=True),
     sa.Column('current', sa.Float(), nullable=True),
-    sa.Column('throtle', sa.Integer(), nullable=True),
+    sa.Column('throttle', sa.Integer(), nullable=True),
     sa.Column('regen_brake', sa.Float(), nullable=True),
     sa.Column('consumption', sa.Float(), nullable=True),
     sa.Column('range_est', sa.Integer(), nullable=True),
     sa.Column('range_ideal', sa.Integer(), nullable=True),
     sa.Column('drivetime', sa.Integer(), nullable=True),
+    sa.Column('charge_time', sa.Integer(), nullable=True),
     sa.Column('footbrake', sa.Integer(), nullable=True),
     sa.Column('engine_temp', sa.Float(), nullable=True),
     sa.Column('is_charging', sa.Integer(), nullable=True),
     sa.Column('tpms', sa.Float(), nullable=True),
+    sa.Column('ocv', sa.Float(), nullable=True),
+    sa.Column('occupants', sa.Integer(), nullable=True),
+    sa.Column('station_id', sa.Integer(), nullable=True),
     sa.Column('sensor_data', sa.String(), nullable=True),
+    sa.ForeignKeyConstraint(['station_id'], ['station.id'], ),
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
     sa.ForeignKeyConstraint(['vehicle_id'], ['vehicle.id'], ),
     sa.PrimaryKeyConstraint('id')
