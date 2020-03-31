@@ -24,8 +24,8 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
         <form action="{{ url_for('graph_var') }}" method=post>
             <select name = variable_x>
-                <option value="tiempo"> {{session.graph_var_x}}</option>
-                <option value="tiempo">Tiempo</option>
+                <option value="timestamp"> {{session.graph_var_x}}</option>
+                <option value="timestamp">Tiempo</option>
                 <option value="altitude">Altitud</option>
                 <option value="powerKw">Potencia</option>
                 <option value="soc">SOC</option>
