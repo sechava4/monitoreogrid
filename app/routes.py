@@ -13,13 +13,13 @@ import os
 @login_required
 def show_entries():
     titles = Operation.query.limit(1)
-    print(titles)
     try:
         session["graph_var_x"]
         session["graph_var_y"]
     except KeyError:
         session["graph_var_x"] = "timestamp"
         session["graph_var_y"] = "soc"
+    print(session["graph_var_x"])
     query = "SELECT " + session["graph_var_x"] + " ," + session["graph_var_y"] + " from operation"
     df = pd.read_sql_query(query, db.engine)
     # stations_map.plot_data(stations_df)
