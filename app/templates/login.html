@@ -1,25 +1,27 @@
-{% extends "layout.html" %}
-{% block body %}
-  <h2>Login</h2>
-  {% if error %}<p class=error><strong>Error:</strong> {{ error }}{% endif %}
-  <form action="{{ url_for('login') }}" method=post novalidate>
+{% extends "bootstrap/base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+{% block content %}
+
+<div class="container" >
+  <form class="form-signin" action="{{ url_for('login') }}" method=post novalidate>
+      <div class="text-center mb-4">
+        <img class="mb-4" src="/static/tracking-icon.png" alt="" width="72" height="72">
+        <h1 class="h3 mb-3 font-weight-normal">Plataforma de vehículos electricos</h1>
+        <p>Nuevo usuario?.  <a href="{{ url_for('register') }}">Registrate!</a></p>
+      </div>
         {{ form.hidden_tag() }}
-        <p>
-            {{ form.username.label }}<br>
-            {{ form.username(size=32) }}<br>
-            {% for error in form.username.errors %}
-            <span style="color: red;">[{{ error }}]</span>
-            {% endfor %}
-        </p>
-        <p>
-            {{ form.password.label }}<br>
-            {{ form.password(size=32) }}<br>
-            {% for error in form.password.errors %}
-            <span style="color: red;">[{{ error }}]</span>
-            {% endfor %}
-        </p>
+              <d1>
+                {{ wtf.form_field(form.username, class='form-control', placeholder='Ingresa tu usuario...') }}
+              </d1>
+              <d1>
+                {{ wtf.form_field(form.password, class='form-control', placeholder='Ingresa tu contraseña...') }}
+             </d1>
+      <div class="form-label-group">
         <p>{{ form.remember_me() }} {{ form.remember_me.label }}</p>
-        <p>{{ form.submit() }}</p>
+      </div>
+    <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
+  <p class="mt-5 mb-3 text-muted text-center">&copy;GRID 2020</p>
   </form>
-  <p>New User? <a href="{{ url_for('register') }}">Click to Register!</a></p>
+</div>
 {% endblock %}
+

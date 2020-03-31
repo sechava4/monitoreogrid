@@ -12,7 +12,8 @@ import os
 @app.route('/')
 @login_required
 def show_entries():
-
+    titles = Operation.query.limit(1)
+    print(titles)
     try:
         session["graph_var_x"]
         session["graph_var_y"]
@@ -77,7 +78,7 @@ def show_vehicle_map():
 @app.route('/gauges')
 @login_required
 def show_indicators():
-    df = pd.read_sql_query("SELECT * from entries limit 1", db.engine)
+    df = pd.read_sql_query("SELECT * from operation limit 1", db.engine)
     titles = df.columns.values
     return render_template('indicators.html')
 
@@ -85,7 +86,8 @@ def show_indicators():
 @app.route('/addjson', methods=['POST'])
 def add_entry():
 
-    df = pd.read_sql_query("SELECT * from entries", db.engine,index_col="id")
+    df = pd.read_sql_query("SELECT * from operation limit 1", db.engine,index_col="id")
+    titles = Operation.query.limit(1)
     titles = df.columns.values
     content = {}
     for col in titles:
@@ -104,7 +106,7 @@ def add_entry():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for('show_zones_map'))
+        return redirect(url_for('show_entries'))
     form = LoginForm()
     if form.validate_on_submit():
         user = User.query.filter_by(username=form.username.data).first()
@@ -114,7 +116,7 @@ def login():
         login_user(user, remember=form.remember_me.data)
         next_page = request.args.get('next')
         if not next_page or url_parse(next_page).netloc != '':
-            next_page = url_for('show_zones_map')
+            next_page = url_for('show_entries')
         return redirect(next_page)
     return render_template('login.html', title='Sign In', form=form)
 

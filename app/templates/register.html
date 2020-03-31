@@ -1,36 +1,29 @@
-{% extends "layout.html" %}
-{% block body %}
-    <h1>Register</h1>
-    <form action="" method="post">
+{% extends "bootstrap/base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+{% block content %}
+
+
+<div class="container" >
+    <form class="form-signin" action="" method="post">
+      <div class="text-center mb-4">
+        <img class="mb-4" src="/static/tracking-icon.png" alt="" width="72" height="72">
+        <h1 class="h3 mb-3 font-weight-normal">Registro </h1>
+      </div>
         {{ form.hidden_tag() }}
-        <p>
-            {{ form.username.label }}<br>
-            {{ form.username(size=32) }}<br>
-            {% for error in form.username.errors %}
-            <span style="color: red;">[{{ error }}]</span>
-            {% endfor %}
-        </p>
-        <p>
-            {{ form.email.label }}<br>
-            {{ form.email(size=64) }}<br>
-            {% for error in form.email.errors %}
-            <span style="color: red;">[{{ error }}]</span>
-            {% endfor %}
-        </p>
-        <p>
-            {{ form.password.label }}<br>
-            {{ form.password(size=32) }}<br>
-            {% for error in form.password.errors %}
-            <span style="color: red;">[{{ error }}]</span>
-            {% endfor %}
-        </p>
-        <p>
-            {{ form.password2.label }}<br>
-            {{ form.password2(size=32) }}<br>
-            {% for error in form.password2.errors %}
-            <span style="color: red;">[{{ error }}]</span>
-            {% endfor %}
-        </p>
-        <p>{{ form.submit() }}</p>
-    </form>
+          <d1>
+            {{ wtf.form_field(form.username, class='form-control', placeholder='Ingresa tu usuario...') }}
+          </d1>
+          <d1>
+            {{ wtf.form_field(form.email, class='form-control', placeholder='Ingresa tu email...') }}
+         </d1>
+         <d1>
+            {{ wtf.form_field(form.password, class='form-control', placeholder='Ingresa tu contraseña...') }}
+         </d1>
+         <d1>
+            {{ wtf.form_field(form.password2, class='form-control', placeholder='Ingresa tu contraseña nuevamente...') }}
+         </d1>
+         <button class="btn btn-lg btn-primary btn-block" type="submit">Registrarse</button>
+      <p class="mt-5 mb-3 text-muted text-center">&copy;GRID 2020</p>
+  </form>
+</div>
 {% endblock %}
