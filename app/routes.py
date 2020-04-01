@@ -112,6 +112,8 @@ def add_entry():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
+        session["graph_var_x"] = "timestamp"
+        session["graph_var_y"] = "soc"
         return redirect(url_for('show_entries'))
     form = LoginForm()
     if form.validate_on_submit():
@@ -123,6 +125,8 @@ def login():
         next_page = request.args.get('next')
         if not next_page or url_parse(next_page).netloc != '':
             next_page = url_for('show_entries')
+        session["graph_var_x"] = "timestamp"
+        session["graph_var_y"] = "soc"
         return redirect(next_page)
     return render_template('login.html', title='Sign In', form=form)
 
