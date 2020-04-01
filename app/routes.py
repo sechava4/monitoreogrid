@@ -21,7 +21,13 @@ def show_entries():
         session["graph_var_y"] = "soc"
     print(session["graph_var_x"])
     query = "SELECT " + session["graph_var_x"] + " ," + session["graph_var_y"] + " from operation"
-    df = pd.read_sql_query(query, db.engine)
+    errorlog = str("sqlalchemy.exc.OperationalError")
+    try:
+        df = pd.read_sql_query(query, db.engine)
+    except errorlog:
+        session["graph_var_x"] = "timestamp"
+        session["graph_var_y"] = "soc"
+
     # stations_map.plot_data(stations_df)
     bar = plot.create_plot(df, session["graph_var_x"],session["graph_var_y"])
 

@@ -1,5 +1,4 @@
-from flask import Flask, request, session, g, redirect, url_for, Markup, \
-    render_template, flash,send_from_directory # g stands for global
+from flask import Flask
 from app.config import Config
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate

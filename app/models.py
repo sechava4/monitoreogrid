@@ -78,7 +78,6 @@ class Operation(db.Model):
     acceleration = db.Column(db.Float)
     capacity = db.Column(db.Float)
     vehicle_id = db.Column(db.Integer, db.ForeignKey('vehicle.id'))
-    capacity = db.Column(db.Float)
     soc = db.Column(db.Float)
     soh = db.Column(db.Float)
     voltage = db.Column(db.Float)
