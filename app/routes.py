@@ -19,7 +19,6 @@ def show_entries():
     except KeyError:
         session["graph_var_x"] = "timestamp"
         session["graph_var_y"] = "soc"
-    print(session["graph_var_x"])
     query = "SELECT " + session["graph_var_x"] + " ," + session["graph_var_y"] + " from operation"
 
     df = pd.read_sql_query(query, db.engine)
