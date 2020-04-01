@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, session
 from app.config import Config
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
@@ -10,6 +10,7 @@ app = Flask(__name__)
 app.config.from_object(Config)
 db = SQLAlchemy(app)
 Bootstrap(app)
+
 
 if db.engine.url.drivername == 'sqlite':
     migrate = Migrate(app, db)
