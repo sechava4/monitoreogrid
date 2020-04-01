@@ -25,10 +25,9 @@ def show_entries():
     df = pd.read_sql_query(query, db.engine)
 
     # stations_map.plot_data(stations_df)
-    bar = plot.create_plot(df, session["graph_var_x"],session["graph_var_y"])
+    bar = plot.create_plot(df, session["graph_var_x"], session["graph_var_y"])
 
     return render_template('show_entries.html', plot=bar)
-
 
 
 @app.route('/tables')
