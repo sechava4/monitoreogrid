@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 5a22b934e23d
-Revises: fac5de52a14c
-Create Date: 2020-03-30 08:51:08.160753
+Revision ID: 3cf91c519552
+Revises: d43ad355969a
+Create Date: 2020-04-02 16:00:14.393806
 
 """
 from alembic import op
@@ -10,8 +10,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '5a22b934e23d'
-down_revision = 'fac5de52a14c'
+revision = '3cf91c519552'
+down_revision = 'd43ad355969a'
 branch_labels = None
 depends_on = None
 
@@ -24,7 +24,7 @@ def upgrade():
     sa.Column('latitude', sa.Float(), nullable=True),
     sa.Column('longitude', sa.Float(), nullable=True),
     sa.Column('elevation', sa.Float(), nullable=True),
-    sa.Column('slope', sa.String(), nullable=True),
+    sa.Column('slope', sa.Float(), nullable=True),
     sa.Column('speed', sa.Integer(), nullable=True),
     sa.Column('odometer', sa.Integer(), nullable=True),
     sa.Column('user_id', sa.Integer(), nullable=True),
@@ -32,8 +32,8 @@ def upgrade():
     sa.Column('ext_temp', sa.Float(), nullable=True),
     sa.Column('power_kw', sa.Float(), nullable=True),
     sa.Column('acceleration', sa.Float(), nullable=True),
-    sa.Column('vehicle_id', sa.Integer(), nullable=True),
     sa.Column('capacity', sa.Float(), nullable=True),
+    sa.Column('vehicle_id', sa.Integer(), nullable=True),
     sa.Column('soc', sa.Float(), nullable=True),
     sa.Column('soh', sa.Float(), nullable=True),
     sa.Column('voltage', sa.Float(), nullable=True),
@@ -52,7 +52,7 @@ def upgrade():
     sa.Column('ocv', sa.Float(), nullable=True),
     sa.Column('occupants', sa.Integer(), nullable=True),
     sa.Column('station_id', sa.Integer(), nullable=True),
-    sa.Column('sensor_data', sa.String(), nullable=True),
+    sa.Column('sensor_data', sa.String(length=128), nullable=True),
     sa.ForeignKeyConstraint(['station_id'], ['station.id'], ),
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
     sa.ForeignKeyConstraint(['vehicle_id'], ['vehicle.id'], ),

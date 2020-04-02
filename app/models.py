@@ -68,7 +68,7 @@ class Operation(db.Model):
     latitude = db.Column(db.Float)
     longitude = db.Column(db.Float)
     elevation = db.Column(db.Float)
-    slope = db.Column(db.String)
+    slope = db.Column(db.Float)
     speed = db.Column(db.Integer)
     odometer = db.Column(db.Integer)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
@@ -96,7 +96,7 @@ class Operation(db.Model):
     ocv = db.Column(db.Float)
     occupants = db.Column(db.Integer)
     station_id = db.Column(db.Integer, db.ForeignKey('station.id'))
-    sensor_data = db.Column(db.String)
+    sensor_data = db.Column(db.String(128))
 
     def __repr__(self):
         return '<User = {} Placa = {} Timestamp = {}>'.format(self.placa, self.username, self.timestamp)
