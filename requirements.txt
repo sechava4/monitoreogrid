@@ -8,4 +8,4 @@ pydeck==0.2.1
 pandas==1.0.3
 plotly==4.5.4
 Flask-Migrate==2.5.3
-waitress
+python-dotenv
