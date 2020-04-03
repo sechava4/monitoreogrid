@@ -105,7 +105,6 @@ def add_entry():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    print(db)
     if current_user.is_authenticated:
         session["graph_var_x"] = "timestamp"
         session["graph_var_y"] = "soc"
