@@ -12,7 +12,7 @@ class devConfig(object):
     TESTING = False
 
 
-class ProdConfig(object):
+class Config(object):
 
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'adljsakljqk24e21cjn!Ew@fhfghfghggg4565t@dsa'
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
