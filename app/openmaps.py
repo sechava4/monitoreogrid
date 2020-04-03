@@ -11,7 +11,7 @@ def get_stations():
 
 
 def get_zones():
-    file = os.path.join(app.root_path,'zones.txt')
+    file = os.path.join(app.root_path, 'zones.csv')
     zones = pd.read_csv(file)
     zones = zones[["name", "lon", "lat"]]
     return zones
@@ -28,14 +28,14 @@ if __name__ == '__main__':
     except FileNotFoundError:
         OD = get_zones()
     OD
-    doc = os.path.join(app.root_path, 'zones.txt')
+    doc = os.path.join(app.root_path, 'zones.csv')
 
     #OD = OD[["zone", "name","lat","lon"]]
     #OD['zone'] = OD['zone'].map(lambda x: str(x).replace("Z",""))
     #OD["zone"] = OD["zone"].astype(float)
     #OD = OD.sort_values(by=["zone"])
-    #OD.to_csv("zones.txt", index=False)
-    #test = pd.read_csv("zones.txt")
+    #OD.to_csv("zones.csv", index=False)
+    #test = pd.read_csv("zones.csv")
 
     #df2 = pd.read_csv("Z_Z.txt", sep=";", names=["z_o", "lat_o", "lon_o", "z_d", "lat_d", "lon_d", "6", "7"])
     #df2.drop_duplicates(subset="z_o", inplace=True)

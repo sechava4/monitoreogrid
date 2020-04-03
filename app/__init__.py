@@ -1,13 +1,16 @@
 from flask import Flask, session
-from app.config import Config
+from app.config import devConfig, ProdConfig
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager
 from flask_bootstrap import Bootstrap
 
 app = Flask(__name__)
-app.config.from_object(Config)
+app.config.from_object(devConfig)
+#app.config.from_object(ProdConfig)
+print(devConfig.SQLALCHEMY_DATABASE_URI)
 db = SQLAlchemy(app)
+print(db)
 Bootstrap(app)
 
 if db.engine.url.drivername == 'sqlite':

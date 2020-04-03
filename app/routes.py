@@ -47,7 +47,7 @@ def show_stations_map():
 
 
 @app.route('/zones_map')
-@login_required
+#@login_required
 def show_zones_map():
     # Map rendering
     stations_df = openmaps.get_zones()
@@ -105,6 +105,7 @@ def add_entry():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    print(db)
     if current_user.is_authenticated:
         session["graph_var_x"] = "timestamp"
         session["graph_var_y"] = "soc"
