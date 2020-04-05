@@ -12,18 +12,31 @@ import os
 @app.route('/')
 @login_required
 def show_entries():
-    titles = Operation.query.limit(1)
     try:
         session["graph_var_x"]
         session["graph_var_y"]
+        session["dataset"]
+        session["day"]
     except KeyError:
         session["graph_var_x"] = "timestamp"
         session["graph_var_y"] = "soc"
+        session["dataset"] = "elevation.csv"
+        session["day"] = 1
+
     query = "SELECT " + session["graph_var_x"] + " ," + session["graph_var_y"] + " from operation"
+    # df = pd.read_sql_query(query, db.engine)
 
-    df = pd.read_sql_query(query, db.engine)
-
+    doc = os.path.join(app.root_path, session["dataset"])
+    df = pd.read_csv(doc, index_col="id")
+    try:
+        df = df[df["day"] == int(session["day"])]
+    except ValueError:
+        session["day"] = 1
+        df = df[df["day"] == int(session["day"])]
+    if session["graph_var_y"] not in df.columns:
+        session["graph_var_y"] = "soc"
     # stations_map.plot_data(stations_df)
+    print(df.head())
     bar = plot.create_plot(df, session["graph_var_x"], session["graph_var_y"])
 
     return render_template('show_entries.html', plot=bar)
@@ -62,13 +75,22 @@ def show_vehicle_map():
     try:
         session["map_var"]
     except KeyError:
-        session["map_var"] = "soc"
+        session["map_var"] = "elevation"
         session["map_car"] = "seleccione vehiculo"
 
 
     session["title_var"] = str(session["map_var"]).replace('_', ' ').lower()
     print(session["title_var"])
-    df = pd.read_sql_query("SELECT * from operation", db.engine)
+    query = "SELECT longitude, latitude, " + session["map_var"] + " from operation"
+
+    doc = os.path.join(app.root_path, 'elevation.csv')
+    df = pd.read_csv(doc, index_col="id")
+    df = df[df["day"] == 1]
+    if session["map_var"] not in df.columns:
+        session["map_var"] = "elevation"
+
+    df = df[["latitude", "longitude", session["map_var"], "timestamp"]]
+    #df = pd.read_sql_query("SELECT * from operation", db.engine)
     session["json_operation"] = Markup(df.to_json(orient='records'))
 
     return render_template('vehicle_map.html')
@@ -157,6 +179,8 @@ def map_var():
 def graph_var():
     session["graph_var_x"] = (request.form['variable_x'])
     session["graph_var_y"] = (request.form['variable_y'])
+    session["dataset"] = (request.form['dataset'])
+    session["day"] = (request.form['day'])
     return redirect(url_for('show_entries'))
     # return render_template('show_entries.html')
 

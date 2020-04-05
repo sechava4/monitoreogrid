@@ -28,9 +28,9 @@
 
 
         <div class="variables">
-        <form action="{{ url_for('graph_var') }}" method=post>
+        <form class="form-inline" action="{{ url_for('graph_var') }}" method=post>
         <div class="form-group">
-            <label for="exampleFormControlSelect1">Variable eje X</label>
+            <label for="exampleFormControlSelect1"> Eje X </label>
             <select class="form-control" id="exampleFormControlSelect1" name = variable_x>
                 <option value="timestamp"> {{session.graph_var_x}}</option>
                 <option value="timestamp">Tiempo</option>
@@ -64,10 +64,13 @@
             </select>
         </div>
         <div class="form-group">
-            <label for="exampleFormControlSelect2">Variable eje Y</label>
+            <label for="exampleFormControlSelect2"> Eje Y </label>
             <select class="form-control" id="exampleFormControlSelect2" name = variable_y>
                 <option value="soc"> {{session.graph_var_y}}</option>
                 <option value="elevation">Altitud</option>
+                <option value="accelerationX">Acc X</option>
+                <option value="accelerationY">Acc Y</option>
+                <option value="accelerationZ">Acc Z</option>
                 <option value="slope">Pendiente</option>
                 <option value="speed">Velocidad</option>
                 <option value="odometer">Odometro</option>
@@ -95,24 +98,27 @@
                 <option value="footbrake">Freno de pedal</option>
                 <option value="engine_temp">Temperatura de motor</option>
             </select>
+            <label> Dataset </label>
+            <select class="form-control" name = dataset>
+                <option value="elevation.csv">rutas</option>
+                <option value="21_rutas_accel.csv">Aceleraciones</option>
+            </select>
+            <label > Día </label>
+            <input class="form-control" type="number" placeholder="1 to 21" name = "day">
         </div>
         <button class="btn btn-lg btn-primary btn-block" type="submit">Ver</button>
         </form>
         </div>
-
         <div class="container">
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="chart" id="bargraph">
-                        <script>
-                            var graphs = {{plot | safe}};
-                            Plotly.plot('bargraph',graphs,{});
-                        </script>
-                    </div>
-                </div>
-            </div>
-        </div>
+            {{session.graph_var_y}}, Día {{session.day}}
 
+        <div class="chart" id="bargraph">
+            <script>
+                var graphs = {{plot | safe}};
+                Plotly.plot('bargraph',graphs,{});
+            </script>
+        </div>
+        </div>
 
     <script src="https://code.jquery.com/jquery-3.4.1.js"></script>
     <script src="/static/js/bootstrap.js"></script>

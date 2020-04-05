@@ -6,8 +6,8 @@ from flask_login import LoginManager
 from flask_bootstrap import Bootstrap
 
 app = Flask(__name__)
-app.config.from_object(devConfig)
-#app.config.from_object(ProdConfig)
+#app.config.from_object(devConfig)
+app.config.from_object(Config)
 db = SQLAlchemy(app)
 Bootstrap(app)
 

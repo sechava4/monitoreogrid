@@ -18,17 +18,20 @@ def get_zones():
 
 
 if __name__ == '__main__':
-    df = get_stations()
-    print(df.to_json(orient='records'))
-    stations_df = df[["longitude", "latitude"]]
-    try:
-        OD = pd.read_excel("RutasOD.xlsx", sep=";")
-        OD = OD[["zone", "name", "lat", "lon"]]
-        OD.drop_duplicates(subset="zone", inplace=True)
-    except FileNotFoundError:
-        OD = get_zones()
-    OD
-    doc = os.path.join(app.root_path, 'zones.csv')
+
+
+    #OD.drop_duplicates(subset="zone", inplace=True)
+    doc = os.path.join(app.root_path, '21_rutas.csv')
+    doc2 = os.path.join(app.root_path, '21_rutas_accel.csv')
+    #rutas = pd.read_csv(doc, names=["longitude", "latitude", "elevation", "x", "timestamp","y","soc"])
+    rutas1 = pd.read_csv(doc,index_col="id")
+    rutas2 = pd.read_csv(doc2, index_col="id")
+    rutas2 = rutas2[["accelerationX","accelerationY","accelerationZ", "Time_2", "dia"]]
+    #result = pd.concat([rutas1, rutas2], axis=1, join='inner')    #s=rutas[rutas["elevation"] >1]
+    #result.to_csv("elevation.csv")
+
+    #s.to_csv("elevation.csv")
+    #df = rutas[rutas.elevation.notnull()]
 
     #OD = OD[["zone", "name","lat","lon"]]
     #OD['zone'] = OD['zone'].map(lambda x: str(x).replace("Z",""))
