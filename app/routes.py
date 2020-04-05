@@ -35,8 +35,6 @@ def show_entries():
         df = df[df["day"] == int(session["day"])]
     if session["graph_var_y"] not in df.columns:
         session["graph_var_y"] = "soc"
-    # stations_map.plot_data(stations_df)
-    print(df.head())
     bar = plot.create_plot(df, session["graph_var_x"], session["graph_var_y"])
 
     return render_template('show_entries.html', plot=bar)
