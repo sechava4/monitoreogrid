@@ -1,6 +1,7 @@
 {% extends "layout.html" %}
 {% block body  %}
-
+<head>
+    <title>Dasboard</title>
         <!-- plotly graph. -->
         <h2>
             {{ current_user.username }}
@@ -84,7 +85,7 @@
                 <label> Dataset </label>
                 <select class="form-control" name = dataset>
                     <option value="{{session.dataset}}"> {{session.dataset}}</option>
-                    <option value="elevation.csv">Alturas</option>
+                    <option value="rutas.csv">Rutas</option>
                     <option value="21_rutas_accel.csv">Aceleraciones</option>
                 </select>
                 <label > Día </label>

@@ -4,7 +4,7 @@ id,var,var_pretty
 2,longitude,Longitud
 3,elevation,Altitud
 4,slope,Pendiente
-5,accelerationX,Acelecarión X
+5,accelerationX,Aceleración X
 6,accelerationY,Aceleración Y
 7,accelerationZ,Aceleración Z
 8,speed,Velocidad
@@ -34,3 +34,8 @@ id,var,var_pretty
 32,ocv,OCV
 33,occupants,Ocupantes
 34,station_id,ID de estación
+35,capacity_nominal,Capacidad nominal
+36,marca,Marca
+37,modelo,Modelo
+38,year,Año
+39,rul,Vida util restante

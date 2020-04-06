@@ -1,11 +1,30 @@
 {% extends "layout.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
 {% block body %}
-
-
-
-  {% for table in tables %}
-            {{titles[loop.index]}}
+<head>
+    <title>Tablas </title>
+        <form class="container" action="{{ url_for('show_tables') }}" method=post novalidate>
+                    <d1>
+                        {{ wtf.form_field(form.records, class='form-control') }}
+                    </d1>
+                <button class="btn btn-dark" type="submit">Ver</button>
+        </form>
+    <table class="table">
+    <thead>
+        <tr>
+            <th>{{session.dataset}}</th>
+        <tr>
+    </thead>
+    <tbody>
+        {% for table in tables %}
+        <tr>
+            <td>{{ table|safe }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
             {{ table|safe }}
-{% endfor %}
+</table>
 
 {% endblock %}
+
+

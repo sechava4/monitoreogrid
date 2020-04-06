@@ -1,5 +1,5 @@
 from app import app, openmaps, map, plot, db
-from app.forms import LoginForm, RegistrationForm
+from app.forms import LoginForm, RegistrationForm, TablesForm
 from flask import Flask, request, session, g, redirect, url_for, Markup, \
     render_template, flash,send_from_directory # g stands for global
 import pandas as pd
@@ -20,7 +20,7 @@ def show_entries():
     except KeyError:
         session["graph_var_x"] = "timestamp"
         session["graph_var_y"] = "soc"
-        session["dataset"] = "elevation.csv"
+        session["dataset"] = "rutas.csv"
         session["day"] = 1
 
     query = "SELECT " + session["graph_var_x"] + " ," + session["graph_var_y"] + " from operation"
@@ -38,6 +38,9 @@ def show_entries():
     if session["graph_var_y"] not in df.columns:
         session["graph_var_y"] = "soc"
 
+    if session["graph_var_x"] not in df.columns:
+        session["graph_var_x"] = "timestamp"
+
     bar = plot.create_plot(df, session["graph_var_x"], session["graph_var_y"])
 
     doc_var = os.path.join(app.root_path, "variables.csv")
@@ -49,12 +52,30 @@ def show_entries():
     return render_template('show_entries.html', plot=bar)
 
 
-@app.route('/tables')
+@app.route('/tables', methods=['GET', 'POST'])
 @login_required
 def show_tables():
-    df = pd.read_sql_query("SELECT * from vehicle", db.engine,index_col="id")
+    form = TablesForm()
+    if form.submit():
+        session["records"] = form.records.data
+
+    try:
+        session["records"]
+    except KeyError:
+        session["records"] = 20
+
+    if session["records"] is None:
+        session["records"] = 20
+
+    print(session["records"])
+
+    #session["records"] = (request.form['records'])
+    doc_dataset = os.path.join(app.root_path, session["dataset"])
+    df = pd.read_csv(doc_dataset, index_col="id")
+    df = df[1:(int(session["records"])+1)]
+    # df = pd.read_sql_query("SELECT * from vehicle", db.engine,index_col="id")
     # df.drop(["password_hash"], axis=1, inplace=True)
-    return render_template('tables.html', tables=[df.to_html(classes='data')], titles=df.columns.values)
+    return render_template('tables.html', tables=[df.to_html(classes='data')], titles=df.columns.values, form=form)
 
 
 @app.route('/stations_map')
@@ -90,7 +111,7 @@ def show_vehicle_map():
     print(session["title_var"])
     query = "SELECT longitude, latitude, " + session["map_var"] + " from operation"
 
-    doc = os.path.join(app.root_path, 'elevation.csv')
+    doc = os.path.join(app.root_path, 'rutas.csv')
     df = pd.read_csv(doc, index_col="id")
     df = df[df["day"] == 1]
     if session["map_var"] not in df.columns:
