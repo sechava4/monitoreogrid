@@ -26,16 +26,25 @@ def show_entries():
     query = "SELECT " + session["graph_var_x"] + " ," + session["graph_var_y"] + " from operation"
     # df = pd.read_sql_query(query, db.engine)
 
-    doc = os.path.join(app.root_path, session["dataset"])
-    df = pd.read_csv(doc, index_col="id")
+    doc_dataset = os.path.join(app.root_path, session["dataset"])
+    df = pd.read_csv(doc_dataset, index_col="id")
+
     try:
         df = df[df["day"] == int(session["day"])]
     except ValueError:
         session["day"] = 1
         df = df[df["day"] == int(session["day"])]
+
     if session["graph_var_y"] not in df.columns:
         session["graph_var_y"] = "soc"
+
     bar = plot.create_plot(df, session["graph_var_x"], session["graph_var_y"])
+
+    doc_var = os.path.join(app.root_path, "variables.csv")
+    variables = pd.read_csv(doc_var, index_col="id")
+
+    session["x_pretty_graph"] = variables.var_pretty[variables['var'] == session["graph_var_x"]].values[0]
+    session["y_pretty_graph"] = variables.var_pretty[variables['var'] == session["graph_var_y"]].values[0]
 
     return render_template('show_entries.html', plot=bar)
 

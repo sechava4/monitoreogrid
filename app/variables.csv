@@ -1,0 +1,36 @@
+id,var,var_pretty
+0,timestamp,Tiempo
+1,latitude,Latitud
+2,longitude,Longitud
+3,elevation,Altitud
+4,slope,Pendiente
+5,accelerationX,Acelecarión X
+6,accelerationY,Aceleración Y
+7,accelerationZ,Aceleración Z
+8,speed,Velocidad
+9,odometer,Odometro
+10,user_id,ID usuario
+11,batt_temp,Temperatura de batería
+12,ext_temp,Temperatura ambiente
+13,power_kw,Potencia (Kw)
+14,acceleration,Aceleración motor
+15,capacity,Capacidad de batería
+16,vehicle_id,ID de vahículo
+17,soc,SOC
+18,soh,SOH
+19,voltage,Voltaje
+20,current,Corriente
+21,throttle,(%) De aceleración
+22,regen_brake,Freno regenerativo
+23,consumption,Consumo
+24,range_est,Rango estimado
+25,range_ideal,Rango ideal
+26,drivetime,Tiempo de manejo
+27,charge_time,Tiempo de carga
+28,footbrake,(%) De freno
+29,engine_temp,Temperatura de motor
+30,is_charging,¿Está cargando?
+31,tpms,Presión de llantas
+32,ocv,OCV
+33,occupants,Ocupantes
+34,station_id,ID de estación

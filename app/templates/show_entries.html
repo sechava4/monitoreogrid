@@ -1,26 +1,9 @@
 {% extends "layout.html" %}
-{% block body %}
-
-    <body>
-        <div id="line_top_x"></div>
-        <ul class="nav nav-tabs">
-          <li class="nav-item">
-            <a class="nav-link active" href="{{ url_for('show_entries') }}">Grafica de operación</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('show_stations_map') }}" >Mapas</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('show_indicators') }}">Indicadores</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('show_tables') }}" >Tablas</a>
-          </li>
-        </ul>
+{% block body  %}
 
         <!-- plotly graph. -->
         <h2>
-            Hi, {{ current_user.username }}
+            {{ current_user.username }}
         </h2>
 
         <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
@@ -28,99 +11,98 @@
 
 
         <div class="variables">
-        <form class="form-inline" action="{{ url_for('graph_var') }}" method=post>
-        <div class="form-group">
-            <label for="exampleFormControlSelect1"> Eje X </label>
-            <select class="form-control" id="exampleFormControlSelect1" name = variable_x>
-                <option value="timestamp"> {{session.graph_var_x}}</option>
-                <option value="timestamp">Tiempo</option>
-                <option value="elevation">Altitud</option>
-                <option value="slope">Pendiente</option>
-                <option value="speed">Velocidad</option>
-                <option value="odometer">Odometro</option>
-                <option value="capacity">Capacidad</option>
-                <option value="slope">Pendiente</option>
-                <option value="power_kw">Potencia</option>
-                <option value="soc">SOC</option>
-                <option value="soh">SOH</option>
-                <option value="batt_temp">Temperatura de batería</option>
-                <option value="ext_temp">Temperatura externa</option>
-                <option value="voltage">Voltage</option>
-                <option value="current">Corriente</option>
-                <option value="acceleration">Aceleración motor</option>
-                <option value="throttle">Pedal de acelerador</option>
-                <option value="regen_brake">Freno regenerativo</option>
-                <option value="consumption">Consumo</option>
-                <option value="range_est">Rango estimado</option>
-                <option value="range_ideal">Rango ideal</option>
-                <option value="drivetime">Tiempo de manejo</option>
-                <option value="charge_time">Tiempo de carga</option>
-                <option value="is_charging">Esta cargando</option>
-                <option value="tpms">presion llantas</option>
-                <option value="ocv">OCV</option>
-                <option value="occupants">Ocupantes</option>
-                <option value="footbrake">Freno de pedal</option>
-                <option value="engine_temp">Temperatura de motor</option>
-            </select>
-        </div>
-        <div class="form-group">
-            <label for="exampleFormControlSelect2"> Eje Y </label>
-            <select class="form-control" id="exampleFormControlSelect2" name = variable_y>
-                <option value="soc"> {{session.graph_var_y}}</option>
-                <option value="elevation">Altitud</option>
-                <option value="accelerationX">Acc X</option>
-                <option value="accelerationY">Acc Y</option>
-                <option value="accelerationZ">Acc Z</option>
-                <option value="slope">Pendiente</option>
-                <option value="speed">Velocidad</option>
-                <option value="odometer">Odometro</option>
-                <option value="capacity">Capacidad</option>
-                <option value="slope">Pendiente</option>
-                <option value="power_kw">Potencia</option>
-                <option value="soc">SOC</option>
-                <option value="soh">SOH</option>
-                <option value="batt_temp">Temperatura de batería</option>
-                <option value="ext_temp">Temperatura externa</option>
-                <option value="voltage">Voltage</option>
-                <option value="current">Corriente</option>
-                <option value="acceleration">Aceleración motor</option>
-                <option value="throttle">Pedal de acelerador</option>
-                <option value="regen_brake">Freno regenerativo</option>
-                <option value="consumption">Consumo</option>
-                <option value="range_est">Rango estimado</option>
-                <option value="range_ideal">Rango ideal</option>
-                <option value="drivetime">Tiempo de manejo</option>
-                <option value="charge_time">Tiempo de carga</option>
-                <option value="is_charging">Esta cargando</option>
-                <option value="tpms">presion llantas</option>
-                <option value="ocv">OCV</option>
-                <option value="occupants">Ocupantes</option>
-                <option value="footbrake">Freno de pedal</option>
-                <option value="engine_temp">Temperatura de motor</option>
-            </select>
-            <label> Dataset </label>
-            <select class="form-control" name = dataset>
-                <option value="elevation.csv">rutas</option>
-                <option value="21_rutas_accel.csv">Aceleraciones</option>
-            </select>
-            <label > Día </label>
-            <input class="form-control" type="number" placeholder="1 to 21" name = "day">
-        </div>
-        <button class="btn btn-lg btn-primary btn-block" type="submit">Ver</button>
-        </form>
+            <form role="form" class="form-inline" action="{{ url_for('graph_var') }}" method=post>
+                <div class="form-group">
+                    <label for="exampleFormControlSelect1"> Eje X </label>
+                    <select class="form-control" id="exampleFormControlSelect1" name = variable_x>
+                        <option value="{{session.graph_var_x}}"> {{session.x_pretty_graph}}</option>
+                        <option value="timestamp">Tiempo</option>
+                        <option value="elevation">Altitud</option>
+                        <option value="slope">Pendiente</option>
+                        <option value="speed">Velocidad</option>
+                        <option value="odometer">Odometro</option>
+                        <option value="capacity">Capacidad</option>
+                        <option value="slope">Pendiente</option>
+                        <option value="power_kw">Potencia</option>
+                        <option value="soc">SOC</option>
+                        <option value="soh">SOH</option>
+                        <option value="batt_temp">Temperatura de batería</option>
+                        <option value="ext_temp">Temperatura externa</option>
+                        <option value="voltage">Voltage</option>
+                        <option value="current">Corriente</option>
+                        <option value="acceleration">Aceleración motor</option>
+                        <option value="throttle">Pedal de acelerador</option>
+                        <option value="regen_brake">Freno regenerativo</option>
+                        <option value="consumption">Consumo</option>
+                        <option value="range_est">Rango estimado</option>
+                        <option value="range_ideal">Rango ideal</option>
+                        <option value="drivetime">Tiempo de manejo</option>
+                        <option value="charge_time">Tiempo de carga</option>
+                        <option value="is_charging">Esta cargando</option>
+                        <option value="tpms">presion llantas</option>
+                        <option value="ocv">OCV</option>
+                        <option value="occupants">Ocupantes</option>
+                        <option value="footbrake">Freno de pedal</option>
+                        <option value="engine_temp">Temperatura de motor</option>
+                    </select>
+                </div>
+            <div class="form-group">
+                <label for="exampleFormControlSelect2"> Eje Y </label>
+                <select class="form-control" id="exampleFormControlSelect2" name = variable_y>
+                    <option value="{{session.graph_var_y}}"> {{session.y_pretty_graph}}</option>
+                    <option value="elevation">Altitud</option>
+                    <option value="accelerationX">Acc X</option>
+                    <option value="accelerationY">Acc Y</option>
+                    <option value="accelerationZ">Acc Z</option>
+                    <option value="slope">Pendiente</option>
+                    <option value="speed">Velocidad</option>
+                    <option value="odometer">Odometro</option>
+                    <option value="capacity">Capacidad</option>
+                    <option value="slope">Pendiente</option>
+                    <option value="power_kw">Potencia</option>
+                    <option value="soc">SOC</option>
+                    <option value="soh">SOH</option>
+                    <option value="batt_temp">Temperatura de batería</option>
+                    <option value="ext_temp">Temperatura externa</option>
+                    <option value="voltage">Voltage</option>
+                    <option value="current">Corriente</option>
+                    <option value="acceleration">Aceleración motor</option>
+                    <option value="throttle">Pedal de acelerador</option>
+                    <option value="regen_brake">Freno regenerativo</option>
+                    <option value="consumption">Consumo</option>
+                    <option value="range_est">Rango estimado</option>
+                    <option value="range_ideal">Rango ideal</option>
+                    <option value="drivetime">Tiempo de manejo</option>
+                    <option value="charge_time">Tiempo de carga</option>
+                    <option value="is_charging">Esta cargando</option>
+                    <option value="tpms">presion llantas</option>
+                    <option value="ocv">OCV</option>
+                    <option value="occupants">Ocupantes</option>
+                    <option value="footbrake">Freno de pedal</option>
+                    <option value="engine_temp">Temperatura de motor</option>
+                </select>
+                <label> Dataset </label>
+                <select class="form-control" name = dataset>
+                    <option value="{{session.dataset}}"> {{session.dataset}}</option>
+                    <option value="elevation.csv">Alturas</option>
+                    <option value="21_rutas_accel.csv">Aceleraciones</option>
+                </select>
+                <label > Día </label>
+                <input class="form-control" type="number" placeholder="1 to 21" name = "day">
+                <button class="btn btn-dark" type="submit">Ver</button>
+            </div>
+
+            </form>
         </div>
         <div class="container">
             {{session.graph_var_y}}, Día {{session.day}}
-
-        <div class="chart" id="bargraph">
-            <script>
-                var graphs = {{plot | safe}};
-                Plotly.plot('bargraph',graphs,{});
-            </script>
+            <div class="chart" id="bargraph">
+                <script>
+                    var graphs = {{plot | safe}};
+                    Plotly.plot('bargraph',graphs,{});
+                </script>
+            </div>
         </div>
-        </div>
 
-    <script src="https://code.jquery.com/jquery-3.4.1.js"></script>
-    <script src="/static/js/bootstrap.js"></script>
-    </body>
+
 {% endblock %}

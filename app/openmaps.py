@@ -17,18 +17,32 @@ def get_zones():
     return zones
 
 
+def concat(df1,df2):
+    result = pd.concat([df1, df2], axis=1, join='inner')
+    return result
+
+
+def filter_by_column_value(df, colname, value):
+    s= df[df[colname] == value]
+    return s
+
+
 if __name__ == '__main__':
 
 
     #OD.drop_duplicates(subset="zone", inplace=True)
-    doc = os.path.join(app.root_path, '21_rutas.csv')
-    doc2 = os.path.join(app.root_path, '21_rutas_accel.csv')
+    doc = os.path.join(app.root_path, 'variables.csv')
+    #doc2 = os.path.join(app.root_path, '21_rutas_accel.csv')
     #rutas = pd.read_csv(doc, names=["longitude", "latitude", "elevation", "x", "timestamp","y","soc"])
-    rutas1 = pd.read_csv(doc,index_col="id")
-    rutas2 = pd.read_csv(doc2, index_col="id")
-    rutas2 = rutas2[["accelerationX","accelerationY","accelerationZ", "Time_2", "dia"]]
-    #result = pd.concat([rutas1, rutas2], axis=1, join='inner')    #s=rutas[rutas["elevation"] >1]
-    #result.to_csv("elevation.csv")
+    df = pd.read_csv(doc, index_col="id")
+    s = df.var_pretty[df['var']=="speed"].values[0]
+    print(s.values[0])
+
+
+
+    #rutas2 = pd.read_csv(doc2, index_col="id")
+    #rutas2 = rutas2[["accelerationX","accelerationY","accelerationZ", "Time_2", "dia"]]
+    #df.to_csv("variables.csv")
 
     #s.to_csv("elevation.csv")
     #df = rutas[rutas.elevation.notnull()]
