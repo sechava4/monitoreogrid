@@ -1,8 +1,8 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, SubmitField, TextAreaField, IntegerField
+from wtforms import StringField, PasswordField, BooleanField, SubmitField, TextAreaField, IntegerField, SelectField
 from wtforms.validators import ValidationError, DataRequired, Email, EqualTo
 from app.models import User
-
+from app import open_dataframes
 
 class LoginForm(FlaskForm):
     username = TextAreaField('Usuario', validators=[DataRequired()])
@@ -12,7 +12,32 @@ class LoginForm(FlaskForm):
 
 
 class TablesForm(FlaskForm):
-    records = TextAreaField('Registros', validators=[DataRequired()])
+    records = IntegerField(' ', validators=[DataRequired()])
+    dataset = SelectField('dataset',choices=[("rutas.csv", "Rutas"), ("21_rutas_accel.csv", "Aceleraciones")])
+    submit = SubmitField('Ver')
+
+
+class VehicleMapForm(FlaskForm):
+    day = SelectField(
+        'Dia',
+        choices=[(i, i) for i in range(1, 21)],
+        coerce=int,
+        validators=[DataRequired()])
+
+    variable = SelectField('Variable')
+    submit = SubmitField('Ver')
+
+
+class PlotForm(FlaskForm):
+    day = SelectField(
+        'Dia',
+        choices=[(i, i) for i in range(1, 21)],
+        coerce=int,
+        validators=[DataRequired()])
+
+    variable_x = SelectField('Variable x')
+    variable_y = SelectField('Variable y')
+    dataset = SelectField('dataset')
     submit = SubmitField('Ver')
 
 

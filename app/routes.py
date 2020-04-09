@@ -1,5 +1,5 @@
-from app import app, openmaps, map, plot, db
-from app.forms import LoginForm, RegistrationForm, TablesForm
+from app import app, open_dataframes, plot, db
+from app.forms import LoginForm, RegistrationForm, TablesForm, VehicleMapForm
 from flask import Flask, request, session, g, redirect, url_for, Markup, \
     render_template, flash,send_from_directory # g stands for global
 import pandas as pd
@@ -7,6 +7,7 @@ from flask_login import current_user, login_user, logout_user, login_required
 from werkzeug.urls import url_parse
 from app.models import User, Operation
 import os
+
 
 
 @app.route('/')
@@ -42,13 +43,8 @@ def show_entries():
         session["graph_var_x"] = "timestamp"
 
     bar = plot.create_plot(df, session["graph_var_x"], session["graph_var_y"])
-
-    doc_var = os.path.join(app.root_path, "variables.csv")
-    variables = pd.read_csv(doc_var, index_col="id")
-
-    session["x_pretty_graph"] = variables.var_pretty[variables['var'] == session["graph_var_x"]].values[0]
-    session["y_pretty_graph"] = variables.var_pretty[variables['var'] == session["graph_var_y"]].values[0]
-
+    session["x_pretty_graph"] = open_dataframes.pretty_var_name(session["graph_var_x"])
+    session["y_pretty_graph"] = open_dataframes.pretty_var_name(session["graph_var_y"])
     return render_template('show_entries.html', plot=bar)
 
 
@@ -56,8 +52,9 @@ def show_entries():
 @login_required
 def show_tables():
     form = TablesForm()
-    if form.submit():
+    if form.is_submitted():
         session["records"] = form.records.data
+        session["dataset"] = form.dataset.data
 
     try:
         session["records"]
@@ -67,61 +64,53 @@ def show_tables():
     if session["records"] is None:
         session["records"] = 20
 
-    print(session["records"])
 
     #session["records"] = (request.form['records'])
     doc_dataset = os.path.join(app.root_path, session["dataset"])
     df = pd.read_csv(doc_dataset, index_col="id")
     df = df[1:(int(session["records"])+1)]
     # df = pd.read_sql_query("SELECT * from vehicle", db.engine,index_col="id")
-    # df.drop(["password_hash"], axis=1, inplace=True)
     return render_template('tables.html', tables=[df.to_html(classes='data')], titles=df.columns.values, form=form)
 
 
-@app.route('/stations_map')
-@login_required
-def show_stations_map():
-    # Map rendering
-    stations_df = openmaps.get_stations()
-    session["json_stations"] = Markup(stations_df.to_json(orient='records'))
-    return render_template('stations_map.html')
-
-
 @app.route('/zones_map')
-#@login_required
+@login_required
 def show_zones_map():
     # Map rendering
-    stations_df = openmaps.get_zones()
+    stations_df = open_dataframes.get_zones()
     session["json_zones"] = Markup(stations_df.to_json(orient='records'))
-    # print(session["json_zones"])
     return render_template('zones_map.html')
 
 
-@app.route('/vehicle_map')
+@app.route('/vehicle_map', methods=['GET', 'POST'])
 @login_required
 def show_vehicle_map():
+    form = VehicleMapForm()
+    if form.is_submitted():
+        session["day"] = form.day.data
+        session["map_var"] = form.variable.data
+
     try:
         session["map_var"]
     except KeyError:
         session["map_var"] = "elevation"
         session["map_car"] = "seleccione vehiculo"
 
+    lines_df = open_dataframes.get_lines(session["day"])
+    session["json_lines"] = Markup(lines_df.to_json(orient='records'))
 
-    session["title_var"] = str(session["map_var"]).replace('_', ' ').lower()
-    print(session["title_var"])
-    query = "SELECT longitude, latitude, " + session["map_var"] + " from operation"
+    alturas = open_dataframes.alturas_df(session["map_var"], session["day"])
+    session["json_operation"] = Markup(alturas.to_json(orient='records'))
 
-    doc = os.path.join(app.root_path, 'rutas.csv')
-    df = pd.read_csv(doc, index_col="id")
-    df = df[df["day"] == 1]
-    if session["map_var"] not in df.columns:
-        session["map_var"] = "elevation"
+    titles = alturas.columns.values
+    form.variable.choices = open_dataframes.form_var(titles)
 
-    df = df[["latitude", "longitude", session["map_var"], "timestamp"]]
-    #df = pd.read_sql_query("SELECT * from operation", db.engine)
-    session["json_operation"] = Markup(df.to_json(orient='records'))
+    session["title_var"] = open_dataframes.pretty_var_name(session["map_var"])
 
-    return render_template('vehicle_map.html')
+    # query = "SELECT longitude, latitude, " + session["map_var"] + " from operation"
+    # df = pd.read_sql_query("SELECT * from operation", db.engine)
+
+    return render_template('vehicle_map.html', form=form)
 
 
 
@@ -194,13 +183,6 @@ def register():
 def logout():
     logout_user()
     return redirect(url_for('show_entries'))
-
-@app.route('/map_var', methods=['POST'])
-def map_var():
-    session["map_var"] = (request.form['variable'])
-    session["map_car"] = (request.form['Vehiculo'])
-    return redirect(url_for('show_vehicle_map'))
-    # return render_template('show_entries.html')
 
 
 @app.route('/graph_var', methods=['POST'])

@@ -11,3 +11,4 @@ Flask-Migrate
 python-dotenv
 pymysql
 gunicorn
+gevent

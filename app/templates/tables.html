@@ -5,7 +5,8 @@
     <title>Tablas </title>
         <form class="container" action="{{ url_for('show_tables') }}" method=post novalidate>
                     <d1>
-                        {{ wtf.form_field(form.records, class='form-control') }}
+                        {{ wtf.form_field(form.records, class='form-control', placeholder="# de Registros") }}
+                        {{ wtf.form_field(form.dataset, class='form-control', placeholder="dataset") }}
                     </d1>
                 <button class="btn btn-dark" type="submit">Ver</button>
         </form>

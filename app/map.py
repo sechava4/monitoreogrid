@@ -1,38 +1,51 @@
 import pydeck as pdk
+import os
+from app import app
+doc_dataset = os.path.join(app.root_path, "test.csv")
+
+import pandas as pd
+
+DATA_URL = {
+    "AIRPORTS": "https://raw.githubusercontent.com/uber-common/deck.gl-data/master/examples/line/airports.json",
+    "FLIGHT_PATHS": "https://raw.githubusercontent.com/uber-common/deck.gl-data/master/examples/line/heathrow-flights.json",
+    # noqa
+}
+
+def draw_map():
+    INITIAL_VIEW_STATE = pdk.ViewState(latitude=47.65, longitude=7, zoom=4.5, max_zoom=16, pitch=50, bearing=0)
+
+    # RGBA value generated in Javascript by deck.gl's Javascript expression parser
+    GET_COLOR_JS = [
+        "255 * (1 - (start[2] / 10000) * 2)",
+        "128 * (start[2] / 10000)",
+        "255 * (start[2] / 10000)",
+        "255 * (1 - (start[2] / 10000))",
+    ]
 
 
-def plot_data(data_frame):
-    layer = pdk.Layer(
-        "ScatterplotLayer",
-        data_frame,
+    line_layer = pdk.Layer(
+        "LineLayer",
+        DATA_URL["FLIGHT_PATHS"],
+        get_source_position="start",
+        get_target_position="end",
+        get_color=GET_COLOR_JS,
+        get_width=10,
+        highlight_color=[255, 255, 0],
+        picking_radius=10,
+        auto_highlight=True,
         pickable=True,
-        opacity=0.8,
-        stroked=True,
-        filled=True,
-        radius_scale=6,
-        radius_min_pixels=5,
-        radius_max_pixels=5,
-        line_width_min_pixels=1,
-        get_position=["longitude","latitude"],
-        #get_radius="exits_radius",
-        get_fill_color=[255, 140, 0],
-        get_line_color=[0, 0, 0],
     )
 
-    # Set the viewport location
-    view_state = pdk.ViewState(
-        longitude=-75.56359,
-        latitude=6.25184,
-        zoom=10,
-        min_zoom=5,
-        max_zoom=15,
-        pitch=40.5,
-        bearing=-27.36
-    )
+    r = pdk.Deck(layers=line_layer, initial_view_state=INITIAL_VIEW_STATE, mapbox_key='pk.eyJ1Ijoic2VjaGF2YTQiLCJhIjoiY2s2dTF0eHQ0MDViaTNmbXRhaHVoaG85cSJ9.xMh2vZNuj2PfxsUksteApQ')
+    r.to_html("templates/map.html", notebook_display=False)
 
-    # Render
-    r = pdk.Deck(
-        layers=[layer], initial_view_state=view_state, tooltip={"text": "{name}\n{charger_types}"}
-    )
-    r.to_html("templates/map.html")
+
+
+if __name__ == "__main__":
+    df = pd.read_csv("rutas.csv")
+    df = df[["latitude", "longitude", "timestamp"]]
+    df['timestamp'] = pd.to_datetime(df['timestamp'])
+    df['timestamp'] = df['timestamp'].astype('int64')//1e9
+
+
 

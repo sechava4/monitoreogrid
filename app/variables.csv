@@ -15,7 +15,7 @@ id,var,var_pretty
 13,power_kw,Potencia (Kw)
 14,acceleration,Aceleración motor
 15,capacity,Capacidad de batería
-16,vehicle_id,ID de vahículo
+16,vehicle_id,ID de vehículo
 17,soc,SOC
 18,soh,SOH
 19,voltage,Voltaje
