@@ -76,7 +76,7 @@ def alturas_df(var, day):
         var = "elevation"
     df = df[["latitude", "longitude", var]]
     if var == "elevation":
-        df["elevation2"] = df["elevation"]
+        df["name"] = df[var]
         df[var] = df[var].map(lambda x: x-1520)
     return df
 

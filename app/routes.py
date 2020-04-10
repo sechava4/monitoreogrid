@@ -77,8 +77,8 @@ def show_tables():
 def show_zones_map():
     # Map rendering
     stations_df = open_dataframes.get_zones()
-    session["json_zones"] = Markup(stations_df.to_json(orient='records'))
-    return render_template('zones_map.html')
+    json_zones = Markup(stations_df.to_json(orient='records'))
+    return render_template('zones_map.html',json_zones=json_zones)
 
 
 @app.route('/vehicle_map', methods=['GET', 'POST'])
