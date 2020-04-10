@@ -95,11 +95,14 @@ def show_vehicle_map():
         session["map_var"] = "elevation"
         session["map_car"] = "seleccione vehiculo"
 
+    stations_df = open_dataframes.get_stations()
+    json_stations = Markup(stations_df.to_json(orient='records'))
+
     lines_df = open_dataframes.get_lines(session["day"])
-    session["json_lines"] = Markup(lines_df.to_json(orient='records'))
+    json_lines = Markup(lines_df.to_json(orient='records'))
 
     alturas = open_dataframes.alturas_df(session["map_var"], session["day"])
-    session["json_operation"] = Markup(alturas.to_json(orient='records'))
+    json_operation = Markup(alturas.to_json(orient='records'))
 
     titles = alturas.columns.values
     form.variable.choices = open_dataframes.form_var(titles)
@@ -109,7 +112,7 @@ def show_vehicle_map():
     # query = "SELECT longitude, latitude, " + session["map_var"] + " from operation"
     # df = pd.read_sql_query("SELECT * from operation", db.engine)
 
-    return render_template('vehicle_map.html', form=form)
+    return render_template('vehicle_map.html', form=form, json_lines=json_lines, json_operation=json_operation, json_stations = json_stations)
 
 
 
