@@ -38,7 +38,7 @@ def get_zones():
     return zones
 
 
-def concat(df1,df2):
+def concat(df1, df2):
     result = pd.concat([df1, df2], axis=1, join='inner')
     return result
 
@@ -60,7 +60,11 @@ def form_var(titles):
     groups_list = []
     for i in range(len(variables)):
         if (variables["var"][i]) in titles:
-            groups_list.insert(i,[(variables["var"][i]), (variables["var_pretty"][i])])
+            if (variables["var"][i]) == "longitude":
+                continue
+            if (variables["var"][i]) == "latitude":
+                continue
+            groups_list.insert(i, [(variables["var"][i]), (variables["var_pretty"][i])])
     return groups_list
 
 
@@ -70,22 +74,17 @@ def alturas_df(var, day):
     df = df[df["day"] == int(day)]
     if var not in df.columns:
         var = "elevation"
-    df = df[["latitude", "longitude", var, "timestamp"]]
+    df = df[["latitude", "longitude", var]]
+    if var == "elevation":
+        df[var] = df[var].map(lambda x: x-1520)
     return df
 
 
 if __name__ == '__main__':
 
-
-    # OD.drop_duplicates(subset="zone", inplace=True)
-    # doc2 = os.path.join(app.root_path, '21_rutas_accel.csv')
-    # rutas = pd.read_csv(doc, names=["longitude", "latitude", "elevation", "x", "timestamp","y","soc"])
-    # s = df.var_pretty[df['var']=="speed"].values[0]
-    # df = df[0:20]
     df = alturas_df("elevation", 1)
     titles = df.columns.values
-    if "tmestamp" in titles:
-        print("si")
+    titles = np.delete(titles, 0)
     a = form_var(titles)
 
     # Pandas
@@ -101,10 +100,9 @@ if __name__ == '__main__':
     # OD["zone"] = OD["zone"].astype(float)
     # OD = OD.sort_values(by=["zone"])
 
-    # df2 = pd.read_csv("Z_Z.txt", sep=";", names=["z_o", "lat_o", "lon_o", "z_d", "lat_d", "lon_d", "6", "7"])
-    # df2.drop_duplicates(subset="z_o", inplace=True)
-
-    # df2 = df2[["lat_o", "lon_o"]]
+    # OD.drop_duplicates(subset="zone", inplace=True)
+    # s = df.var_pretty[df['var']=="speed"].values[0]
+    # df = df[0:20]
 
 
 

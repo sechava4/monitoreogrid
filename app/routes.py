@@ -1,13 +1,12 @@
 from app import app, open_dataframes, plot, db
 from app.forms import LoginForm, RegistrationForm, TablesForm, VehicleMapForm
-from flask import Flask, request, session, g, redirect, url_for, Markup, \
-    render_template, flash,send_from_directory # g stands for global
+from flask import request, session, redirect, url_for, Markup, \
+    render_template, flash,send_from_directory
 import pandas as pd
 from flask_login import current_user, login_user, logout_user, login_required
 from werkzeug.urls import url_parse
 from app.models import User, Operation
 import os
-
 
 
 @app.route('/')
@@ -24,7 +23,7 @@ def show_entries():
         session["dataset"] = "rutas.csv"
         session["day"] = 1
 
-    query = "SELECT " + session["graph_var_x"] + " ," + session["graph_var_y"] + " from operation"
+    # query = "SELECT " + session["graph_var_x"] + " ," + session["graph_var_y"] + " from operation"
     # df = pd.read_sql_query(query, db.engine)
 
     doc_dataset = os.path.join(app.root_path, session["dataset"])
@@ -192,9 +191,8 @@ def graph_var():
     session["dataset"] = (request.form['dataset'])
     session["day"] = (request.form['day'])
     return redirect(url_for('show_entries'))
-    # return render_template('show_entries.html')
 
-# Icon webpage
+
 @app.route('/favicon.ico')
 def favicon():
-    return send_from_directory(os.path.join(app.root_path, 'static'),'monitor.ico')
+    return send_from_directory(os.path.join(app.root_path, 'static'), 'monitor.ico')
