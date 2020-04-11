@@ -1,0 +1,32 @@
+{
+"type": "FeatureCollection",
+"features": [
+{ "type": "Feature", "properties": { "name": "EDS Santa Maria" }, "geometry": { "type": "Point", "coordinates": [ 6.153383, -75.619322 ] } },
+{ "type": "Feature", "properties": { "name": "Terpel Mayorca" }, "geometry": { "type": "Point", "coordinates": [ 6.158592, -75.608899 ] } },
+{ "type": "Feature", "properties": { "name": "Centro Comercial Mayorca" }, "geometry": { "type": "Point", "coordinates": [ 6.160203, -75.605162 ] } },
+{ "type": "Feature", "properties": { "name": "Viva Envigado" }, "geometry": { "type": "Point", "coordinates": [ 6.174418, -75.593207 ] } },
+{ "type": "Feature", "properties": { "name": "Texaco Las Vegas" }, "geometry": { "type": "Point", "coordinates": [ 6.178751, -75.588392 ] } },
+{ "type": "Feature", "properties": { "name": "Nissan Envigado" }, "geometry": { "type": "Point", "coordinates": [ 6.179634, -75.587818 ] } },
+{ "type": "Feature", "properties": { "name": "Viva Palmas" }, "geometry": { "type": "Point", "coordinates": [ 6.153471, -75.541502 ] } },
+{ "type": "Feature", "properties": { "name": "EDS Rionegro" }, "geometry": { "type": "Point", "coordinates": [ 6.17947, -75.442262 ] } },
+{ "type": "Feature", "properties": { "name": "Centro Comercial Santafé" }, "geometry": { "type": "Point", "coordinates": [ 6.196231, -75.574578 ] } },
+{ "type": "Feature", "properties": { "name": "Parque Comercial El Tesoro" }, "geometry": { "type": "Point", "coordinates": [ 6.196999, -75.559994 ] } },
+{ "type": "Feature", "properties": { "name": "Oviedo Centro Comercial" }, "geometry": { "type": "Point", "coordinates": [ 6.198975, -75.574131 ] } },
+{ "type": "Feature", "properties": { "name": "Mall Del Este" }, "geometry": { "type": "Point", "coordinates": [ 6.198444, -75.556959 ] } },
+{ "type": "Feature", "properties": { "name": "Distrito de Negocios Milla de Oro" }, "geometry": { "type": "Point", "coordinates": [ 6.199602, -75.572194 ] } },
+{ "type": "Feature", "properties": { "name": "San Fernando Plaza" }, "geometry": { "type": "Point", "coordinates": [ 6.204201, -75.571041 ] } },
+{ "type": "Feature", "properties": { "name": "CES Universidad" }, "geometry": { "type": "Point", "coordinates": [ 6.209045, -75.553487 ] } },
+{ "type": "Feature", "properties": { "name": "Exito El Poblado" }, "geometry": { "type": "Point", "coordinates": [ 6.211327, -75.575497 ] } },
+{ "type": "Feature", "properties": { "name": "Mall Autos Sura" }, "geometry": { "type": "Point", "coordinates": [ 6.214279, -75.581041 ] } },
+{ "type": "Feature", "properties": { "name": "Centro Comercial Los Molinos" }, "geometry": { "type": "Point", "coordinates": [ 6.232252, -75.604598 ] } },
+{ "type": "Feature", "properties": { "name": "EDS Colibrí" }, "geometry": { "type": "Point", "coordinates": [ 6.238011, -75.575545 ] } },
+{ "type": "Feature", "properties": { "name": "Unicentro" }, "geometry": { "type": "Point", "coordinates": [ 6.240644, -75.58711 ] } },
+{ "type": "Feature", "properties": { "name": "Viva Laureles" }, "geometry": { "type": "Point", "coordinates": [ 6.245242, -75.601492 ] } },
+{ "type": "Feature", "properties": { "name": "Parqueadero Plaza Mayor" }, "geometry": { "type": "Point", "coordinates": [ 6.243042, -75.575838 ] } },
+{ "type": "Feature", "properties": { "name": "Primer parque de Laureles" }, "geometry": { "type": "Point", "coordinates": [ 6.245662, -75.593411 ] } },
+{ "type": "Feature", "properties": { "name": "EDS Av. Nutivara" }, "geometry": { "type": "Point", "coordinates": [ 6.248194, -75.598263 ] } },
+{ "type": "Feature", "properties": { "name": "Centro Comercial Florida" }, "geometry": { "type": "Point", "coordinates": [ 6.270661, -75.576939 ] } },
+{ "type": "Feature", "properties": { "name": "Centro Comercial Puerta de Norte" }, "geometry": { "type": "Point", "coordinates": [ 6.340245, -75.541042 ] } },
+{ "type": "Feature", "properties": { "name": "Exito de Colombia" }, "geometry": { "type": "Point", "coordinates": [ 6.255442, -75.582832 ] } }
+]
+}
