@@ -4,6 +4,10 @@ __pycache__/
 venv/
 
 =======
+monitoreogrid
+nearest.py
+nearestneighbor.py
+monitoreogrid.pub
 
 venv/
 
@@ -12,6 +16,3 @@ venv/
 __pycache__/
 >>>>>>> master
 
-monitoreogrid
-
-monitoreogrid.pub

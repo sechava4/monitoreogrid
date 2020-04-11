@@ -1,4 +1,4 @@
-from app import app, open_dataframes, plot, db
+from app import app, open_dataframes, plot, db, closest_points
 from app.forms import LoginForm, RegistrationForm, TablesForm, VehicleMapForm
 from flask import request, session, redirect, url_for, Markup, \
     render_template, flash,send_from_directory
@@ -7,6 +7,7 @@ from flask_login import current_user, login_user, logout_user, login_required
 from werkzeug.urls import url_parse
 from app.models import User, Operation
 import os
+import geopandas as gpd
 
 
 @app.route('/')
@@ -96,12 +97,16 @@ def show_vehicle_map():
         session["map_car"] = "seleccione vehiculo"
 
     stations_df = open_dataframes.get_stations()
+    stations_gdf = open_dataframes.get_geostations()
     json_stations = Markup(stations_df.to_json(orient='records'))
 
     lines_df = open_dataframes.get_lines(session["day"])
     json_lines = Markup(lines_df.to_json(orient='records'))
 
     alturas = open_dataframes.alturas_df(session["map_var"], session["day"])
+    #current_pos = alturas.iloc[1:2]
+    #current_pos_gdf = closest_points.create_gdf(alturas)
+    #alturas["closest_station"] = current_pos_gdf.apply(closest_points.calculate_nearest, destination=stations_gdf, val="name", axis=1)
     json_operation = Markup(alturas.to_json(orient='records'))
 
     titles = alturas.columns.values

@@ -12,3 +12,4 @@ python-dotenv
 pymysql
 gunicorn
 gevent
+scipy

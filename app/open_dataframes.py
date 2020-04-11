@@ -2,12 +2,20 @@ import pandas as pd
 import os
 from app import app
 import numpy as np
+import geopandas as gpd
+
+
+def get_geostations():
+    file = os.path.join(app.root_path, "stations_gdf.geojson")
+    gdf = gpd.read_file(file)
+    return gdf
 
 
 def get_stations():
     file = os.path.join(app.root_path, "stations.json")
     df = pd.read_json(file)
     df.columns = ["name","latitude","longitude", "charger_types"]
+    df = df[["name","latitude","longitude"]]
     return df
 
 
@@ -34,7 +42,7 @@ def get_lines(day):
 def get_zones():
     file = os.path.join(app.root_path, 'zones.csv')
     zones = pd.read_csv(file)
-    zones = zones[["name", "lon", "lat"]]
+    zones = zones[["name", "longitude", "latitude"]]
     return zones
 
 
