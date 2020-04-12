@@ -12,5 +12,4 @@ python-dotenv
 pymysql
 gunicorn
 gevent
-geopandas
-scipy
+scikit-learn

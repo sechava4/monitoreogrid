@@ -98,18 +98,17 @@ def show_vehicle_map():
         session["map_car"] = "seleccione vehiculo"
 
     stations_df = open_dataframes.get_stations()
-    stations_gdf = open_dataframes.get_geostations()
     json_stations = Markup(stations_df.to_json(orient='records'))
 
     lines_df = open_dataframes.get_lines(session["day"])
     json_lines = Markup(lines_df.to_json(orient='records'))
 
     alturas = open_dataframes.alturas_df(session["map_var"], session["day"])
-    current_pos = alturas.iloc[1:2]
+    # current_pos = alturas.iloc[1:2]
 
-    #current_pos_gdf = closest_points.create_gdf(alturas)
-    _, current_pos['id_nearest'] = Trees.station_tree.query(current_pos[['latitude', 'longitude']].values, k=1)
-    session["closest_station"] = stations_df["name"].iloc[current_pos['id_nearest']].item()
+    _, alturas['id_nearest'] = Trees.station_tree.query(alturas[['latitude', 'longitude']].values, k=1)
+    alturas["closest_stations"] = stations_df["name"].reindex(index=alturas['id_nearest']).tolist()
+    # session["closest_station"] = stations_df["name"].iloc[current_pos['id_nearest']].item()
     json_operation = Markup(alturas.to_json(orient='records'))
 
     titles = alturas.columns.values
@@ -120,7 +119,8 @@ def show_vehicle_map():
     # query = "SELECT longitude, latitude, " + session["map_var"] + " from operation"
     # df = pd.read_sql_query("SELECT * from operation", db.engine)
 
-    return render_template('vehicle_map.html', form=form, json_lines=json_lines, json_operation=json_operation, json_stations = json_stations)
+    return render_template('vehicle_map.html', form=form, json_lines=json_lines, json_operation=json_operation,
+                           json_stations=json_stations)
 
 
 
