@@ -1,4 +1,5 @@
-from app import app, open_dataframes, plot, db, closest_points
+from app import app, open_dataframes, plot, db
+from app.closest_points import Trees
 from app.forms import LoginForm, RegistrationForm, TablesForm, VehicleMapForm
 from flask import request, session, redirect, url_for, Markup, \
     render_template, flash,send_from_directory
@@ -104,9 +105,11 @@ def show_vehicle_map():
     json_lines = Markup(lines_df.to_json(orient='records'))
 
     alturas = open_dataframes.alturas_df(session["map_var"], session["day"])
-    #current_pos = alturas.iloc[1:2]
+    current_pos = alturas.iloc[1:2]
+
     #current_pos_gdf = closest_points.create_gdf(alturas)
-    #alturas["closest_station"] = current_pos_gdf.apply(closest_points.calculate_nearest, destination=stations_gdf, val="name", axis=1)
+    _, current_pos['id_nearest'] = Trees.station_tree.query(current_pos[['latitude', 'longitude']].values, k=1)
+    session["closest_station"] = stations_df["name"].iloc[current_pos['id_nearest']].item()
     json_operation = Markup(alturas.to_json(orient='records'))
 
     titles = alturas.columns.values
@@ -132,11 +135,8 @@ def show_indicators():
 @app.route('/addjson', methods=['POST'])
 def add_entry():
 
-    df = pd.read_sql_query("SELECT * from operation limit 1", db.engine,index_col="id")
-    titles = Operation.query.limit(1)
-    titles = df.columns.values
     content = {}
-    for col in titles:
+    for col in Operation.titles:
         if col == "id":
             continue
         # Create dict

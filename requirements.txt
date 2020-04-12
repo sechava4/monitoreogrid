@@ -12,4 +12,5 @@ python-dotenv
 pymysql
 gunicorn
 gevent
+geopandas
 scipy

@@ -20,7 +20,9 @@
         </d1>
         <button class="btn btn-dark" type="submit">Ver</button>
     </form>
-
+    <div>
+        <b>Ultimo registro cerca a la estación {{session.closest_station}}</b>
+    </div>
 
     <style>
     body {
@@ -71,7 +73,7 @@
       {"@@type": "ColumnLayer", "data":{{json_operation}},"elevationScale": 5, "getElevation": "@@=elevation", "getFillColor": "@@=[elevation * 2, 100, 120, 200]", "getPosition": "@@=[longitude, latitude]", "id": "27bac356-e75f-4bab-b330-7c6e7c831819", "pickable": true, "radius": 20}],
       "mapStyle": "mapbox://styles/mapbox/dark-v9", "views": [{"@@type": "MapView", "controller": true}]};
     const MAPBOX_API_KEY = 'pk.eyJ1Ijoic2VjaGF2YTQiLCJhIjoiY2s2dTF0eHQ0MDViaTNmbXRhaHVoaG85cSJ9.xMh2vZNuj2PfxsUksteApQ';
-    const tooltip = {'html':'<b>Valor : </b>  <b>{name}</b>{closest_station} ', 'style': {'background': 'grey', 'color': 'white', 'font-family': '"Helvetica Neue", Arial', 'z-index': '10000'}};
+    const tooltip = {'html':'<b>Valor : </b>  <b>{name}</b>', 'style': {'background': 'grey', 'color': 'white', 'font-family': '"Helvetica Neue", Arial', 'z-index': '10000'}};
 
 
     const deck = createDeck({

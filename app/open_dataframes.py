@@ -6,7 +6,13 @@ import geopandas as gpd
 
 
 def get_geostations():
-    file = os.path.join(app.root_path, "stations_gdf.geojson")
+    file = os.path.join(app.root_path, "stations_gdf.json")
+    gdf = gpd.read_file(file)
+    return gdf
+
+
+def get_geozones():
+    file = os.path.join(app.root_path, "zones.geojson")
     gdf = gpd.read_file(file)
     return gdf
 
