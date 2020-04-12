@@ -74,13 +74,25 @@ def show_tables():
     return render_template('tables.html', tables=[df.to_html(classes='data')], titles=df.columns.values, form=form)
 
 
-@app.route('/zones_map')
+@app.route('/zones_map', methods=['GET', 'POST'])
 @login_required
 def show_zones_map():
-    # Map rendering
-    stations_df = open_dataframes.get_zones()
-    json_zones = Markup(stations_df.to_json(orient='records'))
-    return render_template('zones_map.html',json_zones=json_zones)
+    form = VehicleMapForm()
+    if form.is_submitted():
+        session["day"] = form.day.data
+    try:
+        session["day"]
+    except KeyError:
+        session["day"] = 1
+    lines_df = open_dataframes.get_lines(session["day"])
+    zones = open_dataframes.get_zones()
+    json_zones = Markup(zones.to_json(orient='records'))
+
+    _, lines_df['id_nearest_zone'] = Trees.zones_tree.query(lines_df[['latitude', 'longitude']].values, k=1)
+    lines_df["name"] = zones["name"].reindex(index=lines_df['id_nearest_zone']).tolist()
+    json_lines = Markup(lines_df.to_json(orient='records'))
+
+    return render_template('zones_map.html',json_zones=json_zones, json_lines=json_lines,form=form)
 
 
 @app.route('/vehicle_map', methods=['GET', 'POST'])
@@ -93,7 +105,9 @@ def show_vehicle_map():
 
     try:
         session["map_var"]
+        session["day"]
     except KeyError:
+        session["day"] = 1
         session["map_var"] = "elevation"
         session["map_car"] = "seleccione vehiculo"
 
