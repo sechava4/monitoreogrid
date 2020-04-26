@@ -1,8 +1,14 @@
 import pandas as pd
 import os
 from app import app
-import numpy as np
 import geopandas as gpd
+import matplotlib as plt
+import matplotlib.pyplot as plt
+from shapely.geometry import Point, Polygon
+from rq import get_current_job
+from app import db
+from app.models import Task
+
 
 
 def get_stations():
@@ -83,14 +89,44 @@ def alturas_df(var, day):
     return df
 
 
+def point_in_zone(day):
+    _set_task_progress(0)
+    doc_var = os.path.join(app.root_path, "ZONAS SIT_2017/ZONAS SIT_2017.shp")
+    gdf = gpd.read_file(doc_var)
+
+    alturas = alturas_df("elevation", day)
+    alturas = alturas[["latitude", "longitude"]]
+    points_df = alturas.iloc[-2:-1]
+    points_gdf = gpd.GeoDataFrame(
+        points_df, geometry=gpd.points_from_xy(points_df.longitude, points_df.latitude))
+
+    a = gdf["geometry"].contains(points_gdf["geometry"].values[0])
+    _set_task_progress(0)
+    return gdf.Nueva_Zona[a == True], gdf.Municipio[a == True]
+
+
+def _set_task_progress(progress):
+    job = get_current_job()
+    if job:
+        job.meta['progress'] = progress
+        job.save_meta()
+        task = Task.query.get(job.get_id())
+        task.user.add_notification('task_progress', {'task_id': job.get_id(),
+                                                     'progress': progress})
+        if progress >= 100:
+            task.complete = True
+        db.session.commit()
+
+
 if __name__ == '__main__':
+    id, municipio = point_in_zone(1)
+    id = id.item()
+    municipio = municipio.item()
 
-    df = alturas_df("elevation", 1)
-    titles = df.columns.values
-    titles = np.delete(titles, 0)
-    a = form_var(titles)
 
-    # Pandas
+    # gdf.to_file("zones.geojson", driver="GeoJSON")
+    #fig, ax = plt.subplots(1, 1)
+    #df.plot(column="Nueva_Zona", ax=ax, legend=True)
     # rutas2 = pd.read_csv(doc2, index_col="id")
     # rutas2 = rutas2[["accelerationX","accelerationY","accelerationZ", "Time_2", "dia"]]
     # df.to_csv("variables.csv")

@@ -10,6 +10,7 @@ class devConfig(object):
     SQLALCHEMY_DATABASE_URI =  'sqlite:///' + os.path.join(basedir, 'app.db') #os.environ.get('DATABASE_URL') or \
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     TESTING = False
+    REDIS_URL = os.environ.get('REDIS_URL') or 'redis://'
 
 
 class Config(object):
@@ -18,3 +19,4 @@ class Config(object):
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     TESTING = False
+    REDIS_URL = os.environ.get('REDIS_URL') or 'redis://'

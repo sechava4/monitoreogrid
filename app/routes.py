@@ -77,6 +77,12 @@ def show_tables():
 @app.route('/zones_map', methods=['GET', 'POST'])
 @login_required
 def show_zones_map():
+    if current_user.get_task_in_progress('point_in_zone'):
+        flash(('Loading task is currently in progress'))
+    else:
+        current_user.launch_task('point_in_zone', ('Loading map...'))
+        db.session.commit()
+
     form = VehicleMapForm()
     if form.is_submitted():
         session["day"] = form.day.data
@@ -120,8 +126,11 @@ def show_vehicle_map():
     alturas = open_dataframes.alturas_df(session["map_var"], session["day"])
     # current_pos = alturas.iloc[1:2]
 
-    _, alturas['id_nearest'] = Trees.station_tree.query(alturas[['latitude', 'longitude']].values, k=1)
-    alturas["closest_stations"] = stations_df["name"].reindex(index=alturas['id_nearest']).tolist()
+    _, a = Trees.station_tree.query(alturas[['latitude', 'longitude']].values, k=2)
+    alturas["closest_st_id1"] = a[:, 0]
+    alturas["closest_st_id2"] = a[:, 1]
+    alturas["closest_station1"] = stations_df["name"].reindex(index=alturas['closest_st_id1']).tolist()
+    alturas["closest_station2"] = stations_df["name"].reindex(index=alturas['closest_st_id2']).tolist()
     # session["closest_station"] = stations_df["name"].iloc[current_pos['id_nearest']].item()
     json_operation = Markup(alturas.to_json(orient='records'))
 
@@ -153,10 +162,9 @@ def add_entry():
     for col in Operation.titles:
         if col == "id":
             continue
-        # Create dict
         content[col] = request.args[col]
 
-    operation = User(content)
+    operation = Operation(content)
     db.session.add(operation)
     db.session.commit()
     flash('New data arrived')

@@ -33,7 +33,7 @@ r = pydeck.Deck(
     column_layer, initial_view_state=view, tooltip=tooltip, map_style="mapbox://styles/mapbox/satellite-v9",
 )
 
-r.to_html("column_layer.html", notebook_display=False)
+r.to_html("/templates/polygon_layer.html", notebook_display=False)
 
 """
 if __name__ == "__main__":

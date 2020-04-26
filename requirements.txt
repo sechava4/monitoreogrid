@@ -13,3 +13,5 @@ pymysql
 gunicorn
 gevent
 scikit-learn
+matplotlib
+rq
