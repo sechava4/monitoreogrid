@@ -39,6 +39,7 @@ class Vehicle(db.Model):
     modelo = db.Column(db.String(64))
     year = db.Column(db.Integer)
     capacity_nominal = db.Column(db.Float)
+    odometer = db.Column(db.Integer) #  db.ForeignKey('operation.odometer')) ?
     soh = db.Column(db.Float)
     rul = db.Column(db.Integer)
 
@@ -68,6 +69,8 @@ def load_user(id):
 class Operation(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+    placa = db.Column(db.String(64))
+    operative_state = db.Column(db.Integer)
     latitude = db.Column(db.Float)
     longitude = db.Column(db.Float)
     elevation = db.Column(db.Float)

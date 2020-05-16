@@ -14,4 +14,5 @@ gunicorn
 gevent
 scikit-learn
 matplotlib
+redis
 rq

@@ -34,8 +34,8 @@
 
   const CAR_MODEL = "nissan:leaf";
   const placa = "ASD089";
-  const URL = "http://ec2-3-81-87-225.compute-1.amazonaws.com:8080/addjson";
-  const CR = '&';
+  const URL = "http://http://104.248.48.68:8080/addjson";
+  const CR = '\n';
   var objTLM;
   var objTimer;
 
@@ -47,7 +47,7 @@
       "latitude": 0,
       "longitude": 0,
       "altitude": 0,
-      "soc": 0,
+      /**"soc": 0,
       "soh": 0,
       "speed": 0,
       "odometer": 0,
@@ -68,6 +68,7 @@
       "Qn_Ah": 0,
       "engine_temp": 0,
       "is_charging": 0
+      **/
     };
     return myJSON;
 
@@ -78,9 +79,11 @@
   function UpdateTelemetryObj(myJSON) {
     var read_bool = false;
 
+
     myJSON.latitude = OvmsMetrics.AsFloat(["v.p.latitude"]).toFixed(8);
     myJSON.longitude = OvmsMetrics.AsFloat(["v.p.longitude"]).toFixed(8);
     myJSON.altitude = OvmsMetrics.AsFloat(["v.p.altitude"]).toFixed();
+    /**
     myJSON.soc = OvmsMetrics.AsFloat("v.b.soc");
     myJSON.soh = OvmsMetrics.AsFloat("v.b.soh");
     myJSON.speed = OvmsMetrics.AsFloat("v.p.speed");
@@ -113,6 +116,7 @@
     else {
       myJSON.is_charging = 0;
     }
+    **/
     return true;
   }
 
@@ -123,6 +127,7 @@
     newcontent += "latitude=" + myJSON.latitude + CR;    //GPS latitude
     newcontent += "longitude=" + myJSON.longitude + CR;    //GPS longitude
     newcontent += "altitude =" + myJSON.altitude + CR;    //GPS altitude
+    /**
     newcontent += "soc=" + myJSON.soc + CR;    //State of charge
     newcontent += "soh=" + myJSON.soh + CR;    //State of health
     newcontent += "speed=" + myJSON.speed + CR;    //State of health
@@ -143,6 +148,7 @@
     newcontent += "engine_temp=" + myJSON.engine_temp + CR;
     newcontent += "powerKw=" + myJSON.powerKw + CR;    //Main battery momentary power
     newcontent += "is_charging=" + myJSON.is_charging + CR;         //yes = currently charging
+    **/
     print(newcontent);
   }
 
@@ -172,12 +178,12 @@
     var urljson = URL;
     urljson += "?";
     //urljson += "api_key=" + OVMS_API_KEY;
-    url += car_model;
+    //urljson += CAR_MODEL;
     //urljson += "&";
     //urljson += "token=" + MY_TOKEN;
     //urljson += "&";
     urljson += encodeURIComponent(JSON.stringify(objTLM));
-    print(urljson + CR);
+    print(urljson);
     return urljson;
   }
 
@@ -193,7 +199,7 @@
 
   function SendLiveData() {
     UpdateObjTelemetry();
-    HTTP.Request( GetURLcfg() );
+    HTTP.Request(GetURLcfg());
   }
 
   //test purpose : one time execution
@@ -223,3 +229,6 @@
       PubSub.unsubscribe(objTimer);
     }
   }
+
+
+

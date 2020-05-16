@@ -93,6 +93,12 @@ def point_in_zone(day):
     _set_task_progress(0)
     doc_var = os.path.join(app.root_path, "ZONAS SIT_2017/ZONAS SIT_2017.shp")
     gdf = gpd.read_file(doc_var)
+    z = get_zones()
+    centroids_gdf = gpd.GeoDataFrame(
+        z, geometry=gpd.points_from_xy(z.longitude, z.latitude))
+    fig, ax = plt.subplots(1, 1, sharex=True, sharey=True, figsize=(11, 11))
+    gdf.plot(ax=ax, color='blue')
+    centroids_gdf.plot(ax=ax, color='black')
 
     alturas = alturas_df("elevation", day)
     alturas = alturas[["latitude", "longitude"]]
@@ -123,13 +129,16 @@ if __name__ == '__main__':
     id = id.item()
     municipio = municipio.item()
 
+    doc = os.path.join(app.root_path, 'vWeights.xlsx')
+    df = pd.read_excel(doc,names=["v","d","w"])
+    df = df.sort_values(by=['w'],ascending=False)
+
 
     # gdf.to_file("zones.geojson", driver="GeoJSON")
     #fig, ax = plt.subplots(1, 1)
     #df.plot(column="Nueva_Zona", ax=ax, legend=True)
     # rutas2 = pd.read_csv(doc2, index_col="id")
     # rutas2 = rutas2[["accelerationX","accelerationY","accelerationZ", "Time_2", "dia"]]
-    # df.to_csv("variables.csv")
 
     # s.to_csv("rutas.csv")
     # df = rutas[rutas.elevation.notnull()]
