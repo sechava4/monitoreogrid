@@ -155,22 +155,13 @@ def show_indicators():
     return render_template('indicators.html')
 
 
-@app.route('/addjson', methods=['POST'])
+@app.route('/addjson', methods=['POST', 'GET'])
 def add_entry():
 
-    a = request.args["latitude"]
-    print(a)
-    #content = {}
-    #for col in Operation.titles:
-       # if col == "id":
-      #      continue
-     #   content[col] = request.args[col]
-
-    #operation = Operation(content)
-    #db.session.add(operation)
-    #db.session.commit()
-    #flash('New data arrived')
-    return redirect(url_for('show_entries'))
+    operation = Operation(**request.args)
+    db.session.add(operation)
+    db.session.commit()
+    return ("Data recieved")#redirect(url_for('show_entries'))
 
 
 @app.route('/login', methods=['GET', 'POST'])

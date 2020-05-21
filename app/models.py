@@ -66,7 +66,9 @@ class Station(db.Model):
 def load_user(id):
     return User.query.get(int(id))
 
+
 class Operation(db.Model):
+
     id = db.Column(db.Integer, primary_key=True)
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     placa = db.Column(db.String(64))
@@ -93,6 +95,7 @@ class Operation(db.Model):
     consumption = db.Column(db.Float)
     range_est = db.Column(db.Integer)
     range_ideal = db.Column(db.Integer)
+    range_full = db.Column(db.Integer)
     drivetime = db.Column(db.Integer)
     charge_time = db.Column(db.Integer)
     footbrake = db.Column(db.Integer)
@@ -100,12 +103,12 @@ class Operation(db.Model):
     is_charging = db.Column(db.Integer)
     tpms = db.Column(db.Float)
     ocv = db.Column(db.Float)
+    coulomb = db.Column(db.Float)
+    energy = db.Column(db.Float)
     occupants = db.Column(db.Integer)
+    rpm = db.Column(db.Integer)
     station_id = db.Column(db.Integer, db.ForeignKey('station.id'))
     sensor_data = db.Column(db.String(128))
-
-    def __repr__(self):
-        return '<User = {} Placa = {} Timestamp = {}>'.format(self.placa, self.username, self.timestamp)
 
 
 class Task(db.Model):

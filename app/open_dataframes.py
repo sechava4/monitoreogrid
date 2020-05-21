@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from shapely.geometry import Point, Polygon
 from rq import get_current_job
 from app import db
-from app.models import Task
+from app.models import Task, Operation
 
 
 
@@ -125,13 +125,18 @@ def _set_task_progress(progress):
 
 
 if __name__ == '__main__':
-    id, municipio = point_in_zone(1)
-    id = id.item()
-    municipio = municipio.item()
+    a = dir(Operation)
+    for var in a:
+        pass
 
-    doc = os.path.join(app.root_path, 'vWeights.xlsx')
-    df = pd.read_excel(doc,names=["v","d","w"])
-    df = df.sort_values(by=['w'],ascending=False)
+    #id, municipio = point_in_zone(1)
+    #id = id.item()
+    #municipio = municipio.item()
+
+    #doc = os.path.join(app.root_path, 'vWeights.xlsx')
+    #df = pd.read_excel(doc,names=["v","d","w"])
+    #df = df.sort_values(by=['w'],ascending=False)
+
 
 
     # gdf.to_file("zones.geojson", driver="GeoJSON")
