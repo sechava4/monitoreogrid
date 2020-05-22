@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: 3cf91c519552
-Revises: d43ad355969a
-Create Date: 2020-04-02 16:00:14.393806
+Revision ID: 99cc9a66425f
+Revises: 4e65fafaa811
+Create Date: 2020-05-22 11:35:31.194778
 
 """
 from alembic import op
@@ -10,8 +10,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '3cf91c519552'
-down_revision = 'd43ad355969a'
+revision = '99cc9a66425f'
+down_revision = '4e65fafaa811'
 branch_labels = None
 depends_on = None
 
@@ -21,19 +21,21 @@ def upgrade():
     op.create_table('operation',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('timestamp', sa.DateTime(), nullable=True),
+    sa.Column('placa', sa.String(length=64), nullable=True),
+    sa.Column('operative_state', sa.Integer(), nullable=True),
     sa.Column('latitude', sa.Float(), nullable=True),
     sa.Column('longitude', sa.Float(), nullable=True),
     sa.Column('elevation', sa.Float(), nullable=True),
     sa.Column('slope', sa.Float(), nullable=True),
     sa.Column('speed', sa.Integer(), nullable=True),
     sa.Column('odometer', sa.Integer(), nullable=True),
-    sa.Column('user_id', sa.Integer(), nullable=True),
+    sa.Column('user_id', sa.String(length=64), nullable=True),
     sa.Column('batt_temp', sa.Float(), nullable=True),
     sa.Column('ext_temp', sa.Float(), nullable=True),
     sa.Column('power_kw', sa.Float(), nullable=True),
     sa.Column('acceleration', sa.Float(), nullable=True),
     sa.Column('capacity', sa.Float(), nullable=True),
-    sa.Column('vehicle_id', sa.Integer(), nullable=True),
+    sa.Column('vehicle_id', sa.String(length=64), nullable=True),
     sa.Column('soc', sa.Float(), nullable=True),
     sa.Column('soh', sa.Float(), nullable=True),
     sa.Column('voltage', sa.Float(), nullable=True),
@@ -43,6 +45,7 @@ def upgrade():
     sa.Column('consumption', sa.Float(), nullable=True),
     sa.Column('range_est', sa.Integer(), nullable=True),
     sa.Column('range_ideal', sa.Integer(), nullable=True),
+    sa.Column('range_full', sa.Integer(), nullable=True),
     sa.Column('drivetime', sa.Integer(), nullable=True),
     sa.Column('charge_time', sa.Integer(), nullable=True),
     sa.Column('footbrake', sa.Integer(), nullable=True),
@@ -50,12 +53,12 @@ def upgrade():
     sa.Column('is_charging', sa.Integer(), nullable=True),
     sa.Column('tpms', sa.Float(), nullable=True),
     sa.Column('ocv', sa.Float(), nullable=True),
+    sa.Column('coulomb', sa.Float(), nullable=True),
+    sa.Column('energy', sa.Float(), nullable=True),
     sa.Column('occupants', sa.Integer(), nullable=True),
+    sa.Column('rpm', sa.Integer(), nullable=True),
     sa.Column('station_id', sa.Integer(), nullable=True),
     sa.Column('sensor_data', sa.String(length=128), nullable=True),
-    sa.ForeignKeyConstraint(['station_id'], ['station.id'], ),
-    sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
-    sa.ForeignKeyConstraint(['vehicle_id'], ['vehicle.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_operation_timestamp'), 'operation', ['timestamp'], unique=False)
