@@ -157,7 +157,6 @@ def show_indicators():
 
 @app.route('/addjson', methods=['POST', 'GET'])
 def add_entry():
-
     operation = Operation(**request.args)
     db.session.add(operation)
     db.session.commit()
