@@ -8,6 +8,8 @@ from flask_login import current_user, login_user, logout_user, login_required
 from werkzeug.urls import url_parse
 from app.models import User, Operation
 import os
+import json
+
 import geopandas as gpd
 
 
@@ -17,36 +19,32 @@ def show_entries():
     try:
         session["graph_var_x"]
         session["graph_var_y"]
-        session["dataset"]
-        session["day"]
     except KeyError:
         session["graph_var_x"] = "timestamp"
-        session["graph_var_y"] = "soc"
-        session["dataset"] = "rutas.csv"
-        session["day"] = 1
+        session["graph_var_y"] = "soh"
 
-    # query = "SELECT " + session["graph_var_x"] + " ," + session["graph_var_y"] + " from operation"
-    # df = pd.read_sql_query(query, db.engine)
+    print(session["graph_var_x"], session["graph_var_y"])
+    query = "SELECT " + session["graph_var_x"] + " ," + session["graph_var_y"] + " from operation"
+    df_o = pd.read_sql_query(query, db.engine)
+    #pd.read_sql(session.query(Operation).filter(Operation.id == 2).statement, session.bind)
 
-    doc_dataset = os.path.join(app.root_path, session["dataset"])
-    df = pd.read_csv(doc_dataset, index_col="id")
-
-    try:
-        df = df[df["day"] == int(session["day"])]
-    except ValueError:
-        session["day"] = 1
-        df = df[df["day"] == int(session["day"])]
-
-    if session["graph_var_y"] not in df.columns:
-        session["graph_var_y"] = "soc"
-
-    if session["graph_var_x"] not in df.columns:
-        session["graph_var_x"] = "timestamp"
-
-    bar = plot.create_plot(df, session["graph_var_x"], session["graph_var_y"])
+    bar = plot.create_plot(df_o, session["graph_var_x"], session["graph_var_y"])
     session["x_pretty_graph"] = open_dataframes.pretty_var_name(session["graph_var_x"])
     session["y_pretty_graph"] = open_dataframes.pretty_var_name(session["graph_var_y"])
     return render_template('show_entries.html', plot=bar)
+
+
+@app.route('/updateplot')
+def update_plot():
+
+    query = "SELECT " + session["graph_var_x"] + " ," + session["graph_var_y"] + " from operation"
+    df_o = pd.read_sql_query(query, db.engine)
+    #pd.read_sql(session.query(Operation).filter(Operation.id == 2).statement, session.bind)
+
+    bar = plot.create_plot(df_o, session["graph_var_x"], session["graph_var_y"])
+    session["x_pretty_graph"] = open_dataframes.pretty_var_name(session["graph_var_x"])
+    session["y_pretty_graph"] = open_dataframes.pretty_var_name(session["graph_var_y"])
+    return bar
 
 
 @app.route('/tables', methods=['GET', 'POST'])
@@ -77,11 +75,6 @@ def show_tables():
 @app.route('/zones_map', methods=['GET', 'POST'])
 @login_required
 def show_zones_map():
-    if current_user.get_task_in_progress('point_in_zone'):
-        flash(('Loading task is currently in progress'))
-    else:
-        current_user.launch_task('point_in_zone', ('Loading map...'))
-        db.session.commit()
 
     form = VehicleMapForm()
     if form.is_submitted():
@@ -90,7 +83,9 @@ def show_zones_map():
         session["day"]
     except KeyError:
         session["day"] = 1
-    lines_df = open_dataframes.get_lines(session["day"])
+
+
+    lines_df = open_dataframes.get_lines()
     zones = open_dataframes.get_zones()
     json_zones = Markup(zones.to_json(orient='records'))
 
@@ -106,41 +101,34 @@ def show_zones_map():
 def show_vehicle_map():
     form = VehicleMapForm()
     if form.is_submitted():
-        session["day"] = form.day.data
         session["map_var"] = form.variable.data
 
     try:
         session["map_var"]
-        session["day"]
     except KeyError:
-        session["day"] = 1
         session["map_var"] = "elevation"
         session["map_car"] = "seleccione vehiculo"
 
     stations_df = open_dataframes.get_stations()
     json_stations = Markup(stations_df.to_json(orient='records'))
 
-    lines_df = open_dataframes.get_lines(session["day"])
+    lines_df = open_dataframes.get_lines()
     json_lines = Markup(lines_df.to_json(orient='records'))
 
-    alturas = open_dataframes.alturas_df(session["map_var"], session["day"])
+    alturas_df = open_dataframes.get_heights(session["map_var"])
     # current_pos = alturas.iloc[1:2]
 
-    _, a = Trees.station_tree.query(alturas[['latitude', 'longitude']].values, k=2)
-    alturas["closest_st_id1"] = a[:, 0]
-    alturas["closest_st_id2"] = a[:, 1]
-    alturas["closest_station1"] = stations_df["name"].reindex(index=alturas['closest_st_id1']).tolist()
-    alturas["closest_station2"] = stations_df["name"].reindex(index=alturas['closest_st_id2']).tolist()
-    # session["closest_station"] = stations_df["name"].iloc[current_pos['id_nearest']].item()
-    json_operation = Markup(alturas.to_json(orient='records'))
-
-    titles = alturas.columns.values
+    titles = Operation.__dict__
     form.variable.choices = open_dataframes.form_var(titles)
-
     session["title_var"] = open_dataframes.pretty_var_name(session["map_var"])
 
-    # query = "SELECT longitude, latitude, " + session["map_var"] + " from operation"
-    # df = pd.read_sql_query("SELECT * from operation", db.engine)
+    _, a = Trees.station_tree.query(alturas_df[['latitude', 'longitude']].values, k=2)    #Select neares 2 stations (Knearest)
+    alturas_df["closest_st_id1"] = a[:, 0]
+    alturas_df["closest_st_id2"] = a[:, 1]
+    alturas_df["closest_station1"] = stations_df["name"].reindex(index=alturas_df['closest_st_id1']).tolist()  # map station id with station name (vector)
+    alturas_df["closest_station2"] = stations_df["name"].reindex(index=alturas_df['closest_st_id2']).tolist()  # map station2  id with station name (vector)
+    # session["closest_station"] = stations_df["name"].iloc[current_pos['id_nearest']].item()              # map station id with station name (current)
+    json_operation = Markup(alturas_df.to_json(orient='records'))
 
     return render_template('vehicle_map.html', form=form, json_lines=json_lines, json_operation=json_operation,
                            json_stations=json_stations)
@@ -157,10 +145,14 @@ def show_indicators():
 
 @app.route('/addjson', methods=['POST', 'GET'])
 def add_entry():
-    operation = Operation(**request.args)
-    db.session.add(operation)
-    db.session.commit()
-    return ("Data recieved")#redirect(url_for('show_entries'))
+    if not bool(request.args):
+        return ("Null data")
+    else:
+        operation = Operation(**request.args)   # ** pasa un numero variable argumentos a la funcion
+        print(operation.__dict__)
+        db.session.add(operation)
+        db.session.commit()
+        return ("Data recieved")#redirect(url_for('show_entries'))
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -210,7 +202,6 @@ def logout():
 def graph_var():
     session["graph_var_x"] = (request.form['variable_x'])
     session["graph_var_y"] = (request.form['variable_y'])
-    session["dataset"] = (request.form['dataset'])
     session["day"] = (request.form['day'])
     return redirect(url_for('show_entries'))
 

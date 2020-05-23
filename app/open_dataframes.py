@@ -8,6 +8,7 @@ from shapely.geometry import Point, Polygon
 from rq import get_current_job
 from app import db
 from app.models import Task, Operation
+from flask import request, session
 
 
 
@@ -19,13 +20,29 @@ def get_stations():
     return df
 
 
-def get_lines(day):
+def get_lines_csv(day):
     file = os.path.join(app.root_path, "rutas.csv")
     df = pd.read_csv(file, index_col="id")
     df = df[["longitude", "latitude", "day"]]
 
     df = df[df["day"] == int(day)]
     df = df.reset_index(drop=True)
+
+    lat2 = df["latitude"].iloc[1:]
+    lat2 = lat2.append(pd.Series(df["latitude"].iloc[-1]), ignore_index=True)
+    df["latitude2"] = lat2
+
+    lon2 = df["longitude"].iloc[1:]
+    lon2 = lon2.append(pd.Series(df["longitude"].iloc[-1]), ignore_index=True)
+    df["longitude2"] = lon2
+    df = df.drop(df.tail(1).index)
+    df = df.drop(df.head(1).index)
+    return df
+
+
+def get_lines():
+    query = "SELECT latitude, longitude from operation"
+    df = pd.read_sql_query(query, db.engine)
 
     lat2 = df["latitude"].iloc[1:]
     lat2 = lat2.append(pd.Series(df["latitude"].iloc[-1]), ignore_index=True)
@@ -76,7 +93,7 @@ def form_var(titles):
     return groups_list
 
 
-def alturas_df(var, day):
+def alturas_df_csv(var, day):
     doc = os.path.join(app.root_path, 'rutas.csv')
     df = pd.read_csv(doc, index_col="id")
     df = df[df["day"] == int(day)]
@@ -86,6 +103,18 @@ def alturas_df(var, day):
     if var == "elevation":
         df["name"] = df[var]
         df[var] = df[var].map(lambda x: x-1520)
+    return df
+
+
+def get_heights(var):
+    query = "SELECT latitude, longitude, " + var + " from operation"
+    df = pd.read_sql_query(query, db.engine)
+    if var not in df.columns:
+        var = "elevation"
+    df = df[["latitude", "longitude", var]]
+    if var == "elevation":
+        df["name"] = df[var]
+        df[var] = df[var].map(lambda x: x-1420)
     return df
 
 
@@ -100,7 +129,7 @@ def point_in_zone(day):
     gdf.plot(ax=ax, color='blue')
     centroids_gdf.plot(ax=ax, color='black')
 
-    alturas = alturas_df("elevation", day)
+    alturas = alturas_df_csv("elevation", day)
     alturas = alturas[["latitude", "longitude"]]
     points_df = alturas.iloc[-2:-1]
     points_gdf = gpd.GeoDataFrame(
@@ -125,9 +154,10 @@ def _set_task_progress(progress):
 
 
 if __name__ == '__main__':
-    a = dir(Operation)
-    for var in a:
-        pass
+    a=get_heights("elevation")
+    titles = Operation.__dict__
+    print(titles)
+    b = form_var(titles)
 
     #id, municipio = point_in_zone(1)
     #id = id.item()

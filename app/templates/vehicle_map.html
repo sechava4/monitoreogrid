@@ -15,7 +15,6 @@
     </ul>
     <form class="form form-horizontal" action="{{ url_for('show_vehicle_map') }}" method=post novalidate>
         <d1>
-            {{ wtf.form_field(form.day, class='form-control', placeholder="Ingrese dia") }}
             {{ wtf.form_field(form.variable, class='form-control', placeholder="variable") }}
         </d1>
         <button class="btn btn-dark" type="submit">Ver</button>

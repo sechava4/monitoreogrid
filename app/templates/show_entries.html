@@ -23,7 +23,6 @@
                         <option value="speed">Velocidad</option>
                         <option value="odometer">Odometro</option>
                         <option value="capacity">Capacidad</option>
-                        <option value="slope">Pendiente</option>
                         <option value="power_kw">Potencia</option>
                         <option value="soc">SOC</option>
                         <option value="soh">SOH</option>
@@ -52,17 +51,13 @@
                 <select class="form-control" id="exampleFormControlSelect2" name = variable_y>
                     <option value="{{session.graph_var_y}}"> {{session.y_pretty_graph}}</option>
                     <option value="elevation">Altitud</option>
-                    <option value="accelerationX">Acc X</option>
-                    <option value="accelerationY">Acc Y</option>
-                    <option value="accelerationZ">Acc Z</option>
                     <option value="slope">Pendiente</option>
                     <option value="speed">Velocidad</option>
                     <option value="odometer">Odometro</option>
                     <option value="capacity">Capacidad</option>
-                    <option value="slope">Pendiente</option>
                     <option value="power_kw">Potencia</option>
-                    <option value="soc">SOC</option>
-                    <option value="soh">SOH</option>
+                    <option value="soc">SoC</option>
+                    <option value="soh">SoH</option>
                     <option value="batt_temp">Temperatura de batería</option>
                     <option value="ext_temp">Temperatura externa</option>
                     <option value="voltage">Voltage</option>
@@ -73,27 +68,22 @@
                     <option value="consumption">Consumo</option>
                     <option value="range_est">Rango estimado</option>
                     <option value="range_ideal">Rango ideal</option>
+                    <option value="range_full">Rango 100% SoC</option>
                     <option value="drivetime">Tiempo de manejo</option>
                     <option value="charge_time">Tiempo de carga</option>
                     <option value="is_charging">Esta cargando</option>
                     <option value="tpms">presion llantas</option>
                     <option value="ocv">OCV</option>
+                    <option value="rpm">RPM</option>
                     <option value="occupants">Ocupantes</option>
                     <option value="footbrake">Freno de pedal</option>
                     <option value="engine_temp">Temperatura de motor</option>
                 </select>
             </div>
-            <div class="col-auto">
-                <label class="sr-only" >Dataset </label>
-                <select class="form-control" name = dataset>
-                    <option value="{{session.dataset}}"> {{session.dataset}}</option>
-                    <option value="rutas.csv">Rutas</option>
-                    <option value="21_rutas_accel.csv">Aceleraciones</option>
-                </select>
-            </div>
+
             <div class="col-auto">
                 <label class="sr-only"> Día </label>
-                <input class="form-control" type="number" placeholder="1 to 21, Default 1" name = "day">
+                <input class="form-control" type="number" placeholder="Default 1" name = "day">
             </div>
             <div class="col-auto">
                 <button class="btn btn-dark" type="submit">Ver</button>
@@ -102,7 +92,8 @@
             </form>
         </div>
 
-        <div class="container">
+
+        <div class="container" id = "grafica">
             {{session.graph_var_y}}, Día {{session.day}}
             <div class="chart" id="bargraph">
                 <script>
@@ -112,5 +103,32 @@
             </div>
         </div>
 
+    <script>
+    $(document).ready(function(){
+        function loadlink(){
+
+            req = $.ajax({
+                url : "/updateplot",
+                type : "GET",
+
+            });
+
+            req.done(function(res) {
+                $("#bargraph").fadeOut(100).fadeIn(100);
+                //full_data = JSON.parse(res.payload);
+                console.log(res)
+                //var graphs = {{ plot | safe}};
+                var graphs = JSON.parse(res);
+                console.log(graphs)
+                Plotly.react('bargraph', graphs, {});
+            });
+        };
+        setInterval(function(){
+            loadlink() // this will run after every 5 seconds
+        }, 10000);
+    });
+
+
+    </script>
 
 {% endblock %}

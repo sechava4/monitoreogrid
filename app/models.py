@@ -1,6 +1,6 @@
 from app import app, db, login
 from datetime import datetime
-from werkzeug.security import generate_password_hash, check_password_hashgit
+from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
 import redis
 import rq

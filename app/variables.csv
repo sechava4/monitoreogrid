@@ -16,8 +16,8 @@ id,var,var_pretty
 14,acceleration,Aceleración motor
 15,capacity,Capacidad de batería
 16,vehicle_id,ID de vehículo
-17,soc,SOC
-18,soh,SOH
+17,soc,Estado de Carga (SoC)
+18,soh,Estado de Salud (SoH)
 19,voltage,Voltaje
 20,current,Corriente
 21,throttle,(%) De aceleración
@@ -39,3 +39,8 @@ id,var,var_pretty
 37,modelo,Modelo
 38,year,Año
 39,rul,Vida util restante
+40,rpm,RPM
+41,range_full,Rango con 100% SoC
+42,coulomb,Energía acomulada (Ah)
+43,energy,Energía acomulada (J)
+

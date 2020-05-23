@@ -1,278 +1,227 @@
-const CAR_MODEL = "@@:@@:@@:@@:@@";
-  const OVMS_API_KEY = "32b2162f-9599-4647-8139-66e9f9528370";
-  const MY_TOKEN = "@@@@@@@@-@@@@-@@@@-@@@@-@@@@@@@@@@@@";
-  const TIMER_INTERVAL = "ticker.60";                         // every minute
-  const EVENT_MOTORS_ON = "vehicle.on";
-  const URL = "http://www.google.com";
-  const CR = '\n';
+const CAR_MODEL = "nissan:leaf";
+const placa = "ASD089";
+const URL = "http://104.248.48.68:8080/addjson";
+var objTLM;
+var objTimer;
 
-  var objTLM;
-  var objTimer, objEvent;
-  var sHasChanged = "";
-  var bMotorsOn = false;
 
-  var abrp_cfg = {
-    "url": URL,                     // abrp api url (by default, URL)
 
-  };
-
-  // check if json object is empty
-  function isJsonEmpty(obj) {
-    for(var key in obj) {
-      if(obj.hasOwnProperty(key))
-        return false;
-      }
-    return true;
-  }
-
-  // Read & process config:
-  function readConfig() {
-    // check if config exist
-    var read_cfg = OvmsConfig.GetValues("usr", "abrp.");
-    print(JSON.stringify(read_cfg) + CR);
-    if (isJsonEmpty(read_cfg) == true) {
-      // no config yet, set the default values
-      OvmsConfig.SetValues("usr","abrp.",abrp_cfg);
-    } else {
-      // config existing
-      abrp_cfg.url = read_cfg.url;
-
-    }
-  }
-
-  // Make json telemetry object
-  function InitTelemetryObj() {
+// Make json telemetry object
+function GetTelemetryObj() {
     var myJSON = {
-      "utc": 0,
-      "soc": 0,
-      "soh": 0,
-      "speed": 0,
-      "lat": 0,
-      "lon": 0,
-      "alt": 0,
-      "ext_temp": 0,
-      "is_charging": 0,
-      "batt_temp": 0,
-      "voltage": 0,
-      "current": 0,
-      "power": 0
+    "latitude": 0,
+    "longitude": 0,
+    "elevation": 0,
+    "soc": 0,
+    "soh": 0,
+    "speed": 0,
+    "odometer": 0,
+    "car_model": CAR_MODEL,
+    "batt_temp": 0,
+    "ext_temp": 0,
+    "voltage": 0,
+    "current": 0,
+    "power_kw": 0,
+    "acceleration": 0,
+    "throttle": 0,
+    "regen_brake": 0,
+    "consumption" :0,
+    "range_est": 0,
+    "range_ideal": 0,
+    "drivetime": 0,
+    "footbrake": 0,
+    "capacity": 0,
+    "engine_temp": 0,
+    "is_charging": 0,
+    "range_full":0,
+    "coulomb":0,
+    "rpm":0,
+    "energy":0
+
     };
     return myJSON;
-  }
 
-  // Fill json telemetry object
-  function UpdateTelemetryObj(myJSON) {
-    var read_num = 0;
-    var read_str = "";
+
+}
+
+// Fill json telemetry object
+function UpdateTelemetryObj(myJSON) {
     var read_bool = false;
 
-    sHasChanged = "";
 
-    if (bMotorsOn) {
-      sHasChanged = "_MOTORS-ON";
-      bMotorsOn = false;
+    myJSON.latitude = OvmsMetrics.AsFloat(["v.p.latitude"]).toFixed(8);
+    myJSON.longitude = OvmsMetrics.AsFloat(["v.p.longitude"]).toFixed(8);
+    myJSON.elevation= OvmsMetrics.AsFloat(["v.p.altitude"]).toFixed();
+    myJSON.soc = OvmsMetrics.AsFloat("v.b.soc");
+    myJSON.soh = OvmsMetrics.AsFloat("v.b.soh");
+    myJSON.speed = OvmsMetrics.AsFloat("v.p.gpsspeed");
+    myJSON.odometer = OvmsMetrics.AsFloat("v.p.odometer");
+    myJSON.batt_temp = OvmsMetrics.AsFloat("v.b.temp");
+    myJSON.ext_temp = OvmsMetrics.AsFloat("v.e.temp");
+    myJSON.voltage = OvmsMetrics.AsFloat("v.b.voltage");
+    myJSON.current = OvmsMetrics.AsFloat("v.b.current");
+    myJSON.power_kw = OvmsMetrics.AsFloat(["v.b.power"]).toFixed(1);
+    myJSON.acceleration = OvmsMetrics.AsFloat("v.p.acceleration");
+    myJSON.throttle = OvmsMetrics.AsFloat("v.e.throttle");
+    myJSON.regen_brake = OvmsMetrics.AsFloat("v.e.regenbrake");
+    myJSON.consumption = OvmsMetrics.AsFloat("v.b.consumption");
+    myJSON.range_est = OvmsMetrics.AsFloat("v.b.range.est");
+    myJSON.range_ideal = OvmsMetrics.AsFloat("v.b.range.ideal");
+    myJSON.drivetime = OvmsMetrics.AsFloat("v.e.drivetime");
+    myJSON.footbrake = OvmsMetrics.AsFloat("v.e.footbrake");
+    myJSON.capacity = OvmsMetrics.AsFloat("v.b.cac");
+    myJSON.engine_temp = OvmsMetrics.AsFloat("v.m.temp");
+    myJSON.rpm= OvmsMetrics.AsFloat("v.m.rpm");
+    myJSON.enery= OvmsMetrics.AsFloat("v.b.energy.used");
+    myJSON.coulomb= OvmsMetrics.AsFloat("v.b.coulomb.used");
+    myJSON.range_full = OvmsMetrics.AsFloat("v.b.range.full");
+
+
+
+    read_bool = Boolean(OvmsMetrics.Value("v.c.charging"));
+    if (read_bool == true) {
+    myJSON.is_charging = 1;
+    }
+    else {
+    myJSON.is_charging = 0;
     }
 
-    read_num = Number(OvmsMetrics.Value("v.b.soc"));
-    if (myJSON.soc != read_num) {
-      myJSON.soc = read_num;
-      sHasChanged += "_SOC:" + myJSON.soc + "%";
-    }
+    return true;
+}
 
-    read_num = Number(OvmsMetrics.Value("v.b.soh"));
-    if (myJSON.soh != read_num) {
-      myJSON.soh = read_num;
-      sHasChanged += "_SOH:" + myJSON.soh + "%";
-    }
-
-
-    //myJSON.lat = OvmsMetrics.AsFloat("v.p.latitude").toFixed(3);
-    //above code line works, except when value is undefined, after reboot
-
-    read_num = OvmsMetrics.AsFloat("v.p.latitude");
-    read_num = read_num.toFixed(3);
-    if (myJSON.lat != read_num) {
-      myJSON.lat = read_num;
-      sHasChanged += "_LAT:" + myJSON.lat + "°";
-    }
-
-    read_num = Number(OvmsMetrics.Value("v.p.longitude"));
-    read_num = read_num.toFixed(3);
-    if (myJSON.lon != read_num) {
-      myJSON.lon = read_num;
-      sHasChanged += "_LON:" + myJSON.lon + "°";
-    }
-
-    read_num = Number(OvmsMetrics.Value("v.p.altitude"));
-    read_num = read_num.toFixed();
-    if ( (myJSON.alt > (read_num-2)) && (myJSON.alt < (read_num+2)) ) {
-      myJSON.alt = read_num;
-      sHasChanged += "_ALT:" + myJSON.alt + "m";
-    }
-
-    read_num = Number(OvmsMetrics.Value("v.b.power"));
-    myJSON.power = read_num.toFixed(1);
-
-    myJSON.speed=Number(OvmsMetrics.Value("v.p.speed"));
-    myJSON.batt_temp=Number(OvmsMetrics.Value("v.b.temp"));
-    myJSON.ext_temp=Number(OvmsMetrics.Value("v.e.temp"));
-    myJSON.voltage=Number(OvmsMetrics.Value("v.b.voltage"));
-    myJSON.current=Number(OvmsMetrics.Value("v.b.current"));
-
-    myJSON.utc = Math.trunc(Date.now()/1000);
-    //myJSON.utc = OvmsMetrics.Value("m.time.utc");
-
-    // read_bool = Boolean(OvmsMetrics.Value("v.c.charging"));
-    // v.c.charging is also on when regen => not wanted here
-    read_str = OvmsMetrics.Value("v.c.state");
-    if ( (read_str == "charging") || (read_str == "topoff") ) {
-      myJSON.is_charging = 1;
-      read_str = OvmsMetrics.Value("v.c.mode");
-      if (sHasChanged != "") {
-        sHasChanged += "_CHRG:" + read_str + "(" + OvmsMetrics.Value("v.c.charging") + ")";
-        print("Charging in mode " + read_str + CR);
-      }
-    } else {
-      myJSON.is_charging = 0;
-    }
-
-    myJSON.car_model = abrp_cfg.car_model;
-
-    return (sHasChanged != "");
-  }
-
-  // Show available vehicle data
-  function DisplayLiveData(myJSON) {
+// Show available vehicle data
+function DisplayLiveData(myJSON,CR) {
     var newcontent = "";
-    newcontent += "altitude = " + myJSON.alt       + "m"  + CR;    //GPS altitude
-    newcontent += "latitude = " + myJSON.lat       + "°"  + CR;    //GPS latitude
-    newcontent += "longitude= " + myJSON.lon       + "°"  + CR;    //GPS longitude
-    newcontent += "ext temp = " + myJSON.ext_temp  + "°C" + CR;    //Ambient temperature
-    newcontent += "charge   = " + myJSON.soc       + "%"  + CR;    //State of charge
-    newcontent += "health   = " + myJSON.soh       + "%"  + CR;    //State of health
-    newcontent += "bat temp = " + myJSON.batt_temp + "°C" + CR;    //Main battery momentary temperature
-    newcontent += "voltage  = " + myJSON.voltage   + "V"  + CR;    //Main battery momentary voltage
-    newcontent += "current  = " + myJSON.current   + "A"  + CR;    //Main battery momentary current
-    newcontent += "power    = " + myJSON.power     + "kW" + CR;    //Main battery momentary power
-    newcontent += "charging = " + myJSON.is_charging + CR;         //yes = currently charging
+    newcontent += "latitude=" + myJSON.latitude + CR;    //GPS latitude
+    newcontent += "longitude=" + myJSON.longitude + CR;    //GPS longitude
+    newcontent += "elevation=" + myJSON.elevation+ CR;    //GPS altitude
+    newcontent += "soc=" + myJSON.soc + CR;    //State of charge
+    newcontent += "soh=" + myJSON.soh + CR;    //State of health
+    newcontent += "speed=" + myJSON.speed + CR;    //State of health
+    newcontent += "odometer=" + myJSON.odometer + CR;    //State of health
+    newcontent += "batt_temp=" + myJSON.batt_temp + CR;    //Main battery momentary temperature
+    newcontent += "ext_temp=" + myJSON.ext_temp + CR;    //Ambient temperature
+    newcontent += "voltage=" + myJSON.voltage + CR;    //Main battery momentary voltage
+    newcontent += "current=" + myJSON.current + CR;    //Main battery momentary current
+    newcontent += "acceleration=" + myJSON.acceleration + CR;    //Engine momentary acceleration
+    newcontent += "throttle=" + myJSON.throttle + CR;    //Engine momentary THROTTLE
+    newcontent += "regen_brake=" + myJSON.regen_brake + CR;    //Engine momentary Regen value
+    newcontent += "consumption=" + myJSON.consumption + CR;
+    newcontent += "range_est=" + myJSON.range_est + CR;
+    newcontent += "range_ideal=" + myJSON.range_ideal + CR;
+    newcontent += "range_full=" + myJSON.range_ideal + CR;
+    newcontent += "drivetime=" + myJSON.drivetime + CR;
+    newcontent += "footbrake=" + myJSON.footbrake + CR;
+    newcontent += "capacity=" + myJSON.capacity + CR;
+    newcontent += "engine_temp=" + myJSON.engine_temp + CR;
+    newcontent += "power_kw=" + myJSON.power_kw + CR;    //Main battery momentary power
+    newcontent += "is_charging=" + myJSON.is_charging + CR;         //yes = currently charging
+    newcontent += "coulomb=" + myJSON.coulomb + CR;
+    newcontent += "energy=" + myJSON.energy + CR;
+    newcontent += "rpm=" + myJSON.rpm;         //yes = currently charging
+
     print(newcontent);
-  }
+}
 
-  function InitTelemetry() {
-    objTLM = InitTelemetryObj();
-    sHasChanged = "";
-  }
 
-  function UpdateTelemetry() {
-    var bChanged = UpdateTelemetryObj(objTLM);
-    if (bChanged) { DisplayLiveData(objTLM); }
-    return bChanged;
-  }
 
-  function CloseTelemetry() {
-    objTLM = null;
-    sHasChanged = "";
-  }
+function InitObjTelemetry() {
+    objTLM = GetTelemetryObj();
+}
 
-  // http request callback if successful
-  function OnRequestDone(resp) {
-    print("response="+JSON.stringify(resp)+CR);
-    //OvmsNotify.Raise("info", "usr.abrp.status", "ABRP::" + sHasChanged);
-  }
+function UpdateObjTelemetry() {
+    UpdateTelemetryObj(objTLM);
+    DisplayLiveData(objTLM, "\n");
+}
 
-  // http request callback if failed
-  function OnRequestFail(error) {
-    print("error="+JSON.stringify(error)+CR);
-    OvmsNotify.Raise("info", "usr.abrp.status", "ABRP::" + JSON.stringify(error));
-  }
+// http request callback if successful
+function OnRequestDone(resp) {
+    print("response="+JSON.stringify(resp)+'\n');
+}
 
-  // Return full url with JSON telemetry object
-  function GetUrlABRP() {
-    var urljson = abrp_cfg.url;
+// http request callback if failed
+function OnRequestFail(error) {
+    print("error="+JSON.stringify(error)+'\n');
+}
+
+// Return full url with JSON telemetry object
+function GetUrlABRP(myJSON,CR) {
+    var urljson = URL;
     urljson += "?";
-    //urljson += "api_key=" + OVMS_API_KEY;
-    //urljson += "&";
-    //urljson += "token=" + abrp_cfg.user_token;
-    //urljson += "&";
-    urljson += "tlm=" + encodeURIComponent(JSON.stringify(objTLM));
-    print(urljson + CR);
-    return urljson;
-  }
+    urljson += "latitude=" + myJSON.latitude + CR;    //GPS latitude
+    urljson += "longitude=" + myJSON.longitude + CR;    //GPS longitude
+    urljson += "elevation=" + myJSON.elevation+ CR;    //GPS altitude
 
-  // Return config object for HTTP request
-  function GetURLcfg() {
+    urljson += "soc=" + myJSON.soc + CR;    //State of charge
+    urljson += "soh=" + myJSON.soh + CR;    //State of health
+    urljson += "speed=" + myJSON.speed + CR;    //State of health
+    urljson += "odometer=" + myJSON.odometer + CR;    //State of health
+    urljson += "batt_temp=" + myJSON.batt_temp + CR;    //Main battery momentary temperature
+    urljson += "ext_temp=" + myJSON.ext_temp + CR;    //Ambient temperature
+    urljson += "voltage=" + myJSON.voltage + CR;    //Main battery momentary voltage
+    urljson += "current=" + myJSON.current + CR;    //Main battery momentary current
+    urljson += "acceleration=" + myJSON.acceleration + CR;    //Engine momentary acceleration
+    urljson += "throttle=" + myJSON.throttle + CR;    //Engine momentary THROTTLE
+    urljson += "regen_brake=" + myJSON.regen_brake + CR;    //Engine momentary Regen value
+    urljson += "consumption=" + myJSON.consumption + CR;
+    urljson += "range_est=" + myJSON.range_est + CR;
+    urljson += "vehicle_id=" + "RZ_123" + CR;
+    urljson += "user_id=" + "Juan" + CR;
+    urljson += "range_ideal=" + myJSON.range_ideal + CR;
+    urljson += "range_full=" + myJSON.range_ideal + CR;
+    urljson += "drivetime=" + myJSON.drivetime + CR;
+    urljson += "footbrake=" + myJSON.footbrake + CR;
+    urljson += "capacity=" + myJSON.capacity + CR;
+    urljson += "engine_temp=" + myJSON.engine_temp + CR;
+    urljson += "power_kw=" + myJSON.power_kw + CR;    //Main battery momentary power
+    urljson += "is_charging=" + myJSON.is_charging + CR;         //yes = currently charging
+    urljson += "coulomb=" + myJSON.coulomb + CR;
+    urljson += "energy=" + myJSON.energy + CR;
+    urljson += "rpm=" + myJSON.rpm;
+    print(urljson);
+    return urljson;
+}
+
+// Return config object for HTTP request
+function GetURLcfg() {
     var cfg = {
-      //url: GetUrlABRP(),
-      url: "http://104.248.48.68:8080",
-      done: function(resp) {OnRequestDone(resp)},
-      fail: function(err)  {OnRequestFail(err)}
+    url: GetUrlABRP(objTLM, "&"),
+    done: function(resp) {OnRequestDone(resp)},
+    fail: function(err)  {OnRequestFail(err)}
     };
     return cfg;
-  }
+}
 
-  function SendLiveData() {
-    if (UpdateTelemetry()) {
-      HTTP.Request( GetURLcfg() );
-    }
-  }
+function SendLiveData() {
+    UpdateObjTelemetry();
+    HTTP.Request(GetURLcfg());
+}
 
-  function Reactivate_MotorsOn() {
-    bMotorsOn = true;
+//test purpose : one time execution
+function onetime() {
+    InitObjTelemetry();
     SendLiveData();
-  }
+}
 
-  function InitTimer() {
-    objTimer = PubSub.subscribe(TIMER_INTERVAL, SendLiveData);
-    objEvent = PubSub.subscribe(EVENT_MOTORS_ON, SendLiveData);
-  }
+// API method abrp.onetime():
+exports.onetime = function() {
+    onetime();
+}
 
-  function CloseTimer() {
-    PubSub.unsubscribe(objEvent);
-    PubSub.unsubscribe(objTimer);
-    objEvent = null;
-    objTimer = null;
-  }
+// API method abrp.info():
+exports.info = function() {
+    InitObjTelemetry();
+    UpdateObjTelemetry();
+}
 
-  // API method abrp.onetime():
-  //   Read and send data, but only once, no timer launched
-  exports.onetime = function() {
-    readConfig();
-    InitTelemetry();
-    SendLiveData();
-    CloseTelemetry();
-  }
-
-  // API method abrp.info():
-  //   Do not send any data, just read vehicle data and writes in the console
-  exports.info = function() {
-    readConfig();
-    InitTelemetry();
-    UpdateTelemetry();
-    CloseTelemetry();
-  }
-
-  // API method abrp.send():
-  //   Checks every minut if important data has changed, and send it
-  exports.send = function(onoff) {
+// API method abrp.send():
+exports.send = function(onoff) {
     if (onoff) {
-      readConfig();
-      if (objTimer != null) {
-        print("Already running !" + CR);
-        return;
-      }
-      print("Start sending data..." + CR);
-      InitTelemetry();
-      SendLiveData();
-      InitTimer();
-      OvmsNotify.Raise("info", "usr.abrp.status", "ABRP::started");
-    } else {
-      if (objTimer == null) {
-        print("Already stopped !" + CR);
-        return;
-      }
-      print("Stop sending data" + CR);
-      CloseTimer();
-      CloseTelemetry();
-      OvmsNotify.Raise("info", "usr.abrp.status", "ABRP::stopped");
+        onetime();
+        //Periodically perform subscribed function
+        objTimer = PubSub.subscribe("ticker.10", SendLiveData); // update each 60s
     }
-  }
+    else {
+        PubSub.unsubscribe(objTimer);
+    }
+}
