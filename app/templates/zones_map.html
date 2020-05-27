@@ -12,12 +12,46 @@
           <a class="nav-link active" href="{{ url_for('show_zones_map') }}" >Zonas</a>
          </li>
     </ul>
-    <form class="form form-horizontal" action="{{ url_for('show_zones_map') }}" method=post novalidate>
-        <d1>
-            {{ wtf.form_field(form.day, class='form-control', placeholder="Ingrese dia") }}
-        </d1>
-        <button class="btn btn-dark" type="submit">Ver</button>
-    </form>
+    <div class="variables">
+        <form role="form" class="form-inline" action="{{ url_for('zones_interval') }}" method=post>
+            <div class='col-auto'>
+              <label class="label label-default" for="time5"> Desde </label>
+              <div class="form-group" id = 'time5'>
+                <div class='input-group date' id='datetimepicker5'>
+                  <input type='text' class="form-control" placeholder= '{{session.t5}}' name = 't5'/>
+                  <span class="input-group-addon">
+                    <span class="glyphicon glyphicon-calendar"></span>
+                  </span>
+                </div>
+              </div>
+            </div>
+            <script>
+                $(function () {
+                    $('#datetimepicker5').datetimepicker();
+                });
+            </script>
+            <div class='col-auto'>
+              <label class="label label-default" for="time6"> Hasta </label>
+              <div class="form-group" id = 'time6'>
+                <div class='input-group date' id='datetimepicker6'>
+                  <input type='text' class="form-control" placeholder= '{{session.t6}}' name = 't6'/>
+                  <span class="input-group-addon">
+                    <span class="glyphicon glyphicon-calendar"></span>
+                  </span>
+                </div>
+              </div>
+            </div>
+            <script>
+                $(function () {
+                    $('#datetimepicker4').datetimepicker();
+                });
+            </script>
+            <div class="col-auto">
+                <button class="btn btn-dark" type="submit">Ver</button>
+            </div>
+
+            </form>
+        </div>
     <style>
     body {
       margin: 0;

@@ -86,17 +86,15 @@ def show_tables():
 @app.route('/zones_map', methods=['GET', 'POST'])
 @login_required
 def show_zones_map():
-
-    form = VehicleMapForm()
-    if form.is_submitted():
-        session["day"] = form.day.data
     try:
-        session["day"]
+        session['t5']
+        session['t6']
+
     except KeyError:
-        session["day"] = 1
+        session['t5'] = datetime(2020, 1, 1)
+        session['t6'] = datetime.now()
 
-
-    lines_df = open_dataframes.get_lines()
+    lines_df = open_dataframes.get_lines(session['t5'], session['t6'])
     zones = open_dataframes.get_zones()
     json_zones = Markup(zones.to_json(orient='records'))
 
@@ -104,7 +102,7 @@ def show_zones_map():
     lines_df["name"] = zones["name"].reindex(index=lines_df['id_nearest_zone']).tolist()
     json_lines = Markup(lines_df.to_json(orient='records'))
 
-    return render_template('zones_map.html',json_zones=json_zones, json_lines=json_lines,form=form)
+    return render_template('zones_map.html',json_zones=json_zones, json_lines=json_lines)
 
 
 @app.route('/vehicle_map', methods=['GET', 'POST'])
@@ -238,9 +236,21 @@ def map_var():
         session["t4"] = datetime.strptime(request.form['t4'], '%m/%d/%Y %I:%M %p')
     except ValueError:
         session['t4'] = datetime.now()
-
-    print(session["t3"], session["t4"])
     return redirect(url_for('show_vehicle_map'))
+
+@app.route('/zones_interval', methods=['POST'])
+def zones_interval():
+    try:
+        session["t5"] = datetime.strptime(request.form['t5'], '%m/%d/%Y %I:%M %p')
+    except ValueError:
+        session['t5'] = datetime(2020, 1, 1)
+    try:
+        session["t6"] = datetime.strptime(request.form['t6'], '%m/%d/%Y %I:%M %p')
+    except ValueError:
+        session['t6'] = datetime.now()
+
+    print(session["t5"], session["t6"])
+    return redirect(url_for('show_zones_map'))
 
 
 @app.route('/favicon.ico')
