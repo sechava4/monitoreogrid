@@ -70,7 +70,7 @@ def load_user(id):
 class Operation(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
-    timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+    timestamp = db.Column(db.DateTime, index=True, default=datetime.now)
     placa = db.Column(db.String(64))
     operative_state = db.Column(db.Integer)
     latitude = db.Column(db.Float)

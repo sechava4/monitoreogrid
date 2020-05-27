@@ -2,6 +2,15 @@
 {% import "bootstrap/wtf.html" as wtf %}
 {% block content %}
 <title> Login </title>
+<div class="container">
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+        {% for message in messages %}
+        <div class="alert alert-info" role="alert">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+    {% endwith %}
+</div>
 <div class="myforms" >
   <form class="container" action="{{ url_for('login') }}" method=post novalidate>
       <div class="text-center mb-4">

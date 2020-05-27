@@ -9,6 +9,7 @@ from werkzeug.urls import url_parse
 from app.models import User, Operation
 import os
 import json
+from datetime import datetime
 
 import geopandas as gpd
 
@@ -19,12 +20,21 @@ def show_entries():
     try:
         session["graph_var_x"]
         session["graph_var_y"]
+        session['t1']
+        session['t2']
     except KeyError:
         session["graph_var_x"] = "timestamp"
         session["graph_var_y"] = "soh"
+        session['t1'] = datetime(2020, 1, 1)
+        session['t2'] = datetime.now()
 
-    print(session["graph_var_x"], session["graph_var_y"])
-    query = "SELECT " + session["graph_var_x"] + " ," + session["graph_var_y"] + " from operation"
+    # t1 = datetime.strptime(session['t1'], '%m/%d/%Y %I:%M %p')
+    # t2 = datetime.strptime(session['t2'], '%m/%d/%Y %I:%M %p')
+    query = "SELECT " + session["graph_var_x"] + " ," + session["graph_var_y"] + " from operation " +\
+            'WHERE timestamp BETWEEN "' + session['t1'].strftime('%Y-%m-%d %I:%M:%S') +\
+            '" and "' + session['t2'].strftime('%Y-%m-%d %I:%M:%S') + '"'
+
+    print(query)
     df_o = pd.read_sql_query(query, db.engine)
     #pd.read_sql(session.query(Operation).filter(Operation.id == 2).statement, session.bind)
 
@@ -36,8 +46,9 @@ def show_entries():
 
 @app.route('/updateplot')
 def update_plot():
-
-    query = "SELECT " + session["graph_var_x"] + " ," + session["graph_var_y"] + " from operation"
+    query = "SELECT " + session["graph_var_x"] + " ," + session["graph_var_y"] + " from operation " + \
+            'WHERE timestamp BETWEEN "' + session['t1'].strftime('%Y-%m-%d %I:%M:%S') + '" and "' + session[
+                't2'].strftime('%Y-%m-%d %I:%M:%S') + '"'
     df_o = pd.read_sql_query(query, db.engine)
     #pd.read_sql(session.query(Operation).filter(Operation.id == 2).statement, session.bind)
 
@@ -202,7 +213,16 @@ def logout():
 def graph_var():
     session["graph_var_x"] = (request.form['variable_x'])
     session["graph_var_y"] = (request.form['variable_y'])
-    session["day"] = (request.form['day'])
+    try:
+        session["t1"] = datetime.strptime(request.form['t1'], '%m/%d/%Y %I:%M %p')
+    except ValueError:
+        session['t1'] = datetime(2020, 1, 1)
+    try:
+        session["t2"] = datetime.strptime(request.form['t2'], '%m/%d/%Y %I:%M %p')
+    except ValueError:
+        session['t2'] = datetime.now()
+
+    print(session['t1'], session['t2'])
     return redirect(url_for('show_entries'))
 
 
