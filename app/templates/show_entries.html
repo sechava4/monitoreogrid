@@ -84,7 +84,7 @@
               <label class="label label-default" for="time1"> Desde </label>
               <div class="form-group" id = 'time1'>
                 <div class='input-group date' id='datetimepicker1'>
-                  <input type='text' class="form-control" name = 't1'/>
+                  <input type='text' id = 'date_t1' class="form-control" placeholder= '{{session.t1}}' name = 't1'/>
                   <span class="input-group-addon">
                     <span class="glyphicon glyphicon-calendar"></span>
                   </span>
@@ -100,7 +100,7 @@
               <label class="label label-default" for="time2"> Hasta </label>
               <div class="form-group" id = 'time2'>
                 <div class='input-group date' id='datetimepicker2'>
-                  <input type='text' class="form-control" name = 't2'/>
+                  <input type='text' class="form-control" placeholder= '{{session.t2}}' name = 't2'/>
                   <span class="input-group-addon">
                     <span class="glyphicon glyphicon-calendar"></span>
                   </span>
@@ -122,9 +122,6 @@
 
 
         <div class="container" id = "grafica">
-            <p>{{session.x_pretty_graph}} vs {{session.y_pretty_graph}}</p>
-            <p>{{session.t1}}</p>
-            <p>{{session.t2}}</p>
             <div class="chart" id="bargraph">
                 <script>
                     var graphs = {{plot | safe}};
