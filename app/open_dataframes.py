@@ -40,10 +40,12 @@ def get_lines_csv(day):
     return df
 
 
-def get_lines():
-    query = "SELECT latitude, longitude from operation"
-    df = pd.read_sql_query(query, db.engine)
+def get_lines(t1, t2):
+    query = "SELECT latitude, longitude from operation " + \
+            'WHERE timestamp BETWEEN "' + t1.strftime('%Y-%m-%d %I:%M:%S') + \
+            '" and "' + t2.strftime('%Y-%m-%d %I:%M:%S') + '"'
 
+    df = pd.read_sql_query(query, db.engine)
     lat2 = df["latitude"].iloc[1:]
     lat2 = lat2.append(pd.Series(df["latitude"].iloc[-1]), ignore_index=True)
     df["latitude2"] = lat2
@@ -106,15 +108,23 @@ def alturas_df_csv(var, day):
     return df
 
 
-def get_heights(var):
-    query = "SELECT latitude, longitude, " + var + " from operation"
+def get_heights(var, t1, t2):
+
+    query = "SELECT latitude, longitude, " + var + " from operation " + \
+            'WHERE timestamp BETWEEN "' + t1.strftime('%Y-%m-%d %I:%M:%S') + \
+            '" and "' + t2.strftime('%Y-%m-%d %I:%M:%S') + '"'
+
     df = pd.read_sql_query(query, db.engine)
     if var not in df.columns:
         var = "elevation"
     df = df[["latitude", "longitude", var]]
     if var == "elevation":
         df["name"] = df[var]
-        df[var] = df[var].map(lambda x: x-1420)
+        df['var'] = df[var].map(lambda x: x-1420)
+    else:
+        df["name"] = df[var]
+        df['var'] = df[var].map(lambda x: x*7)
+    df = df[["latitude", "longitude", 'name', 'var']]
     return df
 
 

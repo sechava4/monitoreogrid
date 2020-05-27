@@ -110,38 +110,37 @@ def show_zones_map():
 @app.route('/vehicle_map', methods=['GET', 'POST'])
 @login_required
 def show_vehicle_map():
-    form = VehicleMapForm()
-    if form.is_submitted():
-        session["map_var"] = form.variable.data
 
     try:
         session["map_var"]
+        session['t3']
+        session['t4']
     except KeyError:
         session["map_var"] = "elevation"
         session["map_car"] = "seleccione vehiculo"
+        session['t3'] = datetime(2020, 1, 1)
+        session['t4'] = datetime.now()
 
     stations_df = open_dataframes.get_stations()
     json_stations = Markup(stations_df.to_json(orient='records'))
 
-    lines_df = open_dataframes.get_lines()
+    lines_df = open_dataframes.get_lines(session['t3'], session['t4'])
     json_lines = Markup(lines_df.to_json(orient='records'))
 
-    alturas_df = open_dataframes.get_heights(session["map_var"])
+    alturas_df = open_dataframes.get_heights(session["map_var"], session['t3'], session['t4'])
     # current_pos = alturas.iloc[1:2]
 
-    titles = Operation.__dict__
-    form.variable.choices = open_dataframes.form_var(titles)
-    session["title_var"] = open_dataframes.pretty_var_name(session["map_var"])
+    session["map_var_pretty"] = open_dataframes.pretty_var_name(session["map_var"])
 
-    _, a = Trees.station_tree.query(alturas_df[['latitude', 'longitude']].values, k=2)    #Select neares 2 stations (Knearest)
+    _, a = Trees.station_tree.query(alturas_df[['latitude', 'longitude']].values, k=2)    # Select neares 2 stations (Knearest)
     alturas_df["closest_st_id1"] = a[:, 0]
     alturas_df["closest_st_id2"] = a[:, 1]
     alturas_df["closest_station1"] = stations_df["name"].reindex(index=alturas_df['closest_st_id1']).tolist()  # map station id with station name (vector)
     alturas_df["closest_station2"] = stations_df["name"].reindex(index=alturas_df['closest_st_id2']).tolist()  # map station2  id with station name (vector)
-    # session["closest_station"] = stations_df["name"].iloc[current_pos['id_nearest']].item()              # map station id with station name (current)
+    # session["closest_station"] = stations_df["name"].iloc[current_pos['id_nearest']].item()    # map station id with station name (current)
     json_operation = Markup(alturas_df.to_json(orient='records'))
 
-    return render_template('vehicle_map.html', form=form, json_lines=json_lines, json_operation=json_operation,
+    return render_template('vehicle_map.html', json_lines=json_lines, json_operation=json_operation,
                            json_stations=json_stations)
 
 
@@ -159,12 +158,14 @@ def add_entry():
     if not bool(request.args):
         return ("Null data")
     else:
-        operation = Operation(**request.args)   # ** pasa un numero variable argumentos a la funcion
-        print(operation.__dict__)
-        db.session.add(operation)
-        db.session.commit()
-        return ("Data recieved")#redirect(url_for('show_entries'))
-
+        if float(request.args["latitude"]) > 0:
+            operation = Operation(**request.args)   # ** pasa un numero variable argumentos a la funcion
+            print(operation.__dict__)
+            db.session.add(operation)
+            db.session.commit()
+            return ("Data recieved")#redirect(url_for('show_entries'))
+        else:
+            return ("Null location")
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -224,6 +225,22 @@ def graph_var():
 
     print(session['t1'], session['t2'])
     return redirect(url_for('show_entries'))
+
+
+@app.route('/map_var', methods=['POST'])
+def map_var():
+    session["map_var"] = (request.form['map_var'])
+    try:
+        session["t3"] = datetime.strptime(request.form['t3'], '%m/%d/%Y %I:%M %p')
+    except ValueError:
+        session['t3'] = datetime(2020, 1, 1)
+    try:
+        session["t4"] = datetime.strptime(request.form['t4'], '%m/%d/%Y %I:%M %p')
+    except ValueError:
+        session['t4'] = datetime.now()
+
+    print(session["t3"], session["t4"])
+    return redirect(url_for('show_vehicle_map'))
 
 
 @app.route('/favicon.ico')

@@ -13,14 +13,85 @@
           <a class="nav-link" href="{{ url_for('show_zones_map') }}" >Zonas</a>
          </li>
     </ul>
-    <form class="form form-horizontal" action="{{ url_for('show_vehicle_map') }}" method=post novalidate>
-        <d1>
-            {{ wtf.form_field(form.variable, class='form-control', placeholder="variable") }}
-        </d1>
-        <button class="btn btn-dark" type="submit">Ver</button>
-    </form>
+
+    <div class="variables">
+        <form role="form" class="form-inline" action="{{ url_for('map_var') }}" method=post>
+            <div class="col-auto">
+                <label class="label label-default" for="exampleFormControlSelect3"> Variable de monitoreo </label>
+                <select class="form-control" id="exampleFormControlSelect3" name = map_var>
+                    <option value="{{session.map_var}}"> {{session.map_var_pretty}}</option>
+                    <option value="elevation">Altitud</option>
+                    <option value="slope">Pendiente</option>
+                    <option value="speed">Velocidad</option>
+                    <option value="odometer">Odometro</option>
+                    <option value="capacity">Capacidad</option>
+                    <option value="power_kw">Potencia</option>
+                    <option value="soc">SoC</option>
+                    <option value="soh">SoH</option>
+                    <option value="batt_temp">Temperatura de batería</option>
+                    <option value="ext_temp">Temperatura externa</option>
+                    <option value="voltage">Voltage</option>
+                    <option value="current">Corriente</option>
+                    <option value="acceleration">Aceleración motor</option>
+                    <option value="throttle">Pedal de acelerador</option>
+                    <option value="regen_brake">Freno regenerativo</option>
+                    <option value="consumption">Consumo</option>
+                    <option value="range_est">Rango estimado</option>
+                    <option value="range_ideal">Rango ideal</option>
+                    <option value="range_full">Rango 100% SoC</option>
+                    <option value="drivetime">Tiempo de manejo</option>
+                    <option value="charge_time">Tiempo de carga</option>
+                    <option value="is_charging">Esta cargando</option>
+                    <option value="tpms">presion llantas</option>
+                    <option value="ocv">OCV</option>
+                    <option value="rpm">RPM</option>
+                    <option value="occupants">Ocupantes</option>
+                    <option value="footbrake">Freno de pedal</option>
+                    <option value="engine_temp">Temperatura de motor</option>
+                </select>
+            </div>
+            <div class='col-auto'>
+              <label class="label label-default" for="time3"> Desde </label>
+              <div class="form-group" id = 'time3'>
+                <div class='input-group date' id='datetimepicker3'>
+                  <input type='text' class="form-control" name = 't3'/>
+                  <span class="input-group-addon">
+                    <span class="glyphicon glyphicon-calendar"></span>
+                  </span>
+                </div>
+              </div>
+            </div>
+            <script>
+                $(function () {
+                    $('#datetimepicker3').datetimepicker();
+                });
+            </script>
+            <div class='col-auto'>
+              <label class="label label-default" for="time4"> Hasta </label>
+              <div class="form-group" id = 'time4'>
+                <div class='input-group date' id='datetimepicker4'>
+                  <input type='text' class="form-control" name = 't4'/>
+                  <span class="input-group-addon">
+                    <span class="glyphicon glyphicon-calendar"></span>
+                  </span>
+                </div>
+              </div>
+            </div>
+            <script>
+                $(function () {
+                    $('#datetimepicker4').datetimepicker();
+                        date: new Date('05/01/2020')
+                });
+            </script>
+            <div class="col-auto">
+                <button class="btn btn-dark" type="submit">Ver</button>
+            </div>
+
+            </form>
+        </div>
     <div>
-        <b></b>
+        <p>{{session.t3}}</p>
+        <p>{{session.t4}}</p>
     </div>
 
     <style>
@@ -69,7 +140,7 @@
       "layers": [{"@@type": "ScatterplotLayer", "data":{{json_stations}}, "filled": true, "getFillColor": [255, 140, 0], "getLineColor": [0, 0, 0], "getPosition": "@@=[longitude, latitude]",
       "id": "2695882c-7d5e-4f89-9e8a-049b84822d70", "lineWidthMinPixels": 1, "opacity": 0.8, "pickable": true, "radiusMaxPixels": 8, "radiusMinPixels": 8, "radiusScale": 6, "stroked": true},
       {"@@type": "LineLayer", "autoHighlight": true, "data": {{json_lines}}, "getSourcePosition": "@@=[longitude,latitude]", "getTargetPosition": "@@=[longitude2,latitude2]", "getWidth": 10, "highlightColor": [255, 255, 0], "id": "e7cf82d5-b4d6-4f9b-86ee-5f8712240607", "pickable": false, "pickingRadius": 10},
-      {"@@type": "ColumnLayer", "data":{{json_operation}},"elevationScale": 5, "getElevation": "@@=elevation", "getFillColor": "@@=[elevation * 2, 100, 120, 200]", "getPosition": "@@=[longitude, latitude]", "id": "27bac356-e75f-4bab-b330-7c6e7c831819", "pickable": true, "radius": 20}],
+      {"@@type": "ColumnLayer", "data":{{json_operation}},"elevationScale": 5, "getElevation": "@@=var", "getFillColor": "@@=[elevation * 2, 100, 120, 200]", "getPosition": "@@=[longitude, latitude]", "id": "27bac356-e75f-4bab-b330-7c6e7c831819", "pickable": true, "radius": 20}],
       "mapStyle": "mapbox://styles/mapbox/outdoors-v11", "views": [{"@@type": "MapView", "controller": true}]};
     const MAPBOX_API_KEY = 'pk.eyJ1Ijoic2VjaGF2YTQiLCJhIjoiY2s2dTF0eHQ0MDViaTNmbXRhaHVoaG85cSJ9.xMh2vZNuj2PfxsUksteApQ';
     const tooltip = {'html':'<b>Valor : </b>  <b>{name}</b> cerca estaciones: {closest_station1} y {closest_station2}', 'style': {'background': 'grey', 'color': 'white', 'font-family': '"Helvetica Neue", Arial', 'z-index': '10000'}};
