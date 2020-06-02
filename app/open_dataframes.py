@@ -16,7 +16,7 @@ def get_stations():
     file = os.path.join(app.root_path, "stations.json")
     df = pd.read_json(file)
     df.columns = ["name","latitude","longitude", "charger_types"]
-    df = df[["name","latitude","longitude"]]
+    # df = df[["name","latitude","longitude"]]
     return df
 
 
@@ -40,10 +40,10 @@ def get_lines_csv(day):
     return df
 
 
-def get_lines(t1, t2):
+def get_lines(d1, h1, h2):
     query = "SELECT latitude, longitude from operation " + \
-            'WHERE timestamp BETWEEN "' + t1.strftime('%Y-%m-%d %I:%M:%S') + \
-            '" and "' + t2.strftime('%Y-%m-%d %I:%M:%S') + '"'
+            'WHERE timestamp BETWEEN "' + str(d1) + ' ' + str(h1)[:8] + \
+            '" and "' + str(d1) + ' ' + str(h2)[:8] + '"'
 
     df = pd.read_sql_query(query, db.engine)
     lat2 = df["latitude"].iloc[1:]
@@ -108,11 +108,11 @@ def alturas_df_csv(var, day):
     return df
 
 
-def get_heights(var, t1, t2):
+def get_heights(var, d1, h1, h2):
 
     query = "SELECT latitude, longitude, " + var + " from operation " + \
-            'WHERE timestamp BETWEEN "' + t1.strftime('%Y-%m-%d %I:%M:%S') + \
-            '" and "' + t2.strftime('%Y-%m-%d %I:%M:%S') + '"'
+            'WHERE timestamp BETWEEN "' + str(d1) + ' ' + str(h1)[:8] + \
+            '" and "' + str(d1) + ' ' + str(h2)[:8] + '"'
 
     df = pd.read_sql_query(query, db.engine)
     if var not in df.columns:
@@ -123,7 +123,7 @@ def get_heights(var, t1, t2):
         df['var'] = df[var].map(lambda x: x-1420)
     else:
         df["name"] = df[var]
-        df['var'] = df[var].map(lambda x: x*7)
+        df['var'] = df[var].map(lambda x: x*6)
     df = df[["latitude", "longitude", 'name', 'var']]
     return df
 

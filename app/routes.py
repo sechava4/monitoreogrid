@@ -1,6 +1,6 @@
 from app import app, open_dataframes, plot, db
 from app.closest_points import Trees
-from app.forms import LoginForm, RegistrationForm, TablesForm, VehicleMapForm
+from app.forms import LoginForm, RegistrationForm, TablesForm
 from flask import request, session, redirect, url_for, Markup, \
     render_template, flash,send_from_directory
 import pandas as pd
@@ -10,8 +10,7 @@ from app.models import User, Operation
 import os
 import json
 from datetime import datetime
-
-import geopandas as gpd
+import pytz
 
 
 @app.route('/')
@@ -20,23 +19,35 @@ def show_entries():
     try:
         session["graph_var_x"]
         session["graph_var_y"]
-        session['t1']
-        session['t2']
+        session['form_d1']
+        session['form_h1']
+        session['form_h2']
+        session['d1']
+        session['h1']
+        session['h2']
     except KeyError:
+        now = datetime.now(pytz.timezone('America/Bogota'))
+        session['form_d1'] = now.strftime("%d/%m/%Y")
+        session['form_h1'] = '0:01 AM'
+        session['form_h2'] = now.strftime("%I:%M %p")  # 12H Format
+        session['d1'] = now.strftime("%Y-%m-%d")
+        session['h1'] = '00:00:00'
+        session['h2'] = now.time()
         session["graph_var_x"] = "timestamp"
         session["graph_var_y"] = "soh"
-        session['t1'] = datetime(2020, 1, 1)
-        session['t2'] = datetime.now()
 
+
+    #print(session['d1'].strftime("%Y-%m-%d"))
     # t1 = datetime.strptime(session['t1'], '%m/%d/%Y %I:%M %p')
     # t2 = datetime.strptime(session['t2'], '%m/%d/%Y %I:%M %p')
-    query = "SELECT " + session["graph_var_x"] + " ," + session["graph_var_y"] + " from operation " +\
-            'WHERE timestamp BETWEEN "' + session['t1'].strftime('%Y-%m-%d %I:%M:%S') +\
-            '" and "' + session['t2'].strftime('%Y-%m-%d %I:%M:%S') + '"'
+    query = "SELECT " + session["graph_var_x"] + " ," + session["graph_var_y"] + \
+            ' from operation WHERE timestamp BETWEEN "' + session['d1'] + ' ' + str(session['h1'])[:8] + \
+            '" and "' + str(session['d1']) + ' ' + str(session['h2'])[:8] + '"'
 
     print(query)
+    # conn = db.engine.connect()
+    # a = conn.execute(query).fetchall()
     df_o = pd.read_sql_query(query, db.engine)
-    #pd.read_sql(session.query(Operation).filter(Operation.id == 2).statement, session.bind)
 
     bar = plot.create_plot(df_o, session["graph_var_x"], session["graph_var_y"])
     session["x_pretty_graph"] = open_dataframes.pretty_var_name(session["graph_var_x"])
@@ -46,12 +57,11 @@ def show_entries():
 
 @app.route('/updateplot')
 def update_plot():
-    query = "SELECT " + session["graph_var_x"] + " ," + session["graph_var_y"] + " from operation " + \
-            'WHERE timestamp BETWEEN "' + session['t1'].strftime('%Y-%m-%d %I:%M:%S') + '" and "' + session[
-                't2'].strftime('%Y-%m-%d %I:%M:%S') + '"'
-    df_o = pd.read_sql_query(query, db.engine)
-    #pd.read_sql(session.query(Operation).filter(Operation.id == 2).statement, session.bind)
+    query = "SELECT " + session["graph_var_x"] + " ," + session["graph_var_y"] + \
+            ' from operation WHERE timestamp BETWEEN "' + session['d1'] + ' ' + str(session['h1'])[:8] + \
+            '" and "' + str(session['d1']) + ' ' + str(session['h2'])[:8] + '"'
 
+    df_o = pd.read_sql_query(query, db.engine)
     bar = plot.create_plot(df_o, session["graph_var_x"], session["graph_var_y"])
     session["x_pretty_graph"] = open_dataframes.pretty_var_name(session["graph_var_x"])
     session["y_pretty_graph"] = open_dataframes.pretty_var_name(session["graph_var_y"])
@@ -87,14 +97,23 @@ def show_tables():
 @login_required
 def show_zones_map():
     try:
-        session['t5']
-        session['t6']
+        session['form_d1']
+        session['form_h1']
+        session['form_h2']
+        session['d1']
+        session['h1']
+        session['h2']
 
     except KeyError:
-        session['t5'] = datetime(2020, 1, 1)
-        session['t6'] = datetime.now()
+        now = datetime.now(pytz.timezone('America/Bogota'))
+        session['form_d1'] = now.strftime("%d/%m/%Y")
+        session['form_h1'] = '0:01 AM'
+        session['form_h2'] = now.strftime("%I:%M %p")  # 12H Format
+        session['d1'] = now.strftime("%Y-%m-%d")
+        session['h1'] = '00:00:00'
+        session['h2'] = now.time()
 
-    lines_df = open_dataframes.get_lines(session['t5'], session['t6'])
+    lines_df = open_dataframes.get_lines(session['d1'], session['h1'], session['h2'])
     zones = open_dataframes.get_zones()
     json_zones = Markup(zones.to_json(orient='records'))
 
@@ -111,22 +130,31 @@ def show_vehicle_map():
 
     try:
         session["map_var"]
-        session['t3']
-        session['t4']
+        session['form_d1']
+        session['form_h1']
+        session['form_h2']
+        session['d1']
+        session['h1']
+        session['h2']
     except KeyError:
         session["map_var"] = "elevation"
         session["map_car"] = "seleccione vehiculo"
-        session['t3'] = datetime(2020, 1, 1)
-        session['t4'] = datetime.now()
+        now = datetime.now(pytz.timezone('America/Bogota'))
+        session['form_d1'] = now.strftime("%d/%m/%Y")
+        session['form_h1'] = '0:01 AM'
+        session['form_h2'] = now.strftime("%I:%M %p")  # 12H Format
+        session['d1'] = now.strftime("%Y-%m-%d")
+        session['h1'] = '00:00:00'
+        session['h2'] = now.time()
 
     stations_df = open_dataframes.get_stations()
     json_stations = Markup(stations_df.to_json(orient='records'))
 
-    lines_df = open_dataframes.get_lines(session['t3'], session['t4'])
+    lines_df = open_dataframes.get_lines(session['d1'], session['h1'], session['h2'])
     json_lines = Markup(lines_df.to_json(orient='records'))
 
-    alturas_df = open_dataframes.get_heights(session["map_var"], session['t3'], session['t4'])
-    # current_pos = alturas.iloc[1:2]
+    alturas_df = open_dataframes.get_heights(session["map_var"], session['d1'], session['h1'], session['h2'])
+    # current_pos = alturas_df.iloc[1:2]
 
     session["map_var_pretty"] = open_dataframes.pretty_var_name(session["map_var"])
 
@@ -141,7 +169,8 @@ def show_vehicle_map():
     return render_template('vehicle_map.html', json_lines=json_lines, json_operation=json_operation,
                            json_stations=json_stations)
 
-
+    # return Json para hacer el render en el cliente
+    #
 
 @app.route('/gauges')
 @login_required
@@ -157,7 +186,9 @@ def add_entry():
         return ("Null data")
     else:
         if float(request.args["latitude"]) > 0:
-            operation = Operation(**request.args)   # ** pasa un numero variable argumentos a la funcion
+            operation = Operation(**request.args)   # ** pasa un numero variable de argumentos a la funcion
+            operation.timestamp = datetime.strptime((datetime.now(pytz.timezone('America/Bogota')).strftime('%Y-%m-%d %H:%M:%S')),
+                                                      '%Y-%m-%d %H:%M:%S')
             print(operation.__dict__)
             db.session.add(operation)
             db.session.commit()
@@ -212,44 +243,46 @@ def logout():
 def graph_var():
     session["graph_var_x"] = (request.form['variable_x'])
     session["graph_var_y"] = (request.form['variable_y'])
-    try:
-        session["t1"] = datetime.strptime(request.form['t1'], '%m/%d/%Y %I:%M %p')
-    except ValueError:
-        session['t1'] = datetime(2020, 1, 1)
-    try:
-        session["t2"] = datetime.strptime(request.form['t2'], '%m/%d/%Y %I:%M %p')
-    except ValueError:
-        session['t2'] = datetime.now()
+    session['form_d1'] = request.form['d1']
+    session['form_h1'] = request.form['h1']
+    session['form_h2'] = request.form['h2']
 
-    print(session['t1'], session['t2'])
+    session["d1"] = (datetime.strptime(request.form['d1'], '%d/%m/%Y')).strftime("%Y-%m-%d")
+    session["h1"] = (datetime.strptime(request.form['h1'], '%I:%M %p')).strftime("%H:%M:%S")
+    session["h2"] = (datetime.strptime(request.form['h2'], '%I:%M %p')).strftime("%H:%M:%S")
+    if session["h2"] < session["h1"]:
+        session["h1"], session["h2"] = session["h2"], session["h1"] # Swap times
+
+    print(session['d1'], session['h1'], session['h2'])
     return redirect(url_for('show_entries'))
 
 
 @app.route('/map_var', methods=['POST'])
 def map_var():
     session["map_var"] = (request.form['map_var'])
-    try:
-        session["t3"] = datetime.strptime(request.form['t3'], '%m/%d/%Y %I:%M %p')
-    except ValueError:
-        session['t3'] = datetime(2020, 1, 1)
-    try:
-        session["t4"] = datetime.strptime(request.form['t4'], '%m/%d/%Y %I:%M %p')
-    except ValueError:
-        session['t4'] = datetime.now()
+    session['form_d1'] = request.form['d1']
+    session['form_h1'] = request.form['h1']
+    session['form_h2'] = request.form['h2']
+
+    session["d1"] = (datetime.strptime(request.form['d1'], '%d/%m/%Y')).strftime("%Y-%m-%d")
+    session["h1"] = (datetime.strptime(request.form['h1'], '%I:%M %p')).strftime("%H:%M:%S")
+    session["h2"] = (datetime.strptime(request.form['h2'], '%I:%M %p')).strftime("%H:%M:%S")
+    if session["h2"] < session["h1"]:
+        session["h1"], session["h2"] = session["h2"], session["h1"]  # Swap times
+
     return redirect(url_for('show_vehicle_map'))
 
 @app.route('/zones_interval', methods=['POST'])
 def zones_interval():
-    try:
-        session["t5"] = datetime.strptime(request.form['t5'], '%m/%d/%Y %I:%M %p')
-    except ValueError:
-        session['t5'] = datetime(2020, 1, 1)
-    try:
-        session["t6"] = datetime.strptime(request.form['t6'], '%m/%d/%Y %I:%M %p')
-    except ValueError:
-        session['t6'] = datetime.now()
+    session['form_d1'] = request.form['d1']
+    session['form_h1'] = request.form['h1']
+    session['form_h2'] = request.form['h2']
 
-    print(session["t5"], session["t6"])
+    session["d1"] = (datetime.strptime(request.form['d1'], '%d/%m/%Y')).strftime("%Y-%m-%d")
+    session["h1"] = (datetime.strptime(request.form['h1'], '%I:%M %p')).strftime("%H:%M:%S")
+    session["h2"] = (datetime.strptime(request.form['h2'], '%I:%M %p')).strftime("%H:%M:%S")
+    if session["h2"] < session["h1"]:
+        session["h1"], session["h2"] = session["h2"], session["h1"]  # Swap times
     return redirect(url_for('show_zones_map'))
 
 

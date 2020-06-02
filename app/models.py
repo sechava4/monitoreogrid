@@ -4,6 +4,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
 import redis
 import rq
+import pytz
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -30,6 +31,8 @@ class User(UserMixin, db.Model):
         return check_password_hash(self.password_hash, password)
 
     tasks = db.relationship('Task', backref='user', lazy='dynamic')
+
+# Crear un metodo para serializar
 
 
 class Vehicle(db.Model):
@@ -70,7 +73,7 @@ def load_user(id):
 class Operation(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
-    timestamp = db.Column(db.DateTime, index=True, default=datetime.now)
+    timestamp = db.Column(db.DateTime, index=True, default=datetime.strptime((datetime.now(pytz.timezone('America/Bogota')).strftime('%Y-%m-%d %H:%M:%S')), '%Y-%m-%d %H:%M:%S'))
     placa = db.Column(db.String(64))
     operative_state = db.Column(db.Integer)
     latitude = db.Column(db.Float)

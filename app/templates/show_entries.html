@@ -80,37 +80,64 @@
                     <option value="engine_temp">Temperatura de motor</option>
                 </select>
             </div>
-            <div class='col-auto'>
-              <label class="label label-default" for="time1"> Desde </label>
-              <div class="form-group" id = 'time1'>
-                <div class='input-group date' id='datetimepicker1'>
-                  <input type='text' id = 'date_t1' class="form-control" placeholder= '{{session.t1}}' name = 't1'/>
-                  <span class="input-group-addon">
-                    <span class="glyphicon glyphicon-calendar"></span>
-                  </span>
+
+            <div class='col-sm-2'>
+                <label class="label label-default" for="date"> Fecha </label>
+                <div class="form-group" id = 'date'>
+                    <div class='input-group date' id='datetimepicker1'>
+                        <input type='text' id = 'd1_input' class="form-control" name = 'd1' />
+                        <span class="input-group-addon"><span class="glyphicon glyphicon-time"></span>
+                        </span>
+                    </div>
                 </div>
-              </div>
             </div>
-            <script>
-                $(function () {
-                    $('#datetimepicker1').datetimepicker();
+            <script type="text/javascript">
+                document.getElementById('d1_input').defaultValue = '{{ session.form_d1 }}'
+                $(function() {
+                   $('#datetimepicker1').datetimepicker({
+                         format: 'DD/MM/YYYY'
+                   });
                 });
             </script>
-            <div class='col-auto'>
-              <label class="label label-default" for="time2"> Hasta </label>
-              <div class="form-group" id = 'time2'>
-                <div class='input-group date' id='datetimepicker2'>
-                  <input type='text' class="form-control" placeholder= '{{session.t2}}' name = 't2'/>
-                  <span class="input-group-addon">
-                    <span class="glyphicon glyphicon-calendar"></span>
-                  </span>
+
+            <div class='col-sm-2'>
+                <label class="label label-default" for="hora1"> Desde </label>
+                <div class="form-group" id="hora1">
+                    <div class='input-group date' id='datetimepicker3'>
+                        <input type='text' id = 'h1_input' class="form-control" name = 'h1'/>
+                        <span class="input-group-addon">
+                            <span class="glyphicon glyphicon-time"></span>
+                        </span>
+                    </div>
                 </div>
-              </div>
+            </div>
+            <script type="text/javascript">
+
+                document.getElementById('h1_input').defaultValue = '{{ session.form_h1 }}'
+                $(function () {
+                    $('#datetimepicker3').datetimepicker({
+                        format: 'LT'
+                    });
+                });
+            </script>
+
+            <div class='col-sm-2'>
+                <label class="label label-default" for="hora2"> Hasta </label>
+                <div class="form-group" id="hora2">
+                    <div class='input-group date' id='datetimepicker4'>
+                        <input type='text' id = 'h2_input' class="form-control" name = 'h2'/>
+                        <span class="input-group-addon">
+                            <span class="glyphicon glyphicon-time"></span>
+                        </span>
+                    </div>
+                </div>
             </div>
             <script>
+                document.getElementById('h2_input').defaultValue = '{{ session.form_h2 }}';
                 $(function () {
-                    $('#datetimepicker2').datetimepicker();
-                        date: new Date('05/01/2020')
+                    $('#datetimepicker4').datetimepicker({
+                        format: 'LT'
+                    });
                 });
             </script>
             <div class="col-auto">
@@ -142,16 +169,14 @@
 
             req.done(function(res) {
                 $("#bargraph").fadeOut(100).fadeIn(100);
-                //full_data = JSON.parse(res.payload);
-                console.log(res)
                 var graphs = JSON.parse(res);
                 console.log(graphs)
                 Plotly.react('bargraph', graphs, {});
             });
         };
         setInterval(function(){
-            loadlink() // this will run after every 5 seconds
-        }, 10000);
+            loadlink() // this will run after every 30 seconds
+        }, 30000);
     });
 
 
