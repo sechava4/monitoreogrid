@@ -47,15 +47,19 @@ def get_lines(d1, h1, h2):
 
     df = pd.read_sql_query(query, db.engine)
     lat2 = df["latitude"].iloc[1:]
-    lat2 = lat2.append(pd.Series(df["latitude"].iloc[-1]), ignore_index=True)
-    df["latitude2"] = lat2
+    if len(lat2) == 0:
+        return df
+    else:
+        aux1 = lat2.append(pd.Series(df["latitude"].iloc[-1]), ignore_index=True)
+        df["latitude2"] = aux1
 
-    lon2 = df["longitude"].iloc[1:]
-    lon2 = lon2.append(pd.Series(df["longitude"].iloc[-1]), ignore_index=True)
-    df["longitude2"] = lon2
-    df = df.drop(df.tail(1).index)
-    df = df.drop(df.head(1).index)
-    return df
+        lon2 = df["longitude"].iloc[1:]
+        print(lon2)
+        aux2 = lon2.append(pd.Series(df["longitude"].iloc[-1]), ignore_index=True)
+        df["longitude2"] = aux2
+        df = df.drop(df.tail(1).index)
+        df = df.drop(df.head(1).index)
+        return df
 
 
 def get_zones():

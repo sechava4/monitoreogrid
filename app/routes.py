@@ -32,7 +32,7 @@ def show_entries():
         session['form_h2'] = now.strftime("%I:%M %p")  # 12H Format
         session['d1'] = now.strftime("%Y-%m-%d")
         session['h1'] = '00:00:00'
-        session['h2'] = now.time()
+        session['h2'] = now.strftime("%H:%M:%S")
         session["graph_var_x"] = "timestamp"
         session["graph_var_y"] = "soh"
 
@@ -111,7 +111,7 @@ def show_zones_map():
         session['form_h2'] = now.strftime("%I:%M %p")  # 12H Format
         session['d1'] = now.strftime("%Y-%m-%d")
         session['h1'] = '00:00:00'
-        session['h2'] = now.time()
+        session['h2'] = now.strftime("%H:%M:%S")
 
     lines_df = open_dataframes.get_lines(session['d1'], session['h1'], session['h2'])
     zones = open_dataframes.get_zones()
@@ -145,7 +145,7 @@ def show_vehicle_map():
         session['form_h2'] = now.strftime("%I:%M %p")  # 12H Format
         session['d1'] = now.strftime("%Y-%m-%d")
         session['h1'] = '00:00:00'
-        session['h2'] = now.time()
+        session['h2'] = now.strftime("%H:%M:%S ")
 
     stations_df = open_dataframes.get_stations()
     json_stations = Markup(stations_df.to_json(orient='records'))
@@ -158,12 +158,13 @@ def show_vehicle_map():
 
     session["map_var_pretty"] = open_dataframes.pretty_var_name(session["map_var"])
 
-    _, a = Trees.station_tree.query(alturas_df[['latitude', 'longitude']].values, k=2)    # Select neares 2 stations (Knearest)
-    alturas_df["closest_st_id1"] = a[:, 0]
-    alturas_df["closest_st_id2"] = a[:, 1]
-    alturas_df["closest_station1"] = stations_df["name"].reindex(index=alturas_df['closest_st_id1']).tolist()  # map station id with station name (vector)
-    alturas_df["closest_station2"] = stations_df["name"].reindex(index=alturas_df['closest_st_id2']).tolist()  # map station2  id with station name (vector)
-    # session["closest_station"] = stations_df["name"].iloc[current_pos['id_nearest']].item()    # map station id with station name (current)
+    if len(lines_df) > 0:
+        _, a = Trees.station_tree.query(alturas_df[['latitude', 'longitude']].values, k=2)    # Select neares 2 stations (Knearest)
+        alturas_df["closest_st_id1"] = a[:, 0]
+        alturas_df["closest_st_id2"] = a[:, 1]
+        alturas_df["closest_station1"] = stations_df["name"].reindex(index=alturas_df['closest_st_id1']).tolist()  # map station id with station name (vector)
+        alturas_df["closest_station2"] = stations_df["name"].reindex(index=alturas_df['closest_st_id2']).tolist()  # map station2  id with station name (vector)
+        # session["closest_station"] = stations_df["name"].iloc[current_pos['id_nearest']].item()    # map station id with station name (current)
     json_operation = Markup(alturas_df.to_json(orient='records'))
 
     return render_template('vehicle_map.html', json_lines=json_lines, json_operation=json_operation,
