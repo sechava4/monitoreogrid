@@ -149,12 +149,63 @@
 
 
         <div class="container" id = "grafica">
-            <div class="chart" id="bargraph">
+            <div class="chart" id="bargraph" >
                 <script>
                     var graphs = {{plot | safe}};
                     Plotly.plot('bargraph',graphs,{});
                 </script>
             </div>
+            <div class="chart" id="donn_graph" style="width:40%;height:400px;float:left">
+                <script>
+                    var graphs2 = {{pie | safe}};
+                    Plotly.plot('donn_graph',graphs2,{});
+                </script>
+            </div>
+
+
+            <div class="chart" id = 'myDiv' style="width:40%;height:250px;float:right"></div>
+            <script>
+                //TESTER = document.getElementById('myDiv');
+                Plotly.d3.csv('https://raw.githubusercontent.com/plotly/datasets/master/api_docs/mt_bruno_elevation.csv', function(err, rows){
+                function unpack(rows, key) {
+                  return rows.map(function(row) { return row[key]; });
+                }
+                var z_data=[ ]
+                for(i=0;i<24;i++)
+                {
+                  z_data.push(unpack(rows,i));
+                }
+
+                var data = [{
+                  z: z_data,
+                  type: 'surface',
+                  contours: {
+                    z: {
+                      show:true,
+                      usecolormap: true,
+                      highlightcolor:"#42f462",
+                      project:{z: true}
+                    }
+                  }
+                }];
+
+                var layout = {
+                  title: 'Mt Bruno Elevation With Projected Contours',
+                  scene: {camera: {eye: {x: 1.87, y: 0.88, z: -0.64}}},
+                  autosize: false,
+                  width: 500,
+                  height: 500,
+                  margin: {
+                    l: 65,
+                    r: 50,
+                    b: 65,
+                    t: 90,
+                  }
+                };
+
+                Plotly.newPlot('myDiv', data, layout);
+                });
+            </script>
         </div>
 
     <script>

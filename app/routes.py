@@ -49,10 +49,10 @@ def show_entries():
     # a = conn.execute(query).fetchall()
     df_o = pd.read_sql_query(query, db.engine)
 
-    bar = plot.create_plot(df_o, session["graph_var_x"], session["graph_var_y"])
+    scatter, donnut = plot.create_plot(df_o, session["graph_var_x"], session["graph_var_y"])
     session["x_pretty_graph"] = open_dataframes.pretty_var_name(session["graph_var_x"])
     session["y_pretty_graph"] = open_dataframes.pretty_var_name(session["graph_var_y"])
-    return render_template('show_entries.html', plot=bar)
+    return render_template('show_entries.html', plot=scatter, pie=donnut)
 
 
 @app.route('/updateplot')
