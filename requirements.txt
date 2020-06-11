@@ -17,3 +17,4 @@ matplotlib
 redis
 rq
 pytz
+email_validator

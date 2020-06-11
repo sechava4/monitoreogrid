@@ -3,15 +3,16 @@ const placa = "ASD089";
 const URL = "http://104.248.48.68:8080/addjson";
 var objTLM;
 var objTimer;
-var operative_state = 1;
-var d = new Date();
-var prev = d.getMilliseconds();
+var operative_state = 4;
+var p = new Date();
+var prev = p.getTime();
 
 
 // http request callback if successful
 function OnRequestDone(resp) {
     print("response="+JSON.stringify(resp)+'\n');
 }
+
 
 // http request callback if failed
 function OnRequestFail(error) {
@@ -34,63 +35,29 @@ function GetUrlABRP() {
     urljson += "capacity=" + OvmsMetrics.AsFloat("v.b.cac") + "&";
     urljson += "batt_temp=" + OvmsMetrics.AsFloat("v.b.temp") + "&";    //Main battery momentary temperature
     urljson += "ext_temp=" + OvmsMetrics.AsFloat("v.e.temp") + "&";    //Ambient temperature
-    urljson += "power_kw=" + OvmsMetrics.AsFloat(["v.b.power"]).toFixed(1); + "&";    //Main battery momentary power
+    urljson += "power_kw=" + OvmsMetrics.AsFloat(["v.b.power"]).toFixed(2) + "&";    //Main battery momentary power
     urljson += "operative_state=" + operative_state + "&";    //OS
-    switch (operative_state) {
+    urljson += "speed=" + OvmsMetrics.AsFloat("v.p.gpsspeed") + "&";    //State of health
+    urljson += "acceleration=" + OvmsMetrics.AsFloat("v.p.acceleration") + "&";    //Engine momentary acceleration
+    urljson += "throttle=" + OvmsMetrics.AsFloat("v.e.throttle") + "&";    //Engine momentary THROTTLE
+    urljson += "regen_brake=" + OvmsMetrics.AsFloat("v.e.regenbrake") + "&";    //Engine momentary Regen value
+    urljson += "consumption=" + OvmsMetrics.AsFloat("v.b.consumption") + "&";
+    urljson += "range_est=" + OvmsMetrics.AsFloat("v.b.range.est") + "&";
+    urljson += "range_ideal=" + OvmsMetrics.AsFloat("v.b.range.ideal") + "&";
+    urljson += "range_full=" + OvmsMetrics.AsFloat("v.b.range.full") + "&";
+    urljson += "drivetime=" + OvmsMetrics.AsFloat("v.e.drivetime") + "&";
+    urljson += "drivemode=" + OvmsMetrics.Value("v.e.drivemode") + "&";
+    urljson += "footbrake=" + OvmsMetrics.AsFloat("v.e.footbrake") + "&";
+    urljson += "engine_temp=" + OvmsMetrics.AsFloat("v.m.temp") + "&";
+    urljson += "coulomb=" + OvmsMetrics.AsFloat("v.b.coulomb.used") + "&";
+    urljson += "energy=" + OvmsMetrics.AsFloat("v.b.energy.used") + "&";
+    urljson += "rpm=" + OvmsMetrics.AsFloat("v.m.rpm") + "&";
+    urljson += "tpms=" + OvmsMetrics.AsFloat("v.tp.fl.p");
+    urljson += "coulomb_rec=" + OvmsMetrics.AsFloat("v.b.coulomb.recd") + "&";
+    urljson += "energy_rec=" + OvmsMetrics.AsFloat("v.b.energy.recd") + "&";
+    urljson += "charge_time=" + OvmsMetrics.AsFloat("v.c.time") + "&";
+    urljson += "charger_type=" + OvmsMetrics.AsFloat("v.c.type") + "&";
 
-      case 1:
-        // Andando sin regenerar
-        urljson += "speed=" + OvmsMetrics.AsFloat("v.p.gpsspeed") + "&";    //State of health
-        urljson += "acceleration=" + OvmsMetrics.AsFloat("v.p.acceleration") + "&";    //Engine momentary acceleration
-        urljson += "throttle=" + OvmsMetrics.AsFloat("v.e.throttle") + "&";    //Engine momentary THROTTLE
-        urljson += "regen_brake=" + OvmsMetrics.AsFloat("v.e.regenbrake") + "&";    //Engine momentary Regen value
-        urljson += "consumption=" + OvmsMetrics.AsFloat("v.b.consumption") + "&";
-        urljson += "range_est=" + OvmsMetrics.AsFloat("v.b.range.est") + "&";
-        urljson += "range_ideal=" + OvmsMetrics.AsFloat("v.b.range.ideal") + "&";
-        urljson += "range_full=" + OvmsMetrics.AsFloat("v.b.range.full") + "&";
-        urljson += "drivetime=" + OvmsMetrics.AsFloat("v.e.drivetime") + "&";
-        urljson += "drivemode=" + OvmsMetrics.Value("v.e.drivemode") + "&";
-        urljson += "footbrake=" + OvmsMetrics.AsFloat("v.e.footbrake") + "&";
-        urljson += "engine_temp=" + OvmsMetrics.AsFloat("v.m.temp") + "&";
-        urljson += "coulomb=" + OvmsMetrics.AsFloat("v.b.coulomb.used") + "&";
-        urljson += "energy=" + OvmsMetrics.AsFloat("v.b.energy.used") + "&";
-        urljson += "rpm=" + OvmsMetrics.AsFloat("v.m.rpm") + "&";
-        urljson += "tpms=" + OvmsMetrics.AsFloat("v.tp.fl.p");
-
-        [break;]
-
-      case 2:
-        // Andando con regeneracion
-        urljson += "speed=" + OvmsMetrics.AsFloat("v.p.gpsspeed") + "&";    //State of health
-        urljson += "acceleration=" + OvmsMetrics.AsFloat("v.p.acceleration") + "&";    //Engine momentary acceleration
-        urljson += "throttle=" + OvmsMetrics.AsFloat("v.e.throttle") + "&";    //Engine momentary THROTTLE
-        urljson += "regen_brake=" + OvmsMetrics.AsFloat("v.e.regenbrake") + "&";    //Engine momentary Regen value
-        urljson += "consumption=" + OvmsMetrics.AsFloat("v.b.consumption") + "&";
-        urljson += "range_est=" + OvmsMetrics.AsFloat("v.b.range.est") + "&";
-        urljson += "range_ideal=" + OvmsMetrics.AsFloat("v.b.range.ideal") + "&";
-        urljson += "range_full=" + OvmsMetrics.AsFloat("v.b.range.full") + "&";
-        urljson += "drivetime=" + OvmsMetrics.AsFloat("v.e.drivetime") + "&";
-        urljson += "drivemode=" + OvmsMetrics.Value("v.e.drivemode") + "&";
-        urljson += "footbrake=" + OvmsMetrics.AsFloat("v.e.footbrake") + "&";
-        urljson += "engine_temp=" + OvmsMetrics.AsFloat("v.m.temp") + "&";
-        urljson += "coulomb_rec=" + OvmsMetrics.AsFloat("v.b.coulomb.recd") + "&";
-        urljson += "energy_rec=" + OvmsMetrics.AsFloat("v.b.energy.recd") + "&";
-        urljson += "rpm=" + OvmsMetrics.AsFloat("v.m.rpm") + "&";
-        urljson += "tpms=" + OvmsMetrics.AsFloat("v.tp.fl.p");
-
-        [break;]
-
-      case 3:
-        // Cargando
-        urljson += "coulomb_rec=" + OvmsMetrics.AsFloat("v.b.coulomb.recd") + "&";
-        urljson += "energy_rec=" + OvmsMetrics.AsFloat("v.b.energy.recd") + "&";
-        urljson += "charge_time=" + OvmsMetrics.AsFloat("v.c.time") + "&";
-        urljson += "charger_type=" + OvmsMetrics.AsFloat("v.c.type") + "&";
-        urljson += "power_kw=" + OvmsMetrics.AsFloat(["v.b.power"]).toFixed(1); + "&";    //Main battery momentary power
-        [break;]
-
-    print(urljson);
-    return urljson;
 }
 
 // Return config object for HTTP request
@@ -103,75 +70,86 @@ function GetURLcfg() {
     return cfg;
 }
 
+function Make_Request(){
+    p = new Date();
+    prev = p.getTime();
+    HTTP.Request(GetURLcfg());
+
+}
+
 function SendLiveData() {
     var d = new Date();
-    var cms = d.getMilliseconds();
-
+    var cms = d.getTime();
+    print(operative_state);
     switch (operative_state) {
-
 
       case 1:
         // Andando sin regenerar
         if ((cms - prev) > 10000) {
-            HTTP.Request(GetURLcfg());
+            Make_Request();
         }
-
         if (OvmsMetrics.AsFloat("v.p.gpsspeed") <= 1) {
-            state = 4;
+            operative_state = 4;
+            Make_Request();
         }
         else if (Boolean(OvmsMetrics.Value("v.e.regenbrake")) == true){
-            state = 2;
+            operative_state = 2;
+            Make_Request();
         }
-        [break;]
+        break;
 
 
       case 2:
         // Andando con freno regenerativo
         if ((cms - prev) > 2000) {
-            HTTP.Request(GetURLcfg());
+            Make_Request();
         }
         if ((OvmsMetrics.AsFloat("v.p.gpsspeed") > 0) && (Boolean(OvmsMetrics.Value("v.e.regenbrake")) == true) ) {
-            state = 1;
+            operative_state = 1;
+            Make_Request();
         }
         else if (OvmsMetrics.AsFloat("v.p.gpsspeed") <= 1) {
-            state = 4;
+            operative_state = 4;
+            Make_Request();
         }
-        [break;]
+        break;
 
 
       case 3:
         // Detenido cargando
         if ((cms - prev) > 10000) {
-            HTTP.Request(GetURLcfg());
+            Make_Request();
         }
         if (Boolean(OvmsMetrics.Value("v.c.charging")) == false) {
-            state = 4;
+            operative_state = 4;
+            Make_Request();
         }
-        [break;]
+        break;
 
 
       case 4:
         // Detenido
         if ((cms - prev) > 120000) {
-            HTTP.Request(GetURLcfg());
+            Make_Request();
         }
-        if (Boolean(OvmsMetrics.Value("v.c.charging")) == true) {
-            state = 4;
+        if (OvmsMetrics.AsFloat("v.p.gpsspeed") > 1){
+            operative_state = 1;
+            Make_Request();
         }
-        else if (OvmsMetrics.AsFloat("v.p.gpsspeed") > 1){
-            state = 1;
+        else if (Boolean(OvmsMetrics.Value("v.c.charging")) == true) {
+            operative_state = 3;
+            Make_Request();
         }
-        [break;]
-    }
 
+        break;
+    }
 }
 
 
 
 //test purpose : one time execution
 function onetime() {
-    InitObjTelemetry();
-    SendLiveData();
+    Make_Request();
 }
 
 // API method abrp.onetime():
@@ -179,16 +157,14 @@ exports.onetime = function() {
     onetime();
 }
 
-// API method abrp.info():
-exports.info = function() {
-    InitObjTelemetry();
-    UpdateObjTelemetry();
-}
 
 // API method abrp.send():
 exports.send = function(onoff) {
     if (onoff) {
         onetime();
+        p = new Date();
+        prev = p.getTime();
+
         //Periodically perform subscribed function
         objTimer = PubSub.subscribe("ticker.1", SendLiveData); // update each second
     }
