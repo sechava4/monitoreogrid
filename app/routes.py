@@ -44,7 +44,6 @@ def show_entries():
             ' from operation WHERE timestamp BETWEEN "' + session['d1'] + ' ' + str(session['h1'])[:8] + \
             '" and "' + str(session['d1']) + ' ' + str(session['h2'])[:8] + '"'
 
-    print(query)
     # conn = db.engine.connect()
     # a = conn.execute(query).fetchall()
     df_o = pd.read_sql_query(query, db.engine)
@@ -190,7 +189,7 @@ def add_entry():
             operation = Operation(**request.args)   # ** pasa un numero variable de argumentos a la funcion
             operation.timestamp = datetime.strptime((datetime.now(pytz.timezone('America/Bogota')).strftime('%Y-%m-%d %H:%M:%S')),
                                                       '%Y-%m-%d %H:%M:%S')
-            print(operation.__dict__)
+            # print(operation.__dict__)
             db.session.add(operation)
             db.session.commit()
             return ("Data recieved")#redirect(url_for('show_entries'))
@@ -254,7 +253,6 @@ def graph_var():
     if session["h2"] < session["h1"]:
         session["h1"], session["h2"] = session["h2"], session["h1"] # Swap times
 
-    print(session['d1'], session['h1'], session['h2'])
     return redirect(url_for('show_entries'))
 
 

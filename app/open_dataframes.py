@@ -54,7 +54,6 @@ def get_lines(d1, h1, h2):
         df["latitude2"] = aux1
 
         lon2 = df["longitude"].iloc[1:]
-        print(lon2)
         aux2 = lon2.append(pd.Series(df["longitude"].iloc[-1]), ignore_index=True)
         df["longitude2"] = aux2
         df = df.drop(df.tail(1).index)
