@@ -43,4 +43,6 @@ id,var,var_pretty
 41,range_full,Rango con 100% SoC
 42,coulomb,Energía acomulada (Ah)
 43,energy,Energía acomulada (J)
+44,mean_acc, Acelereración promedio
+45,mec_power, Potencia mecánica
 

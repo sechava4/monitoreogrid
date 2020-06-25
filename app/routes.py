@@ -222,7 +222,7 @@ def add_entry():
 
             print(acc)
             print(Fd, Fw, F)
-            operation.mec_power = F * (float(request.args["speed"]) + last.speed)/2  # Potencia promedio
+            operation.mec_power = (F * (float(request.args["speed"]) + last.speed)/2) / 1000  # Potencia promedio
 
             # print(operation.__dict__)
             db.session.add(operation)
