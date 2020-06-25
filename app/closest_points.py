@@ -1,5 +1,5 @@
 from app import open_dataframes, app
-from sklearn.neighbors import BallTree, KDTree
+from sklearn.neighbors import KDTree
 import pandas as pd
 import os
 

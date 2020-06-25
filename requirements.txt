@@ -18,3 +18,5 @@ redis
 rq
 pytz
 email_validator
+geopy
+

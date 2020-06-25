@@ -8,10 +8,10 @@ from flask_login import current_user, login_user, logout_user, login_required
 from werkzeug.urls import url_parse
 from app.models import User, Operation
 import os
-import json
+import geopy.distance
 from datetime import datetime
 import pytz
-
+import math
 
 @app.route('/')
 @login_required
@@ -186,9 +186,44 @@ def add_entry():
         return ("Null data")
     else:
         if float(request.args["latitude"]) > 0:
-            operation = Operation(**request.args)   # ** pasa un numero variable de argumentos a la funcion
-            operation.timestamp = datetime.strptime((datetime.now(pytz.timezone('America/Bogota')).strftime('%Y-%m-%d %H:%M:%S')),
-                                                      '%Y-%m-%d %H:%M:%S')
+
+            last = Operation.query.order_by(Operation.id.desc()).first()
+            coords_1 = (last.latitude, last.longitude)
+            coords_2 = (float(request.args["latitude"]), float(request.args["longitude"]))
+            run = geopy.distance.distance(coords_1, coords_2).m
+
+            operation = Operation(**request.args) # ** pasa un numero variable de argumentos a la funcion/crea instancia
+            rise = float(request.args["elevation"]) - last.elevation
+
+            try:
+                operation.slope = math.atan(rise/run)  # Conversión a radianes
+            except ZeroDivisionError:
+                operation.slope = 0
+            print(operation.slope)
+
+            operation.timestamp = datetime.strptime(
+                (datetime.now(pytz.timezone('America/Bogota')).strftime('%Y-%m-%d %H:%M:%S')),
+                '%Y-%m-%d %H:%M:%S')
+
+            delta_t = (operation.timestamp - last.timestamp).total_seconds()
+
+            p = 1.2 # Air density kg/m3
+            m = float(request.args["mass"]) # kg
+            A = 0.790 # Frontal area m2
+            cr = 0.015 # Rolling cohef
+            acc = (float(request.args["speed"]) - last.speed ) / (delta_t * 3.6) # km/h to ms
+
+            Fd = (cr * m * 9.81 * math.cos(operation.slope)) + (
+                        0.5 * p * A * float(request.args["speed"]) ** 2)
+
+            Fw = m * 9.81 * math.sin(operation.slope)
+
+            F = (m * acc) + Fw + Fd
+
+            print(acc)
+            print(Fd, Fw, F)
+            operation.mec_power = F * (float(request.args["speed"]) + last.speed)/2  # Potencia promedio
+
             # print(operation.__dict__)
             db.session.add(operation)
             db.session.commit()

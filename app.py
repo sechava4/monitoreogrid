@@ -6,6 +6,7 @@ def make_shell_context():
     return {'db': db, 'User': User, 'Vehicle': Vehicle, 'Station': Station,
             'Operation': Operation, 'Task': Task}
 
-app.run(debug=True, port=8080)
-# app.run(host='0.0.0.0', debug=True, port=8080)
+if __name__ == '__main__':
+    app.run(debug=True, port=8080)
+    # app.run(host='0.0.0.0', debug=True, port=8080)
 
