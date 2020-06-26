@@ -190,7 +190,7 @@ def add_entry():
             last = Operation.query.order_by(Operation.id.desc()).first()
             coords_1 = (last.latitude, last.longitude)
             coords_2 = (float(request.args["latitude"]), float(request.args["longitude"]))
-            run = geopy.distance.distance(coords_1, coords_2).m
+            run = geopy.distance.distance(coords_1, coords_2).m      # meters
 
             operation = Operation(**request.args) # ** pasa un numero variable de argumentos a la funcion/crea instancia
             rise = float(request.args["elevation"]) - last.elevation
@@ -207,20 +207,21 @@ def add_entry():
 
             delta_t = (operation.timestamp - last.timestamp).total_seconds()
 
-            p = 1.2 # Air density kg/m3
-            m = float(request.args["mass"]) # kg
-            A = 0.790 # Frontal area m2
-            cr = 0.015 # Rolling cohef
-            acc = (float(request.args["speed"]) - last.speed ) / (delta_t * 3.6) # km/h to ms
+            p = 1.2   # Air density kg/m3
+            m = float(request.args["mass"])   # kg
+            A = 0.790   # Frontal area m2
+            cr = 0.01   # Rolling cohef
+            cd = 0.2   # Drag cohef
+            operation.mean_acc = (float(request.args["speed"]) - last.speed ) / (delta_t * 3.6)   # km/h to ms
 
             Fd = (cr * m * 9.81 * math.cos(operation.slope)) + (
-                        0.5 * p * A * float(request.args["speed"]) ** 2)
+                        0.5 * p * A * cd * (float(request.args["speed"]) / 3.6) ** 2)   # km/h to ms
 
             Fw = m * 9.81 * math.sin(operation.slope)
 
-            F = (m * acc) + Fw + Fd
+            F = (m * operation.mean_acc) + Fw + Fd
 
-            print(acc)
+            print(operation.mean_acc)
             print(Fd, Fw, F)
             operation.mec_power = (F * (float(request.args["speed"]) + last.speed)/2) / 1000  # Potencia promedio
 

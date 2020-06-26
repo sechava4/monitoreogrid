@@ -52,11 +52,14 @@ function GetUrlABRP() {
     urljson += "coulomb=" + OvmsMetrics.AsFloat("v.b.coulomb.used") + "&";
     urljson += "energy=" + OvmsMetrics.AsFloat("v.b.energy.used") + "&";
     urljson += "rpm=" + OvmsMetrics.AsFloat("v.m.rpm") + "&";
-    urljson += "tpms=" + OvmsMetrics.AsFloat("v.tp.fl.p");
+    urljson += "tpms=" + OvmsMetrics.AsFloat("v.tp.fl.p") + "&";
+    urljson += "mass=" + "200" + "&";
     urljson += "coulomb_rec=" + OvmsMetrics.AsFloat("v.b.coulomb.recd") + "&";
     urljson += "energy_rec=" + OvmsMetrics.AsFloat("v.b.energy.recd") + "&";
     urljson += "charge_time=" + OvmsMetrics.AsFloat("v.c.time") + "&";
     urljson += "charger_type=" + OvmsMetrics.AsFloat("v.c.type") + "&";
+    urljson += "power_kw=" + OvmsMetrics.AsFloat(["v.b.power"]).toFixed(1); + "&";    //Main battery momentary power
+    print(urljson);
 
 }
 
@@ -129,7 +132,7 @@ function SendLiveData() {
 
       case 4:
         // Detenido
-        if ((cms - prev) > 120000) {
+        if ((cms - prev) > 12000) {
             Make_Request();
         }
         if (OvmsMetrics.AsFloat("v.p.gpsspeed") > 1){
