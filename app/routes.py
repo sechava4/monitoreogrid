@@ -205,7 +205,7 @@ def add_entry():
                 (datetime.now(pytz.timezone('America/Bogota')).strftime('%Y-%m-%d %H:%M:%S')),
                 '%Y-%m-%d %H:%M:%S')
 
-            delta_t = (operation.timestamp - last.timestamp).total_seconds()
+            delta_t = (operation.timestamp - last.timestamp).total_seconds()   # SECONDS
 
             p = 1.2   # Air density kg/m3
             m = float(request.args["mass"])   # kg
@@ -220,16 +220,16 @@ def add_entry():
             Fw = m * 9.81 * math.sin(operation.slope)
             F = (m * operation.mean_acc) + Fw + Fd
 
-            print(operation.mean_acc)
-            print(Fd, Fw, F)
+            # print(operation.mean_acc)
+            # print(Fd, Fw, F)
             operation.mec_power = (F * (float(request.args["speed"]) + last.speed)/2) / 1000  # Potencia promedio
 
             float(request.args["elevation"])
 
-            E1 = 0.5 * m * (last.speed / 3.6) ^ 2 + (m * 9.81 * last.elevation)
-            E2 = 0.5 * m * (float(request.args["speed"]) / 3.6) ^ 2 + (m * 9.81 * float(request.args["elevation"]))
-            operation.mec_power_delta_e = (E2 - E1) / delta_t
-
+            E1 = 0.5 * m * (last.speed / 3.6) ** 2  # + (m * 9.81 * last.elevation)
+            E2 = 0.5 * m * (float(request.args["speed"]) / 3.6) ** 2  # + (m * 9.81 * float(request.args["elevation"]))
+            operation.mec_power_delta_e = ((E2 - E1) / (delta_t * 1000))   # Kw
+            print(E1, E2)
             # print(operation.__dict__)
             db.session.add(operation)
             db.session.commit()
