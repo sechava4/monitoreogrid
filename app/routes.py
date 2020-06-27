@@ -218,12 +218,17 @@ def add_entry():
                         0.5 * p * A * cd * (float(request.args["speed"]) / 3.6) ** 2)   # km/h to ms
 
             Fw = m * 9.81 * math.sin(operation.slope)
-
             F = (m * operation.mean_acc) + Fw + Fd
 
             print(operation.mean_acc)
             print(Fd, Fw, F)
             operation.mec_power = (F * (float(request.args["speed"]) + last.speed)/2) / 1000  # Potencia promedio
+
+            float(request.args["elevation"])
+
+            E1 = 0.5 * m * (last.speed / 3.6) ^ 2 + (m * 9.81 * last.elevation)
+            E2 = 0.5 * m * (float(request.args["speed"]) / 3.6) ^ 2 + (m * 9.81 * float(request.args["elevation"]))
+            operation.mec_power_delta_e = (E2 - E1) / delta_t
 
             # print(operation.__dict__)
             db.session.add(operation)

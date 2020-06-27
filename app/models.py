@@ -87,6 +87,7 @@ class Operation(db.Model):
     ext_temp = db.Column(db.Float)
     power_kw = db.Column(db.Float)
     mec_power = db.Column(db.Float)
+    mec_power_delta_e = db.Column(db.Float)
     acceleration = db.Column(db.Float)
     mean_acc = db.Column(db.Float)
     capacity = db.Column(db.Float)

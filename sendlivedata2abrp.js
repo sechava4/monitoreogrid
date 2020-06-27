@@ -3,9 +3,13 @@ const placa = "ASD089";
 const URL = "http://104.248.48.68:8080/addjson";
 var objTLM;
 var objTimer;
-var operative_state = 4;
+var operative_state = 1;
 var p = new Date();
 var prev = p.getTime();
+var first = true;
+
+var time_to_os4 = new Date();
+var time_to_os4_millis = time_to_os4.getTime();
 
 
 // http request callback if successful
@@ -28,6 +32,7 @@ function GetUrlABRP() {
     urljson += "odometer=" + OvmsMetrics.AsFloat("v.p.odometer") + "&";
     urljson += "vehicle_id=" + "RZ_123" + "&";
     urljson += "user_id=" + "Juan" + "&";
+    urljson += "mass=" + 210 + "&";
     urljson += "soc=" + OvmsMetrics.AsFloat("v.b.soc") + "&";    //State of charge
     urljson += "soh=" + OvmsMetrics.AsFloat("v.b.soh") + "&";    //State of health
     urljson += "voltage=" + OvmsMetrics.AsFloat("v.b.voltage") + "&";    //Main battery momentary voltage
@@ -52,14 +57,16 @@ function GetUrlABRP() {
     urljson += "coulomb=" + OvmsMetrics.AsFloat("v.b.coulomb.used") + "&";
     urljson += "energy=" + OvmsMetrics.AsFloat("v.b.energy.used") + "&";
     urljson += "rpm=" + OvmsMetrics.AsFloat("v.m.rpm") + "&";
-    urljson += "tpms=" + OvmsMetrics.AsFloat("v.tp.fl.p") + "&";
-    urljson += "mass=" + "200" + "&";
+
+    // Analizar drivetime para el cambio de estados
+
     urljson += "coulomb_rec=" + OvmsMetrics.AsFloat("v.b.coulomb.recd") + "&";
     urljson += "energy_rec=" + OvmsMetrics.AsFloat("v.b.energy.recd") + "&";
+    urljson += "tpms=" + OvmsMetrics.AsFloat("v.tp.fl.p") + "&";
     urljson += "charge_time=" + OvmsMetrics.AsFloat("v.c.time") + "&";
     urljson += "charger_type=" + OvmsMetrics.AsFloat("v.c.type") + "&";
-    urljson += "power_kw=" + OvmsMetrics.AsFloat(["v.b.power"]).toFixed(1); + "&";    //Main battery momentary power
     print(urljson);
+    return urljson;
 
 }
 
@@ -88,13 +95,31 @@ function SendLiveData() {
 
       case 1:
         // Andando sin regenerar
-        if ((cms - prev) > 10000) {
+        if ((cms - prev) > 5000) {
             Make_Request();
         }
-        if (OvmsMetrics.AsFloat("v.p.gpsspeed") <= 1) {
+
+        if ((OvmsMetrics.AsFloat("v.p.gpsspeed") <= 1) && (first == true) ) { //&& ((cms - time_to_os4_millis) > 90000) ){  // && (Boolean(OvmsMetrics.Value("v.e.on")) == true) ){
+            // Ir al estado "detenido en ruta"
+            //operative_state = 4;
+            time_to_os4 = new Date();
+            time_to_os4_millis = time_to_os4.getTime();
+            first = false;
+            print("fisrt");
+            Make_Request();
+        }
+
+        else if (OvmsMetrics.AsFloat("v.p.gpsspeed") > 1)  {
+            first = true;
+            Make_Request();
+        }
+
+        // si han pasado mas de 90 segundos de estar quieto
+        if ((OvmsMetrics.AsFloat("v.p.gpsspeed") <= 1) && ((cms - time_to_os4_millis) > 90000) ) {
             operative_state = 4;
             Make_Request();
         }
+
         else if (Boolean(OvmsMetrics.Value("v.e.regenbrake")) == true){
             operative_state = 2;
             Make_Request();
@@ -108,6 +133,7 @@ function SendLiveData() {
             Make_Request();
         }
         if ((OvmsMetrics.AsFloat("v.p.gpsspeed") > 0) && (Boolean(OvmsMetrics.Value("v.e.regenbrake")) == true) ) {
+            first = true;
             operative_state = 1;
             Make_Request();
         }
@@ -125,17 +151,19 @@ function SendLiveData() {
         }
         if (Boolean(OvmsMetrics.Value("v.c.charging")) == false) {
             operative_state = 4;
+
             Make_Request();
         }
         break;
 
 
       case 4:
-        // Detenido
-        if ((cms - prev) > 12000) {
+        // Detenido no en ruta
+        if ((cms - prev) > 120000) {
             Make_Request();
         }
         if (OvmsMetrics.AsFloat("v.p.gpsspeed") > 1){
+            first = true;
             operative_state = 1;
             Make_Request();
         }
@@ -145,6 +173,7 @@ function SendLiveData() {
         }
 
         break;
+
     }
 }
 
@@ -167,6 +196,9 @@ exports.send = function(onoff) {
         onetime();
         p = new Date();
         prev = p.getTime();
+        time_to_os4 = new Date();
+        time_to_os4_millis = time_to_os4.getTime();
+        first = true;
 
         //Periodically perform subscribed function
         objTimer = PubSub.subscribe("ticker.1", SendLiveData); // update each second
