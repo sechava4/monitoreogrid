@@ -98,19 +98,6 @@ def form_var(titles):
     return groups_list
 
 
-def alturas_df_csv(var, day):
-    doc = os.path.join(app.root_path, 'rutas.csv')
-    df = pd.read_csv(doc, index_col="id")
-    df = df[df["day"] == int(day)]
-    if var not in df.columns:
-        var = "elevation"
-    df = df[["latitude", "longitude", var]]
-    if var == "elevation":
-        df["name"] = df[var]
-        df[var] = df[var].map(lambda x: x-1520)
-    return df
-
-
 def get_heights(var, d1, h1, h2):
 
     query = "SELECT latitude, longitude, " + var + " from operation " + \
@@ -121,11 +108,12 @@ def get_heights(var, d1, h1, h2):
     if var not in df.columns:
         var = "elevation"
     df = df[["latitude", "longitude", var]]
+    df["name"] = df[var]
     if var == "elevation":
-        df["name"] = df[var]
         df['var'] = df[var].map(lambda x: x-1420)
+    elif var in ("mean_acc", "mec_power_delta_e", "mec_power"):
+        df['var'] = df[var].map(lambda x: x*25)
     else:
-        df["name"] = df[var]
         df['var'] = df[var].map(lambda x: x*6)
     df = df[["latitude", "longitude", 'name', 'var']]
     return df
