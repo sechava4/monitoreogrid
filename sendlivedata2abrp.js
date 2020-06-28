@@ -1,3 +1,27 @@
+/**
+ *       /store/scripts/sendlivedata2abrp.js
+ *
+ * Module plugin:
+ *  Send live data to a better route planner
+ *  This version uses the embedded GSM of OVMS, so there's an impact on data consumption
+ *  /!\ requires OVMS firmware version 3.2.008-147 minimum (for HTTP call)
+ *
+ * Version 1.0   2019   dar63 (forum https://www.openvehicles.com)
+ *
+ * Enable:
+ *  - install at above path
+ *  - add to /store/scripts/ovmsmain.js:
+ *                 abrp = require("sendlivedata2abrp");
+ *  - script reload
+ *
+ * Usage:
+ *  - script eval abrp.info()         => to display vehicle data to be sent to abrp
+ *  - script eval abrp.onetime()      => to launch one time the request to abrp server
+ *  - script eval abrp.send(1)        => toggle send data to abrp
+ *  -                      (0)        => stop sending data
+ *
+ **/
+
 const CAR_MODEL = "nissan:leaf";
 const placa = "ASD089";
 const URL = "http://104.248.48.68:8080/addjson";
@@ -95,10 +119,10 @@ function SendLiveData() {
 
       case 1:
         // Andando sin regenerar
-        if ((cms - prev) > 5000) {
+        if ((cms - prev) > 8000) {
             Make_Request();
         }
-
+        /*
         if ((OvmsMetrics.AsFloat("v.p.gpsspeed") <= 1) && (first == true) ) { //&& ((cms - time_to_os4_millis) > 90000) ){  // && (Boolean(OvmsMetrics.Value("v.e.on")) == true) ){
             // Ir al estado "detenido en ruta"
             //operative_state = 4;
@@ -113,9 +137,9 @@ function SendLiveData() {
             first = true;
             Make_Request();
         }
-
+        */
         // si han pasado mas de 90 segundos de estar quieto
-        if ((OvmsMetrics.AsFloat("v.p.gpsspeed") <= 1) && ((cms - time_to_os4_millis) > 90000) ) {
+        if ((OvmsMetrics.AsFloat("v.p.gpsspeed") <= 1) && (Boolean(OvmsMetrics.Value("v.e.on")) == false) ) { //&& ((cms - time_to_os4_millis) > 90000) ) {
             operative_state = 4;
             Make_Request();
         }

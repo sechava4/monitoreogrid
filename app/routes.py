@@ -194,6 +194,7 @@ def add_entry():
 
             operation = Operation(**request.args) # ** pasa un numero variable de argumentos a la funcion/crea instancia
             rise = float(request.args["elevation"]) - last.elevation
+            distance = math.sqrt(run**2 + rise**2)
 
             try:
                 operation.slope = math.atan(rise/run)  # Conversión a radianes
@@ -214,21 +215,21 @@ def add_entry():
             cd = 0.2   # Drag cohef
             operation.mean_acc = (float(request.args["speed"]) - last.speed ) / (delta_t * 3.6)   # km/h to ms
 
-            Fd = (cr * m * 9.81 * math.cos(operation.slope)) + (
-                        0.5 * p * A * cd * (float(request.args["speed"]) / 3.6) ** 2)   # km/h to ms
+            Fd = (cr * m * 9.81 * math.cos(operation.slope)) + (                                       # Rolling Comp
+                        0.5 * p * A * cd * ((float(request.args["speed"]) + last.speed) / 3.6) ** 2)   # km/h to ms
 
             Fw = m * 9.81 * math.sin(operation.slope)
             F = (m * operation.mean_acc) + Fw + Fd
 
             # print(operation.mean_acc)
             # print(Fd, Fw, F)
-            operation.mec_power = (F * (float(request.args["speed"]) + last.speed)/2) / 1000  # Potencia promedio
+            operation.mec_power = F * (float(request.args["speed"]) + last.speed) / (2*3.6*1000)   # Potencia promedio Kw
 
-            float(request.args["elevation"])
 
-            E1 = 0.5 * m * (last.speed / 3.6) ** 2  # + (m * 9.81 * last.elevation)
-            E2 = 0.5 * m * (float(request.args["speed"]) / 3.6) ** 2  # + (m * 9.81 * float(request.args["elevation"]))
-            operation.mec_power_delta_e = ((E2 - E1) / (delta_t * 1000))   # Kw
+            E1 = 0.5 * m * (last.speed / 3.6) ** 2  + (m * 9.81 * last.elevation)
+            E2 = 0.5 * m * (float(request.args["speed"]) / 3.6) ** 2  + (m * 9.81 * float(request.args["elevation"]))
+            Wf = Fd*distance   # Work done by friction
+            operation.mec_power_delta_e = ((E2 + Wf - E1) / (delta_t * 1000))   # Kw
             print(E1, E2)
             # print(operation.__dict__)
             db.session.add(operation)
