@@ -228,8 +228,8 @@ def add_entry():
 
             E1 = 0.5 * m * (last.speed / 3.6) ** 2  + (m * 9.81 * last.elevation)
             E2 = 0.5 * m * (float(request.args["speed"]) / 3.6) ** 2  + (m * 9.81 * float(request.args["elevation"]))
-            Wf = Fd*distance   # Work done by friction
-            operation.mec_power_delta_e = ((E2 + Wf - E1) / (delta_t * 1000))   # Kw
+            Wf = Fd   # Work done by friction
+            operation.mec_power_delta_e = ((E2 - E1) / (delta_t * 1000))   # Kw
             print(E1, E2)
             # print(operation.__dict__)
             db.session.add(operation)
