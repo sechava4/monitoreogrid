@@ -187,12 +187,13 @@ def add_entry():
     else:
         if float(request.args["latitude"]) > 0:
 
+            '''
             last = Operation.query.order_by(Operation.id.desc()).first()
             coords_1 = (last.latitude, last.longitude)
             coords_2 = (float(request.args["latitude"]), float(request.args["longitude"]))
             run = geopy.distance.distance(coords_1, coords_2).m      # meters
 
-            operation = Operation(**request.args) # ** pasa un numero variable de argumentos a la funcion/crea instancia
+            
             rise = float(request.args["elevation"]) - last.elevation
             distance = math.sqrt(run**2 + rise**2)
 
@@ -202,10 +203,14 @@ def add_entry():
                 operation.slope = 0
             print(operation.slope)
 
+            '''
+            operation = Operation(
+                **request.args)  # ** pasa un numero variable de argumentos a la funcion/crea instancia
             operation.timestamp = datetime.strptime(
                 (datetime.now(pytz.timezone('America/Bogota')).strftime('%Y-%m-%d %H:%M:%S')),
                 '%Y-%m-%d %H:%M:%S')
 
+            '''
             delta_t = (operation.timestamp - last.timestamp).total_seconds()   # SECONDS
 
             p = 1.2   # Air density kg/m3
@@ -216,7 +221,7 @@ def add_entry():
             operation.mean_acc = (float(request.args["speed"]) - last.speed ) / (delta_t * 3.6)   # km/h to ms
 
             Fd = (cr * m * 9.81 * math.cos(operation.slope)) + (                                       # Rolling Comp
-                        0.5 * p * A * cd * ((float(request.args["speed"]) + last.speed) / 3.6) ** 2)   # km/h to ms
+                        0.5 * p * A * cd * ((float(request.args["speed"]) + last.speed) / 7.2) ** 2)   # km/h to ms
 
             Fw = m * 9.81 * math.sin(operation.slope)
             F = (m * operation.mean_acc) + Fw + Fd
@@ -232,6 +237,7 @@ def add_entry():
             operation.mec_power_delta_e = ((E2 - E1) / (delta_t * 1000))   # Kw
             print(E1, E2)
             # print(operation.__dict__)
+            '''
             db.session.add(operation)
             db.session.commit()
             return ("Data recieved")#redirect(url_for('show_entries'))
