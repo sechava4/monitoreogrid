@@ -3,28 +3,28 @@ id,var,var_pretty
 1,latitude,Latitud
 2,longitude,Longitud
 3,elevation,Altitud
-4,slope,Pendiente
+4,slope,Pendiente (°)
 5,accelerationX,Aceleración X
 6,accelerationY,Aceleración Y
 7,accelerationZ,Aceleración Z
-8,speed,Velocidad
-9,odometer,Odometro
+8,speed,Velocidad (Km/h)
+9,odometer,Odometro (Km)
 10,user_id,ID usuario
-11,batt_temp,Temperatura de batería
-12,ext_temp,Temperatura ambiente
+11,batt_temp,Temperatura de batería (°C)
+12,ext_temp,Temperatura ambiente (°C)
 13,power_kw,Potencia (Kw)
-14,acceleration,Aceleración motor
-15,capacity,Capacidad de batería
+14,acceleration,Aceleración motor (m/s^2)
+15,capacity,Capacidad de batería (Ah)
 16,vehicle_id,ID de vehículo
 17,soc,Estado de Carga (SoC)
 18,soh,Estado de Salud (SoH)
-19,voltage,Voltaje
-20,current,Corriente
+19,voltage,Voltaje (V)
+20,current,Corriente (A)
 21,throttle,(%) De aceleración
 22,regen_brake,Freno regenerativo
 23,consumption,Consumo
-24,range_est,Rango estimado
-25,range_ideal,Rango ideal
+24,range_est,Rango estimado (Km)
+25,range_ideal,Rango ideal (Km)
 26,drivetime,Tiempo de manejo
 27,charge_time,Tiempo de carga
 28,footbrake,(%) De freno
@@ -34,7 +34,7 @@ id,var,var_pretty
 32,ocv,OCV
 33,occupants,Ocupantes
 34,station_id,ID de estación
-35,capacity_nominal,Capacidad nominal
+35,capacity_nominal,Capacidad nominal (Ah)
 36,marca,Marca
 37,modelo,Modelo
 38,year,Año
@@ -43,7 +43,10 @@ id,var,var_pretty
 41,range_full,Rango con 100% SoC
 42,coulomb,Energía acomulada (Ah)
 43,energy,Energía acomulada (J)
-44,mean_acc, Acelereración promedio
-45,mec_power, Potencia mecánica
-46,mec_power_delta_e, Potencia (delta E/delta T)
+44,mean_acc, Acelereración promedio (m/s^2)
+45,mec_power, Potencia efectiva promedio (Kw)
+46,mec_power_delta_e, Potencia efectiva Máxima (Kw)
+47,run, recorrido desde ultimo registro (m)
+48,net_force, Fuerza neta (N)
+49,friction_force, Fuerza de fricción (N)
 
