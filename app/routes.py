@@ -74,7 +74,7 @@ def show_tables():
 
         session["var1"] = "timestamp"
         session["var2"] = "speed"
-        session["var2"] = "mean_acc"
+        session["var3"] = "mean_acc"
         session["records"] = 20
 
     if request.method == 'POST':
