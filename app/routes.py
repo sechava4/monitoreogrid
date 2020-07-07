@@ -94,8 +94,7 @@ def show_tables():
         if session["h2"] < session["h1"]:
             session["h1"], session["h2"] = session["h2"], session["h1"]  # Swap times
 
-
-    query = "SELECT " + session["var1"] + " ," + session["var2"] + \
+    query = "SELECT " + session["var1"] + " ," + session["var2"] + " ," + session["var3"] + \
             ' from operation WHERE timestamp BETWEEN "' + session['d1'] + ' ' + str(session['h1'])[:8] + \
             '" and "' + str(session['d1']) + ' ' + str(session['h2'])[:8] + '" limit ' + str(session["records"])
 
