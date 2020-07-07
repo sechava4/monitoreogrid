@@ -36,16 +36,11 @@ def show_entries():
         session["graph_var_x"] = "timestamp"
         session["graph_var_y"] = "soh"
 
-
-    #print(session['d1'].strftime("%Y-%m-%d"))
-    # t1 = datetime.strptime(session['t1'], '%m/%d/%Y %I:%M %p')
-    # t2 = datetime.strptime(session['t2'], '%m/%d/%Y %I:%M %p')
     query = "SELECT " + session["graph_var_x"] + " ," + session["graph_var_y"] + \
             ' from operation WHERE timestamp BETWEEN "' + session['d1'] + ' ' + str(session['h1'])[:8] + \
             '" and "' + str(session['d1']) + ' ' + str(session['h2'])[:8] + '"'
 
-    # conn = db.engine.connect()
-    # a = conn.execute(query).fetchall()
+
     df_o = pd.read_sql_query(query, db.engine)
 
     scatter, donnut = plot.create_plot(df_o, session["graph_var_x"], session["graph_var_y"])
@@ -70,26 +65,42 @@ def update_plot():
 @app.route('/tables', methods=['GET', 'POST'])
 @login_required
 def show_tables():
-    form = TablesForm()
-    if form.is_submitted():
-        session["records"] = form.records.data
-        session["dataset"] = form.dataset.data
-
     try:
+        session["var1"]
+        session["var2"]
         session["records"]
     except KeyError:
+
+        session["var1"] = "timestamp"
+        session["var2"] = "speed"
         session["records"] = 20
 
-    if session["records"] is None:
-        session["records"] = 20
+    if request.method == 'POST':
+        session["var1"] = (request.form['var1'])
+        session["var2"] = (request.form['var2'])
+        session["records"] = (request.form['records'])
+        session['form_d1'] = request.form['d1']
+        session['form_h1'] = request.form['h1']
+        session['form_h2'] = request.form['h2']
+        if session["records"] is None:
+            session["records"] = 20
+
+        session["d1"] = (datetime.strptime(request.form['d1'], '%d/%m/%Y')).strftime("%Y-%m-%d")
+        session["h1"] = (datetime.strptime(request.form['h1'], '%I:%M %p')).strftime("%H:%M:%S")
+        session["h2"] = (datetime.strptime(request.form['h2'], '%I:%M %p')).strftime("%H:%M:%S")
+        if session["h2"] < session["h1"]:
+            session["h1"], session["h2"] = session["h2"], session["h1"]  # Swap times
 
 
-    #session["records"] = (request.form['records'])
-    doc_dataset = os.path.join(app.root_path, session["dataset"])
-    df = pd.read_csv(doc_dataset, index_col="id")
-    df = df[1:(int(session["records"])+1)]
-    # df = pd.read_sql_query("SELECT * from vehicle", db.engine,index_col="id")
-    return render_template('tables.html', tables=[df.to_html(classes='data')], titles=df.columns.values, form=form)
+    query = "SELECT " + session["var1"] + " ," + session["var2"] + \
+            ' from operation WHERE timestamp BETWEEN "' + session['d1'] + ' ' + str(session['h1'])[:8] + \
+            '" and "' + str(session['d1']) + ' ' + str(session['h2'])[:8] + '" limit ' + str(session["records"])
+
+    df = pd.read_sql_query(query, db.engine)
+
+
+
+    return render_template('tables.html', tables=[df.to_html(classes='data')], titles=df.columns.values)
 
 
 @app.route('/zones_map', methods=['GET', 'POST'])

@@ -49,4 +49,4 @@ id,var,var_pretty
 47,run, recorrido desde ultimo registro (m)
 48,net_force, Fuerza neta (N)
 49,friction_force, Fuerza de fricción (N)
-
+50,operative_state, Estado Operativo
