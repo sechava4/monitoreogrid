@@ -42,14 +42,19 @@ var old_altitude = 0;
 var run = 0;
 var rise = 0;
 var slope = 0;
+var old_slope = 0;
 var lat = 0;
 var lon = 0;
 var old_lon = 0;
 var old_lat = 0;
+var Fd = 0;  //Friction force
+var F = 0;  //net force
 var mec_power = 0;
 var sum_power = 0;
 var sum_slope = 0;
 var sum_run = 0;
+var sum_net_force = 0;
+var sum_fr_force = 0;
 var max_power = 0;
 var sum_acc = 0;
 var i = 1;
@@ -73,24 +78,6 @@ function degreesToRadians(degrees) {
   return degrees * Math.PI / 180;
 }
 
-function distanceInKmBetweenEarthCoordinates(lat1, lon1, lat2, lon2) {
-  var earthRadiusKm = 6371;
-
-  var dLat = degreesToRadians(lat2-lat1);
-  var dLon = degreesToRadians(lon2-lon1);
-
-  lat1 = degreesToRadians(lat1);
-  lat2 = degreesToRadians(lat2);
-
-  var a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-          Math.sin(dLon/2) * Math.sin(dLon/2) * Math.cos(lat1) * Math.cos(lat2);
-  var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-  return earthRadiusKm * c * 1000;   //in meters
-}
-
-
-
-
 function GetUrlABRP() {
     var urljson = URL;
 
@@ -100,11 +87,14 @@ function GetUrlABRP() {
     urljson += "longitude=" + lon + "&";    //GPS longitude
     urljson += "elevation=" + altitude + "&";    //GPS altitude
     urljson += "speed=" + speed + "&";
-    urljson += "mec_power=" + (sum_power/i) + "&";       //potencia promedio
-    urljson += "mec_power_delta_e=" + max_power + "&";   //potenica máxima
-    urljson += "mean_acc=" + (sum_acc/i) + "&";       //potencia promedio
-    urljson += "slope=" + (sum_slope/i) + "&";       //pendiente promedio
-    urljson += "run=" + sum_run + "&";       //pendiente promedio
+    urljson += "mec_power=" + mec_power + "&";       //potencia promedio
+    urljson += "mec_power_delta_e=" + (sum_power * 1.00 /i) + "&";   //potenica máxima
+    urljson += "mean_acc=" + (sum_acc * 1.00 /i) + "&";       //potencia promedio
+    urljson += "slope=" + (sum_slope * 1.00 /i) + "&";       //pendiente promedio
+    urljson += "run=" + (sum_run * 1.00 /i) + "&";       //recorrido promedio
+    urljson += "net_force=" + (sum_net_force * 1.00 /i) + "&";       //fuerza promedio
+    urljson += "friction_force=" + (sum_fr_force * 1.00 /i) + "&";       //fuerza promedio
+
 
     urljson += "odometer=" + OvmsMetrics.AsFloat("v.p.odometer") + "&";
     urljson += "vehicle_id=" + "RZ_123" + "&";
@@ -144,6 +134,8 @@ function GetUrlABRP() {
     print(urljson);
     i = 1;
     sum_power = 0;
+    sum_net_force = 0;
+    sum_fr_force = 0;
     max_power = 0;
     sum_acc = 0;
     sum_slope = 0;
@@ -179,25 +171,18 @@ function SendLiveData() {
     altitude = OvmsMetrics.AsFloat(["v.p.altitude"]).toFixed();
     speed = OvmsMetrics.AsFloat(["v.p.gpsspeed"]).toFixed();
 
-    acc = (speed - old_speed) / 3.6;    // divided by 1 second
+    acc = (speed - old_speed) * 1.0 / 3.6;
     sum_acc = sum_acc + acc;
 
-    if (lat > 0 && lon > 0 && old_lat > 0 && old_lon > 0) {
-        run = distanceInKmBetweenEarthCoordinates(lat, lon, old_lat, old_lon);
-    }
-    else {
-        run = 0;
-    }
-    print("run");
-    print(run);
 
-    var run2 = (speed + old_speed) / 7.2;   // meters
-    sum_run = sum_run + run2
+
+    var run = (speed + old_speed) * 1.00 / 7.2;   // meters by (mean speed)
+    sum_run = sum_run + run
 
     rise = altitude - old_altitude;
 
     if (run > 0){
-        slope = Math.atan(rise / run2);
+        slope = Math.atan(rise * 1.00 / run);   // radians
     }
     else {
         slope = 0;
@@ -205,32 +190,22 @@ function SendLiveData() {
     sum_slope = sum_slope + slope;
 
     var p = 1.2;    // Air density kg/m3
-    var m = 170;    // kg
+    var m = 170.0;    // kg
     var A = 0.790;  // Frontal area m2
     var cr = 0.01;  // Rolling cohef
     var cd = 0.2;   // Drag cohef
 
-    var Fd = (cr * m * 9.81 * Math.cos(slope)) + ( 0.5 * p * A * cd * Math.pow( (speed / 3.6), 2) );
+    var Fd = (cr * m * 9.81 * Math.cos(slope)) + ( 0.5 * p * A * cd * Math.pow( (speed * 1.0 / 3.6), 2) );
+    sum_fr_force = sum_fr_force + Fd;
+
     var Fw = m * 9.81 * Math.sin(slope);
     var F = (m * acc) + Fw + Fd;
-    /*
-    print("speed= ");
-    print(speed);
-    print("slope = ");
-    print(slope);
-    print("Fd= ");
-    print(Fd);
-    print("acc= ");
-    print(acc);
-    print("Fw = ");
-    print(Fw);
-    print("fuerza = ");
-    print(F);
-    */
-    mec_power = F * (speed + old_speed) / (7200);   //kw
+    sum_net_force = sum_net_force + F;
 
-    print("potencia = ");
-    print(mec_power );
+    mec_power = F * (speed + old_speed) * 1.00 / (7200);   //kw
+
+    //print("potencia = ");
+    //print(mec_power );
     sum_power = sum_power + mec_power;
 
     if (mec_power > max_power) {
@@ -238,8 +213,6 @@ function SendLiveData() {
     }
 
 
-
-    //print(operative_state);
     switch (operative_state) {
 
       case 1:

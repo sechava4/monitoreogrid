@@ -10,7 +10,7 @@
                 <div class="col-auto">
                     <label class="label label-default" for="exampleFormControlSelect1"> Variable 1 </label>
                     <select class="form-control" id="exampleFormControlSelect1" name = var1>
-                        <option value="{{session.graph_var_x}}"> {{session.x_pretty_graph}}</option>
+                        <option value="{{session.var1}}"> {{session.var1_pretty}}</option>
                         <option value="timestamp">Tiempo</option>
                         <option value="elevation">Altitud (msnm)</option>
                         <option value="slope">Pendiente (°)</option>
@@ -49,7 +49,47 @@
             <div class="col-auto">
                 <label class="label label-default" for="exampleFormControlSelect2"> Variable 2 </label>
                 <select class="form-control" id="exampleFormControlSelect2" name = var2>
-                    <option value="{{session.graph_var_y}}"> {{session.y_pretty_graph}}</option>
+                    <option value="{{session.var2}}"> {{session.var2_pretty}}</option>
+                    <option value="elevation">Altitud (msnm)</option>
+                    <option value="slope">Pendiente (°)</option>
+                    <option value="speed">Velocidad (Km/h)</option>
+                    <option value="user_id">Usuario</option>
+                    <option value="operative_state">Estado Operativo</option>
+                    <option value="odometer">Odometro (Km)</option>
+                    <option value="capacity">Capacidad (Ah)</option>
+                    <option value="power_kw">Potencia eléctrica (Kw)</option>
+                    <option value="mec_power">Potencia efectiva promedio (Kw)</option>
+                    <option value="mec_power_delta_e">Potencia efectiva Máxima (Kw) </option>
+                    <option value="net_force">Fuerza neta (N) </option>
+                    <option value="friction_force">Fuerza de fricción (N) </option>
+                    <option value="run">recorrido desde ultimo registro (m) </option>
+                    <option value="soc">SOC</option>
+                    <option value="soh">SOH</option>
+                    <option value="batt_temp">Temperatura de batería (°C)</option>
+                    <option value="ext_temp">Temperatura externa (°C)</option>
+                    <option value="voltage">Voltage (V)</option>
+                    <option value="current">Corriente (A)</option>
+                    <option value="mean_acc">Aceleración promedio (m/s^2)</option>
+                    <option value="acceleration">Aceleración motor </option>
+                    <option value="throttle">Pedal de acelerador</option>
+                    <option value="regen_brake">Freno regenerativo</option>
+                    <option value="consumption">Consumo</option>
+                    <option value="range_est">Rango estimado</option>
+                    <option value="range_ideal">Rango ideal</option>
+                    <option value="drivetime">Tiempo de manejo</option>
+                    <option value="charge_time">Tiempo de carga </option>
+                    <option value="is_charging">Esta cargando</option>
+                    <option value="tpms">presion llantas (psi)</option>
+                    <option value="ocv">OCV</option>
+                    <option value="occupants">Ocupantes</option>
+                    <option value="footbrake">Freno de pedal</option>
+                    <option value="engine_temp">Temperatura de motor (°C)</option>
+                </select>
+            </div>
+            <div class="col-auto">
+                <label class="label label-default" for="exampleFormControlSelect3"> Variable 3 </label>
+                <select class="form-control" id="exampleFormControlSelect3" name = var3>
+                    <option value="{{session.var3}}"> {{session.var3_pretty}}</option>
                     <option value="elevation">Altitud (msnm)</option>
                     <option value="slope">Pendiente (°)</option>
                     <option value="speed">Velocidad (Km/h)</option>

@@ -68,16 +68,19 @@ def show_tables():
     try:
         session["var1"]
         session["var2"]
+        session["var3"]
         session["records"]
     except KeyError:
 
         session["var1"] = "timestamp"
         session["var2"] = "speed"
+        session["var2"] = "mean_acc"
         session["records"] = 20
 
     if request.method == 'POST':
         session["var1"] = (request.form['var1'])
         session["var2"] = (request.form['var2'])
+        session["var3"] = (request.form['var3'])
         session["records"] = (request.form['records'])
         session['form_d1'] = request.form['d1']
         session['form_h1'] = request.form['h1']
@@ -97,9 +100,9 @@ def show_tables():
             '" and "' + str(session['d1']) + ' ' + str(session['h2'])[:8] + '" limit ' + str(session["records"])
 
     df = pd.read_sql_query(query, db.engine)
-
-
-
+    session["var1_pretty"] = open_dataframes.pretty_var_name(session["var1"])
+    session["var2_pretty"] = open_dataframes.pretty_var_name(session["var2"])
+    session["var3_pretty"] = open_dataframes.pretty_var_name(session["var3"])
     return render_template('tables.html', tables=[df.to_html(classes='data')], titles=df.columns.values)
 
 
