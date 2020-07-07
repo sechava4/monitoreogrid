@@ -127,11 +127,12 @@ def show_zones_map():
 
     lines_df = open_dataframes.get_lines(session['d1'], session['h1'], session['h2'])
     zones = open_dataframes.get_zones()
-    json_zones = Markup(zones.to_json(orient='records'))
+    if len(lines_df) > 0:
+        _, lines_df['id_nearest_zone'] = Trees.zones_tree.query(lines_df[['latitude', 'longitude']].values, k=1)
+        lines_df["name"] = zones["name"].reindex(index=lines_df['id_nearest_zone']).tolist()
 
-    _, lines_df['id_nearest_zone'] = Trees.zones_tree.query(lines_df[['latitude', 'longitude']].values, k=1)
-    lines_df["name"] = zones["name"].reindex(index=lines_df['id_nearest_zone']).tolist()
     json_lines = Markup(lines_df.to_json(orient='records'))
+    json_zones = Markup(zones.to_json(orient='records'))
 
     return render_template('zones_map.html',json_zones=json_zones, json_lines=json_lines)
 
@@ -223,34 +224,8 @@ def add_entry():
                 (datetime.now(pytz.timezone('America/Bogota')).strftime('%Y-%m-%d %H:%M:%S')),
                 '%Y-%m-%d %H:%M:%S')
 
-            '''
-            delta_t = (operation.timestamp - last.timestamp).total_seconds()   # SECONDS
+            # operation.mec_power = request.args["net_force"] * (float(request.args["speed"])) / (3.6*1000)   # Potencia promedio Kw
 
-            p = 1.2   # Air density kg/m3
-            m = float(request.args["mass"])   # kg
-            A = 0.790   # Frontal area m2
-            cr = 0.01   # Rolling cohef
-            cd = 0.2   # Drag cohef
-            operation.mean_acc = (float(request.args["speed"]) - last.speed ) / (delta_t * 3.6)   # km/h to ms
-
-            Fd = (cr * m * 9.81 * math.cos(operation.slope)) + (                                       # Rolling Comp
-                        0.5 * p * A * cd * ((float(request.args["speed"]) + last.speed) / 7.2) ** 2)   # km/h to ms
-
-            Fw = m * 9.81 * math.sin(operation.slope)
-            F = (m * operation.mean_acc) + Fw + Fd
-
-            # print(operation.mean_acc)
-            # print(Fd, Fw, F)
-            operation.mec_power = F * (float(request.args["speed"]) + last.speed) / (2*3.6*1000)   # Potencia promedio Kw
-
-
-            E1 = 0.5 * m * (last.speed / 3.6) ** 2  + (m * 9.81 * last.elevation)
-            E2 = 0.5 * m * (float(request.args["speed"]) / 3.6) ** 2  + (m * 9.81 * float(request.args["elevation"]))
-            Wf = Fd   # Work done by friction
-            operation.mec_power_delta_e = ((E2 - E1) / (delta_t * 1000))   # Kw
-            print(E1, E2)
-            # print(operation.__dict__)
-            '''
             db.session.add(operation)
             db.session.commit()
             return ("Data recieved")#redirect(url_for('show_entries'))

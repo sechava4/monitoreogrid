@@ -87,7 +87,7 @@ function GetUrlABRP() {
     urljson += "longitude=" + lon + "&";    //GPS longitude
     urljson += "elevation=" + altitude + "&";    //GPS altitude
     urljson += "speed=" + speed + "&";
-    urljson += "mec_power=" + mec_power + "&";       //potencia promedio
+    urljson += "mec_power=" + max_power + "&";       //potencia promedio
     urljson += "mec_power_delta_e=" + (sum_power * 1.00 /i) + "&";   //potenica máxima
     urljson += "mean_acc=" + (sum_acc * 1.00 /i) + "&";       //potencia promedio
     urljson += "slope=" + (sum_slope * 1.00 /i) + "&";       //pendiente promedio
@@ -202,10 +202,8 @@ function SendLiveData() {
     var F = (m * acc) + Fw + Fd;
     sum_net_force = sum_net_force + F;
 
-    mec_power = F * (speed + old_speed) * 1.00 / (7200);   //kw
+    mec_power = F * (speed) * 1.341 / (3.6*1000);   //hp
 
-    //print("potencia = ");
-    //print(mec_power );
     sum_power = sum_power + mec_power;
 
     if (mec_power > max_power) {

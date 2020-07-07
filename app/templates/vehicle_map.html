@@ -169,21 +169,23 @@
     </div>
   </body>
   <script>
+
+
     const jsonInput = {"initialViewState": {"bearing": -27.36, "latitude": 6.17184, "longitude": -75.56359, "maxZoom": 17, "minZoom": 3, "pitch": 40.5, "zoom": 13},
       "layers": [{"@@type": "ScatterplotLayer", "data":{{json_stations}}, "filled": true, "getFillColor": [255, 140, 0], "getLineColor": [0, 0, 0], "getPosition": "@@=[longitude, latitude]",
       "id": "2695882c-7d5e-4f89-9e8a-049b84822d70", "lineWidthMinPixels": 1, "opacity": 0.8, "pickable": true, "radiusMaxPixels": 8, "radiusMinPixels": 8, "radiusScale": 6, "stroked": true},
       {"@@type": "LineLayer", "autoHighlight": true, "data": {{json_lines}}, "getSourcePosition": "@@=[longitude,latitude]", "getTargetPosition": "@@=[longitude2,latitude2]", "getWidth": 10, "highlightColor": [255, 255, 0], "id": "e7cf82d5-b4d6-4f9b-86ee-5f8712240607", "pickable": false, "pickingRadius": 10},
       {"@@type": "ColumnLayer", "data":{{json_operation}},"elevationScale": 5, "getElevation": "@@=var", "getFillColor": "@@=[elevation * 2, 100, 120, 200]", "getPosition": "@@=[longitude, latitude]", "id": "27bac356-e75f-4bab-b330-7c6e7c831819", "pickable": true, "radius": 20}],
       "mapStyle": "mapbox://styles/mapbox/outdoors-v11", "views": [{"@@type": "MapView", "controller": true}]};
-    const MAPBOX_API_KEY = 'pk.eyJ1Ijoic2VjaGF2YTQiLCJhIjoiY2s2dTF0eHQ0MDViaTNmbXRhaHVoaG85cSJ9.xMh2vZNuj2PfxsUksteApQ';
+    const MAPBOX_API_KEY = 'pk.eyJ1Ijoic2FudGlhZ28xNzFjYyIsImEiOiJja2NjZTkzOTkwM3ZxMndxa296YTVseGNkIn0.EFcvvL83cLQZYsqSgLVa6A';
     const tooltip = {'html':'<b>Valor : </b>  <b>{name}</b> cerca estaciones: {closest_station1} y {closest_station2}', 'style': {'background': 'grey', 'color': 'white', 'font-family': '"Helvetica Neue", Arial', 'z-index': '10000'}};
 
 
     const deck = createDeck({
-      mapboxApiKey: MAPBOX_API_KEY,
+      mapboxApiKey: 'pk.eyJ1Ijoic2FudGlhZ28xNzFjYyIsImEiOiJja2NjZTkzOTkwM3ZxMndxa296YTVseGNkIn0.EFcvvL83cLQZYsqSgLVa6A',
       container: document.getElementById('deck-container'),
-      jsonInput,
-      tooltip
+      jsonInput: jsonInput,
+      tooltip: tooltip
     });
   </script>
   <div class="container">

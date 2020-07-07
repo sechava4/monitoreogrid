@@ -11,15 +11,6 @@ from app.models import Task, Operation
 from flask import request, session
 
 
-
-def get_stations():
-    file = os.path.join(app.root_path, "stations.json")
-    df = pd.read_json(file)
-    df.columns = ["name","latitude","longitude", "charger_types"]
-    # df = df[["name","latitude","longitude"]]
-    return df
-
-
 def get_lines_csv(day):
     file = os.path.join(app.root_path, "rutas.csv")
     df = pd.read_csv(file, index_col="id")
@@ -59,6 +50,14 @@ def get_lines(d1, h1, h2):
         df = df.drop(df.tail(1).index)
         df = df.drop(df.head(1).index)
         return df
+
+
+def get_stations():
+    file = os.path.join(app.root_path, "stations.json")
+    df = pd.read_json(file)
+    df.columns = ["name","latitude","longitude", "charger_types"]
+    # df = df[["name","latitude","longitude"]]
+    return df
 
 
 def get_zones():
