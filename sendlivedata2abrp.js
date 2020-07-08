@@ -53,6 +53,7 @@ var mec_power = 0;
 var sum_power = 0;
 var sum_slope = 0;
 var sum_run = 0;
+var trip_odometer = 0;
 var sum_net_force = 0;
 var sum_fr_force = 0;
 var max_power = 0;
@@ -87,16 +88,16 @@ function GetUrlABRP() {
     urljson += "longitude=" + lon + "&";    //GPS longitude
     urljson += "elevation=" + altitude + "&";    //GPS altitude
     urljson += "speed=" + speed + "&";
-    urljson += "mec_power=" + max_power + "&";       //potencia promedio
-    urljson += "mec_power_delta_e=" + (sum_power * 1.00 /i) + "&";   //potenica máxima
+    //urljson += "mec_power=" + max_power + "&";       //potencia promedio
+    urljson += "mec_power_delta_e=" + (sum_power * 2.317/i) + "&";   //potenica máxima
     urljson += "mean_acc=" + (sum_acc * 1.00 /i) + "&";       //potencia promedio
     urljson += "slope=" + (sum_slope * 1.00 /i) + "&";       //pendiente promedio
     urljson += "run=" + (sum_run * 1.00 /i) + "&";       //recorrido promedio
     urljson += "net_force=" + (sum_net_force * 1.00 /i) + "&";       //fuerza promedio
     urljson += "friction_force=" + (sum_fr_force * 1.00 /i) + "&";       //fuerza promedio
 
-
-    urljson += "odometer=" + OvmsMetrics.AsFloat("v.p.odometer") + "&";
+    urljson += "odometer=" + trip_odometer + "&";
+    //urljson += "odometer=" + OvmsMetrics.AsFloat("v.p.odometer") + "&";
     urljson += "vehicle_id=" + "RZ_123" + "&";
     urljson += "user_id=" + "Juan" + "&";
     urljson += "mass=" + 210 + "&";
@@ -177,7 +178,8 @@ function SendLiveData() {
 
 
     var run = (speed + old_speed) * 1.00 / 7.2;   // meters by (mean speed)
-    sum_run = sum_run + run
+    sum_run = sum_run + run;
+    trip_odometer = trip_odometer + run;
 
     rise = altitude - old_altitude;
 
@@ -205,11 +207,6 @@ function SendLiveData() {
     mec_power = F * (speed) * 1.341 / (3.6*1000);   //hp
 
     sum_power = sum_power + mec_power;
-
-    if (mec_power > max_power) {
-        max_power = mec_power;
-    }
-
 
     switch (operative_state) {
 

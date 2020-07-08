@@ -45,8 +45,8 @@ id,var,var_pretty
 43,energy,Energía acomulada (J)
 44,mean_acc, Acelereración promedio (m/s^2)
 45,mec_power, Potencia efectiva promedio (Kw)
-46,mec_power_delta_e, Potencia efectiva Máxima (Kw)
-47,run, recorrido desde ultimo registro (m)
+46,mec_power_delta_e, Potencia efectiva (Kw)
+47,run, Recorrido desde ultimo registro (m)
 48,net_force, Fuerza neta (N)
 49,friction_force, Fuerza de fricción (N)
 50,operative_state, Estado Operativo

@@ -1,46 +1,43 @@
-import pydeck as pdk
-import os
-from app import app,open_dataframes
-df = open_dataframes.alturas_df("elevation", 1)
 import pydeck
-import pandas as pd
 
-DATA_URL = "https://raw.githubusercontent.com/ajduberstein/geo_datasets/master/housing.csv"
-#df = pd.read_csv(DATA_URL)
+DATA_URL = "https://raw.githubusercontent.com/visgl/deck.gl-data/master/examples/geojson/vancouver-blocks.json"
+LAND_COVER = [[[-123.0, 49.196], [-123.0, 49.324], [-123.306, 49.324], [-123.306, 49.196]]]
 
-view = pydeck.data_utils.compute_view(df[["longitude", "latitude"]])
-view.pitch = 75
-view.bearing = 60
-
-column_layer = pydeck.Layer(
-    "ColumnLayer",
-    data=df,
-    get_position=["longitude", "latitude"],
-    get_elevation="elevation",
-    elevation_scale=100,
-    radius=50,
-    get_fill_color=["elevation * 10", 100, 120, 140],
-    pickable=True,
-    auto_highlight=True,
+INITIAL_VIEW_STATE = pydeck.ViewState(
+  latitude=49.254,
+  longitude=-123.13,
+  zoom=11,
+  max_zoom=16,
+  pitch=45,
+  bearing=0
 )
 
-tooltip = {
-    "html": "<b>{mrt_distance}</b> meters away from an MRT station, costs <b>{price_per_unit_area}</b> NTD/sqm",
-    "style": {"background": "grey", "color": "white", "font-family": '"Helvetica Neue", Arial', "z-index": "10000"},
-}
+polygon = pydeck.Layer(
+    'PolygonLayer',
+    LAND_COVER,
+    stroked=False,
+    # processes the data as a flat longitude-latitude pair
+    get_polygon='-',
+    get_fill_color=[0, 0, 0, 20]
+)
+
+geojson = pydeck.Layer(
+    'GeoJsonLayer',
+    DATA_URL,
+    opacity=0.8,
+    stroked=False,
+    filled=True,
+    extruded=True,
+    wireframe=True,
+    get_elevation='properties.valuePerSqm / 20',
+    get_fill_color='[255, 255, properties.growth * 255]',
+    get_line_color=[255, 255, 255],
+    pickable=True
+)
 
 r = pydeck.Deck(
-    column_layer, initial_view_state=view, tooltip=tooltip, map_style="mapbox://styles/mapbox/satellite-v9",
-)
+    layers=[polygon, geojson],
+    initial_view_state=INITIAL_VIEW_STATE)
 
-r.to_html("/templates/polygon_layer.html", notebook_display=False)
-
-"""
-if __name__ == "__main__":
-    df = pd.read_csv("rutas.csv")
-    df = df[["latitude", "longitude", "timestamp"]]
-    df['timestamp'] = pd.to_datetime(df['timestamp'])
-    df['timestamp'] = df['timestamp'].astype('int64')//1e9
-
-"""
+r.to_html()
 
