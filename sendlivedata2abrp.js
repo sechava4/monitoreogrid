@@ -89,7 +89,7 @@ function GetUrlABRP() {
     urljson += "elevation=" + altitude + "&";    //GPS altitude
     urljson += "speed=" + speed + "&";
     //urljson += "mec_power=" + max_power + "&";       //potencia promedio
-    urljson += "mec_power_delta_e=" + (sum_power * 2.317/i) + "&";   //potenica máxima
+    urljson += "mec_power_delta_e=" + (sum_power * 1.681 /i) + "&";   //potenica máxima
     urljson += "mean_acc=" + (sum_acc * 1.00 /i) + "&";       //potencia promedio
     urljson += "slope=" + (sum_slope * 1.00 /i) + "&";       //pendiente promedio
     urljson += "run=" + (sum_run * 1.00 /i) + "&";       //recorrido promedio

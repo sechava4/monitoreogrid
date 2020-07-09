@@ -111,9 +111,9 @@ def get_heights(var, d1, h1, h2):
     if var == "elevation":
         df['var'] = df[var].map(lambda x: x-1420)
     elif var in ("mean_acc", "mec_power_delta_e", "mec_power"):
-        df['var'] = df[var].map(lambda x: x*25)
+        df['var'] = df[var].map(lambda x: x*35)
     else:
-        df['var'] = df[var].map(lambda x: x*6)
+        df['var'] = df[var].map(lambda x: x*8)
     df = df[["latitude", "longitude", 'name', 'var']]
     return df
 
