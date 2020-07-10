@@ -50,3 +50,4 @@ id,var,var_pretty
 48,net_force, Fuerza neta (N)
 49,friction_force, Fuerza de fricción (N)
 50,operative_state, Estado Operativo
+51,en_pot, Delta Energía potenical (J)

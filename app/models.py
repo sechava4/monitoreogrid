@@ -83,6 +83,7 @@ class Operation(db.Model):
     run = db.Column(db.Float)
     net_force = db.Column(db.Float)
     friction_force = db.Column(db.Float)
+    en_pot = db.Column(db.Float)
     speed = db.Column(db.Integer)
     odometer = db.Column(db.Integer)
     user_id = db.Column(db.String(64))

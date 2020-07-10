@@ -1,18 +1,14 @@
 {% extends "layout.html" %}
 {% block body  %}
-<head>
+<div>
     <title>Dasboard</title>
-        <!-- plotly graph. -->
         <h2>
             {{ current_user.username }}
         </h2>
-
         <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
-
-
         <div class="variables">
-            <form role="form" class="form-inline" action="{{ url_for('graph_var') }}" method=post>
+            <form role="form" class="form-inline" action="{{ url_for('show_entries') }}" method=post>
                 <div class="col-auto">
                     <label class="label label-default" for="exampleFormControlSelect1"> Eje X </label>
                     <select class="form-control" id="exampleFormControlSelect1" name = variable_x>
@@ -26,7 +22,9 @@
                         <option value="odometer">Odometro (Km)</option>
                         <option value="capacity">Capacidad (Ah)</option>
                         <option value="power_kw">Potencia eléctrica (Kw)</option>
-                        <option value="mec_power_delta_e">Potencia efectiva (Kw) </option>
+                        <option value="mec_power_delta_e">Potencia efectiva (ovms) (Hp) </option>
+                        <option value="mec_power">Potencia efectiva (server) (Hp) </option>
+                        <option value="en_pot">Delta Energía potenical (J) </option>
                         <option value="net_force">Fuerza neta (N) </option>
                         <option value="friction_force">Fuerza de fricción (N) </option>
                         <option value="run">Recorrido desde ultimo registro (m) </option>
@@ -53,196 +51,314 @@
                         <option value="engine_temp">Temperatura de motor (°C)</option>
                     </select>
                 </div>
-            <div class="col-auto">
-                <label class="label label-default" for="exampleFormControlSelect2"> Eje Y </label>
-                <select class="form-control" id="exampleFormControlSelect2" name = variable_y>
-                    <option value="{{session.graph_var_y}}"> {{session.y_pretty_graph}}</option>
-                    <option value="elevation">Altitud (msnm)</option>
-                    <option value="slope">Pendiente (°)</option>
-                    <option value="speed">Velocidad (Km/h)</option>
-                    <option value="user_id">Usuario</option>
-                    <option value="operative_state">Estado Operativo</option>
-                    <option value="odometer">Odometro (Km)</option>
-                    <option value="capacity">Capacidad (Ah)</option>
-                    <option value="power_kw">Potencia eléctrica (Kw)</option>
-                    <option value="mec_power_delta_e">Potencia efectiva (Kw) </option>
-                    <option value="net_force">Fuerza neta (N) </option>
-                    <option value="friction_force">Fuerza de fricción (N) </option>
-                    <option value="run">Recorrido desde ultimo registro (m) </option>
-                    <option value="soc">SOC</option>
-                    <option value="soh">SOH</option>
-                    <option value="batt_temp">Temperatura de batería (°C)</option>
-                    <option value="ext_temp">Temperatura externa (°C)</option>
-                    <option value="voltage">Voltage (V)</option>
-                    <option value="current">Corriente (A)</option>
-                    <option value="mean_acc">Aceleración promedio (m/s^2)</option>
-                    <option value="acceleration">Aceleración motor </option>
-                    <option value="throttle">Pedal de acelerador</option>
-                    <option value="regen_brake">Freno regenerativo</option>
-                    <option value="consumption">Consumo</option>
-                    <option value="range_est">Rango estimado</option>
-                    <option value="range_ideal">Rango ideal</option>
-                    <option value="drivetime">Tiempo de manejo</option>
-                    <option value="charge_time">Tiempo de carga </option>
-                    <option value="is_charging">Esta cargando</option>
-                    <option value="tpms">presion llantas (psi)</option>
-                    <option value="ocv">OCV</option>
-                    <option value="occupants">Ocupantes</option>
-                    <option value="footbrake">Freno de pedal</option>
-                    <option value="engine_temp">Temperatura de motor (°C)</option>
-                </select>
-            </div>
+                <div class="col-auto">
+                    <label class="label label-default" for="exampleFormControlSelect2"> Eje Y </label>
+                    <select class="form-control" id="exampleFormControlSelect2" name = variable_y>
+                        <option value="{{session.graph_var_y}}"> {{session.y_pretty_graph}}</option>
+                        <option value="elevation">Altitud (msnm)</option>
+                        <option value="slope">Pendiente (°)</option>
+                        <option value="speed">Velocidad (Km/h)</option>
+                        <option value="user_id">Usuario</option>
+                        <option value="operative_state">Estado Operativo</option>
+                        <option value="odometer">Odometro (Km)</option>
+                        <option value="capacity">Capacidad (Ah)</option>
+                        <option value="power_kw">Potencia eléctrica (Kw)</option>
+                        <option value="mec_power_delta_e">Potencia efectiva (ovms) (Hp) </option>
+                        <option value="mec_power">Potencia efectiva (server) (Hp) </option>
+                        <option value="en_pot">Delta Energía potenical (J) </option>
+                        <option value="net_force">Fuerza neta (N) </option>
+                        <option value="friction_force">Fuerza de fricción (N) </option>
+                        <option value="run">Recorrido desde ultimo registro (m) </option>
+                        <option value="soc">SOC</option>
+                        <option value="soh">SOH</option>
+                        <option value="batt_temp">Temperatura de batería (°C)</option>
+                        <option value="ext_temp">Temperatura externa (°C)</option>
+                        <option value="voltage">Voltage (V)</option>
+                        <option value="current">Corriente (A)</option>
+                        <option value="mean_acc">Aceleración promedio (m/s^2)</option>
+                        <option value="acceleration">Aceleración motor </option>
+                        <option value="throttle">Pedal de acelerador</option>
+                        <option value="regen_brake">Freno regenerativo</option>
+                        <option value="consumption">Consumo</option>
+                        <option value="range_est">Rango estimado</option>
+                        <option value="range_ideal">Rango ideal</option>
+                        <option value="drivetime">Tiempo de manejo</option>
+                        <option value="charge_time">Tiempo de carga </option>
+                        <option value="is_charging">Esta cargando</option>
+                        <option value="tpms">presion llantas (psi)</option>
+                        <option value="ocv">OCV</option>
+                        <option value="occupants">Ocupantes</option>
+                        <option value="footbrake">Freno de pedal</option>
+                        <option value="engine_temp">Temperatura de motor (°C)</option>
+                    </select>
+                </div>
 
-            <div class='col-sm-2'>
-                <label class="label label-default" for="date"> Fecha </label>
-                <div class="form-group" id = 'date'>
-                    <div class='input-group date' id='datetimepicker1'>
-                        <input type='text' id = 'd1_input' class="form-control" name = 'd1' />
-                        <span class="input-group-addon"><span class="glyphicon glyphicon-time"></span>
-                        </span>
+                <div class='col-sm-2'>
+                    <label class="label label-default" for="date"> Fecha </label>
+                    <div class="form-group" id = 'date'>
+                        <div class='input-group date' id='datetimepicker1'>
+                            <input type='text' id = 'd1_input' class="form-control" name = 'd1' />
+                            <span class="input-group-addon"><span class="glyphicon glyphicon-time"></span>
+                            </span>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <script type="text/javascript">
-                document.getElementById('d1_input').defaultValue = '{{ session.form_d1 }}'
-                $(function() {
-                   $('#datetimepicker1').datetimepicker({
-                         format: 'DD/MM/YYYY'
-                   });
-                });
-            </script>
-
-            <div class='col-sm-2'>
-                <label class="label label-default" for="hora1"> Desde </label>
-                <div class="form-group" id="hora1">
-                    <div class='input-group date' id='datetimepicker3'>
-                        <input type='text' id = 'h1_input' class="form-control" name = 'h1'/>
-                        <span class="input-group-addon">
-                            <span class="glyphicon glyphicon-time"></span>
-                        </span>
-                    </div>
-                </div>
-            </div>
-            <script type="text/javascript">
-
-                document.getElementById('h1_input').defaultValue = '{{ session.form_h1 }}'
-                $(function () {
-                    $('#datetimepicker3').datetimepicker({
-                        format: 'LT'
+                <script type="text/javascript">
+                    document.getElementById('d1_input').defaultValue = '{{ session.form_d1 }}'
+                    $(function() {
+                       $('#datetimepicker1').datetimepicker({
+                             format: 'DD/MM/YYYY'
+                       });
                     });
-                });
-            </script>
+                </script>
 
-            <div class='col-sm-2'>
-                <label class="label label-default" for="hora2"> Hasta </label>
-                <div class="form-group" id="hora2">
-                    <div class='input-group date' id='datetimepicker4'>
-                        <input type='text' id = 'h2_input' class="form-control" name = 'h2'/>
-                        <span class="input-group-addon">
-                            <span class="glyphicon glyphicon-time"></span>
-                        </span>
+                <div class='col-sm-2'>
+                    <label class="label label-default" for="hora1"> Desde </label>
+                    <div class="form-group" id="hora1">
+                        <div class='input-group date' id='datetimepicker3'>
+                            <input type='text' id = 'h1_input' class="form-control" name = 'h1'/>
+                            <span class="input-group-addon">
+                                <span class="glyphicon glyphicon-time"></span>
+                            </span>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <script>
-                document.getElementById('h2_input').defaultValue = '{{ session.form_h2 }}';
-                $(function () {
-                    $('#datetimepicker4').datetimepicker({
-                        format: 'LT'
-                    });
-                });
-            </script>
-            <div class="col-auto">
-                <button class="btn btn-dark" type="submit">Ver</button>
-            </div>
+                <script type="text/javascript">
 
+                    document.getElementById('h1_input').defaultValue = '{{ session.form_h1 }}'
+                    $(function () {
+                        $('#datetimepicker3').datetimepicker({
+                            format: 'LT'
+                        });
+                    });
+                </script>
+
+                <div class='col-sm-2'>
+                    <label class="label label-default" for="hora2"> Hasta </label>
+                    <div class="form-group" id="hora2">
+                        <div class='input-group date' id='datetimepicker4'>
+                            <input type='text' id = 'h2_input' class="form-control" name = 'h2'/>
+                            <span class="input-group-addon">
+                                <span class="glyphicon glyphicon-time"></span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <script>
+                    document.getElementById('h2_input').defaultValue = '{{ session.form_h2 }}';
+                    $(function () {
+                        $('#datetimepicker4').datetimepicker({
+                            format: 'LT'
+                        });
+                    });
+                </script>
+                <div class="col-auto">
+                    <button class="btn btn-dark" type="submit">Ver</button>
+                </div>
+
+                <div class="container" id = "grafica">
+                    <div class="chart" id="bargraph" >
+                        <script>
+                            var graphs = {{plot | safe}};
+                            Plotly.plot('bargraph',graphs,{});
+                        </script>
+                    </div>
+                </div>
+
+                <div class="col-auto">
+                    <label class="label label-default" for="FormControlSelect1"> Eje X </label>
+                    <select class="form-control" id="FormControlSelect1" name = variable_x2>
+                        <option value="{{session.graph_var_x2}}"> {{session.x_pretty_graph2}}</option>
+                        <option value="timestamp">Tiempo</option>
+                        <option value="elevation">Altitud (msnm)</option>
+                        <option value="slope">Pendiente (°)</option>
+                        <option value="speed">Velocidad (Km/h)</option>
+                        <option value="user_id">Usuario</option>
+                        <option value="operative_state">Estado Operativo</option>
+                        <option value="odometer">Odometro (Km)</option>
+                        <option value="capacity">Capacidad (Ah)</option>
+                        <option value="power_kw">Potencia eléctrica (Kw)</option>
+                        <option value="mec_power_delta_e">Potencia efectiva (ovms) (Hp) </option>
+                        <option value="mec_power">Potencia efectiva (server) (Hp) </option>
+                        <option value="en_pot">Delta Energía potenical (J) </option>
+                        <option value="net_force">Fuerza neta (N) </option>
+                        <option value="friction_force">Fuerza de fricción (N) </option>
+                        <option value="run">Recorrido desde ultimo registro (m) </option>
+                        <option value="soc">SOC</option>
+                        <option value="soh">SOH</option>
+                        <option value="batt_temp">Temperatura de batería (°C)</option>
+                        <option value="ext_temp">Temperatura externa (°C)</option>
+                        <option value="voltage">Voltage (V)</option>
+                        <option value="current">Corriente (A)</option>
+                        <option value="mean_acc">Aceleración promedio (m/s^2)</option>
+                        <option value="acceleration">Aceleración motor </option>
+                        <option value="throttle">Pedal de acelerador</option>
+                        <option value="regen_brake">Freno regenerativo</option>
+                        <option value="consumption">Consumo</option>
+                        <option value="range_est">Rango estimado</option>
+                        <option value="range_ideal">Rango ideal</option>
+                        <option value="drivetime">Tiempo de manejo</option>
+                        <option value="charge_time">Tiempo de carga </option>
+                        <option value="is_charging">Esta cargando</option>
+                        <option value="tpms">presion llantas (psi)</option>
+                        <option value="ocv">OCV</option>
+                        <option value="occupants">Ocupantes</option>
+                        <option value="footbrake">Freno de pedal</option>
+                        <option value="engine_temp">Temperatura de motor (°C)</option>
+                    </select>
+                </div>
+                <div class="col-auto">
+                    <label class="label label-default" for="FormControlSelect2"> Eje Y </label>
+                    <select class="form-control" id="FormControlSelect2" name = variable_y2>
+                        <option value="{{session.graph_var_y2}}"> {{session.y_pretty_graph2}}</option>
+                        <option value="elevation">Altitud (msnm)</option>
+                        <option value="slope">Pendiente (°)</option>
+                        <option value="speed">Velocidad (Km/h)</option>
+                        <option value="user_id">Usuario</option>
+                        <option value="operative_state">Estado Operativo</option>
+                        <option value="odometer">Odometro (Km)</option>
+                        <option value="capacity">Capacidad (Ah)</option>
+                        <option value="power_kw">Potencia eléctrica (Kw)</option>
+                        <option value="mec_power_delta_e">Potencia efectiva (ovms) (Hp) </option>
+                        <option value="mec_power">Potencia efectiva (server) (Hp) </option>
+                        <option value="en_pot">Delta Energía potenical (J) </option>
+                        <option value="net_force">Fuerza neta (N) </option>
+                        <option value="friction_force">Fuerza de fricción (N) </option>
+                        <option value="run">Recorrido desde ultimo registro (m) </option>
+                        <option value="soc">SOC</option>
+                        <option value="soh">SOH</option>
+                        <option value="batt_temp">Temperatura de batería (°C)</option>
+                        <option value="ext_temp">Temperatura externa (°C)</option>
+                        <option value="voltage">Voltage (V)</option>
+                        <option value="current">Corriente (A)</option>
+                        <option value="mean_acc">Aceleración promedio (m/s^2)</option>
+                        <option value="acceleration">Aceleración motor </option>
+                        <option value="throttle">Pedal de acelerador</option>
+                        <option value="regen_brake">Freno regenerativo</option>
+                        <option value="consumption">Consumo</option>
+                        <option value="range_est">Rango estimado</option>
+                        <option value="range_ideal">Rango ideal</option>
+                        <option value="drivetime">Tiempo de manejo</option>
+                        <option value="charge_time">Tiempo de carga </option>
+                        <option value="is_charging">Esta cargando</option>
+                        <option value="tpms">presion llantas (psi)</option>
+                        <option value="ocv">OCV</option>
+                        <option value="occupants">Ocupantes</option>
+                        <option value="footbrake">Freno de pedal</option>
+                        <option value="engine_temp">Temperatura de motor (°C)</option>
+                    </select>
+                </div>
+
+                <div class='col-sm-2'>
+                    <label class="label label-default" for="date"> Fecha </label>
+                    <div class="form-group" id = 'date2'>
+                        <div class='input-group date' id='datetimepicker5'>
+                            <input type='text' id = 'd2_input' class="form-control" name = 'd2' />
+                            <span class="input-group-addon"><span class="glyphicon glyphicon-time"></span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <script type="text/javascript">
+                    document.getElementById('d2_input').defaultValue = '{{ session.form_d2 }}'
+                    $(function() {
+                       $('#datetimepicker5').datetimepicker({
+                             format: 'DD/MM/YYYY'
+                       });
+                    });
+                </script>
+                <div class='col-sm-2'>
+                    <label class="label label-default" for="hora3"> Desde </label>
+                    <div class="form-group" id="hora3">
+                        <div class='input-group date' id='datetimepicker6'>
+                            <input type='text' id = 'h3_input' class="form-control" name = 'h3'/>
+                            <span class="input-group-addon">
+                                <span class="glyphicon glyphicon-time"></span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <script type="text/javascript">
+                    document.getElementById('h3_input').defaultValue = '{{ session.form_h3 }}'
+                    $(function () {
+                        $('#datetimepicker6').datetimepicker({
+                            format: 'LT'
+                        });
+                    });
+                </script>
+                <div class='col-sm-2'>
+                    <label class="label label-default" for="hora4"> Hasta </label>
+                    <div class="form-group" id="hora4">
+                        <div class='input-group date' id='datetimepicker7'>
+                            <input type='text' id = 'h4_input' class="form-control" name = 'h4'/>
+                            <span class="input-group-addon">
+                                <span class="glyphicon glyphicon-time"></span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <script>
+                    document.getElementById('h4_input').defaultValue = '{{ session.form_h4 }}';
+                    $(function () {
+                        $('#datetimepicker7').datetimepicker({
+                            format: 'LT'
+                        });
+                    });
+                </script>
             </form>
         </div>
-
-
-        <div class="container" id = "grafica">
-            <div class="chart" id="bargraph" >
+        <div class="container" id = "grafica2">
+            <div class="chart" id="bargraph2" >
                 <script>
-                    var graphs = {{plot | safe}};
-                    Plotly.plot('bargraph',graphs,{});
+                    var graphs2 = {{plot2 | safe}};
+                    Plotly.plot('bargraph2',graphs2,{});
                 </script>
             </div>
-            <div class="chart" id="donn_graph" style="width:40%;height:400px;float:left">
+            <div class="chart" id = 'myDiv2' >
                 <script>
-                    var graphs2 = {{pie | safe}};
-                    Plotly.plot('donn_graph',graphs2,{});
+                    var y0 = {{box | safe}};
+                    var trace1 = {
+                      y: y0,
+                      type: 'box',
+                      name: 'Mean and Standard Deviation',
+                      boxmean: 'sd'
+                    };
+
+                    var y2 = {{box2 | safe}};
+                    var trace2 = {
+                      y: y2,
+                      type: 'box',
+                      boxmean: 'sd'
+                    };
+
+                    var data = [trace1, trace2];
+
+                    Plotly.newPlot('myDiv2', data);
                 </script>
             </div>
-
-
-            <div class="chart" id = 'myDiv' style="width:40%;height:250px;float:right"></div>
-            <script>
-                //TESTER = document.getElementById('myDiv');
-                Plotly.d3.csv('https://raw.githubusercontent.com/plotly/datasets/master/api_docs/mt_bruno_elevation.csv', function(err, rows){
-                function unpack(rows, key) {
-                  return rows.map(function(row) { return row[key]; });
-                }
-                var z_data=[ ]
-                for(i=0;i<24;i++)
-                {
-                  z_data.push(unpack(rows,i));
-                }
-
-                var data = [{
-                  z: z_data,
-                  type: 'surface',
-                  contours: {
-                    z: {
-                      show:true,
-                      usecolormap: true,
-                      highlightcolor:"#42f462",
-                      project:{z: true}
-                    }
-                  }
-                }];
-
-                var layout = {
-                  title: 'Mt Bruno Elevation With Projected Contours',
-                  scene: {camera: {eye: {x: 1.87, y: 0.88, z: -0.64}}},
-                  autosize: false,
-                  width: 500,
-                  height: 500,
-                  margin: {
-                    l: 65,
-                    r: 50,
-                    b: 65,
-                    t: 90,
-                  }
-                };
-
-                Plotly.newPlot('myDiv', data, layout);
-                });
-            </script>
         </div>
 
     <script>
-    $(document).ready(function(){
-        function loadlink(){
+        $(document).ready(function(){
+            function loadlink(){
 
-            req = $.ajax({
-                url : "/updateplot",
-                type : "GET",
+                req = $.ajax({
+                    url : "/updateplot",
+                    type : "GET",
 
-            });
+                });
 
-            req.done(function(res) {
-                $("#bargraph").fadeOut(100).fadeIn(100);
-                var graphs = JSON.parse(res);
-                console.log(graphs)
-                Plotly.react('bargraph', graphs, {});
-            });
-        };
-        setInterval(function(){
-            loadlink() // this will run after every 30 seconds
-        }, 30000);
-    });
-
-
+                req.done(function(res) {
+                    $("#bargraph").fadeOut(100).fadeIn(100);
+                    var graphs = JSON.parse(res);
+                    console.log(graphs)
+                    Plotly.react('bargraph', graphs, {});
+                });
+            };
+            setInterval(function(){
+                loadlink() // this will run after every 30 seconds
+            }, 30000);
+        });
     </script>
-
+</div>
 {% endblock %}

@@ -11,9 +11,9 @@ import os
 import geopy.distance
 from datetime import datetime
 import pytz
-import math
 
-@app.route('/')
+
+@app.route('/', methods=['GET', 'POST'])
 @login_required
 def show_entries():
     try:
@@ -25,6 +25,15 @@ def show_entries():
         session['d1']
         session['h1']
         session['h2']
+
+        session["graph_var_x2"]
+        session["graph_var_y2"]
+        session['form_d2']
+        session['form_h3']
+        session['form_h4']
+        session['d2']
+        session['h3']
+        session['h4']
     except KeyError:
         now = datetime.now(pytz.timezone('America/Bogota'))
         session['form_d1'] = now.strftime("%d/%m/%Y")
@@ -36,17 +45,62 @@ def show_entries():
         session["graph_var_x"] = "timestamp"
         session["graph_var_y"] = "soh"
 
+        session['form_d2'] = now.strftime("%d/%m/%Y")
+        session['form_h3'] = '0:01 AM'
+        session['form_h4'] = now.strftime("%I:%M %p")  # 12H Format
+        session['d2'] = now.strftime("%Y-%m-%d")
+        session['h3'] = '00:00:00'
+        session['h4'] = now.strftime("%H:%M:%S")
+        session["graph_var_x2"] = "timestamp"
+        session["graph_var_y2"] = "soh"
+
+    if request.method == 'POST':
+
+        session["graph_var_x"] = (request.form['variable_x'])
+        session["graph_var_y"] = (request.form['variable_y'])
+        session['form_d1'] = request.form['d1']
+        session['form_h1'] = request.form['h1']
+        session['form_h2'] = request.form['h2']
+
+        session["d1"] = (datetime.strptime(request.form['d1'], '%d/%m/%Y')).strftime("%Y-%m-%d")
+        session["h1"] = (datetime.strptime(request.form['h1'], '%I:%M %p')).strftime("%H:%M:%S")
+        session["h2"] = (datetime.strptime(request.form['h2'], '%I:%M %p')).strftime("%H:%M:%S")
+        if session["h2"] < session["h1"]:
+            session["h1"], session["h2"] = session["h2"], session["h1"]  # Swap times
+
+        session["graph_var_x2"] = (request.form['variable_x2'])
+        session["graph_var_y2"] = (request.form['variable_y2'])
+        session['form_d2'] = request.form['d2']
+        session['form_h3'] = request.form['h3']
+        session['form_h4'] = request.form['h4']
+
+        session["d2"] = (datetime.strptime(request.form['d2'], '%d/%m/%Y')).strftime("%Y-%m-%d")
+        session["h3"] = (datetime.strptime(request.form['h3'], '%I:%M %p')).strftime("%H:%M:%S")
+        session["h4"] = (datetime.strptime(request.form['h4'], '%I:%M %p')).strftime("%H:%M:%S")
+        if session["h4"] < session["h3"]:
+            session["h3"], session["h4"] = session["h4"], session["h3"]  # Swap times
+
     query = "SELECT " + session["graph_var_x"] + " ," + session["graph_var_y"] + \
             ' from operation WHERE timestamp BETWEEN "' + session['d1'] + ' ' + str(session['h1'])[:8] + \
             '" and "' + str(session['d1']) + ' ' + str(session['h2'])[:8] + '"'
 
+    query2 = "SELECT " + session["graph_var_x2"] + " ," + session["graph_var_y2"] + \
+            ' from operation WHERE timestamp BETWEEN "' + session['d2'] + ' ' + str(session['h3'])[:8] + \
+            '" and "' + str(session['d2']) + ' ' + str(session['h4'])[:8] + '"'
 
     df_o = pd.read_sql_query(query, db.engine)
+    df_o2 = pd.read_sql_query(query2, db.engine)
 
     scatter, donnut = plot.create_plot(df_o, session["graph_var_x"], session["graph_var_y"])
+    scatter2, _ = plot.create_plot(df_o2, session["graph_var_x2"], session["graph_var_y2"])
+    box = df_o[session["graph_var_y"]].tolist()
+    box2 = df_o2[session["graph_var_y2"]].tolist()
     session["x_pretty_graph"] = open_dataframes.pretty_var_name(session["graph_var_x"])
     session["y_pretty_graph"] = open_dataframes.pretty_var_name(session["graph_var_y"])
-    return render_template('show_entries.html', plot=scatter, pie=donnut)
+
+    session["x_pretty_graph2"] = open_dataframes.pretty_var_name(session["graph_var_x2"])
+    session["y_pretty_graph2"] = open_dataframes.pretty_var_name(session["graph_var_y2"])
+    return render_template('show_entries.html', plot=scatter, pie=donnut, box=box, plot2=scatter2, box2=box2)
 
 
 @app.route('/updateplot')
@@ -55,11 +109,20 @@ def update_plot():
             ' from operation WHERE timestamp BETWEEN "' + session['d1'] + ' ' + str(session['h1'])[:8] + \
             '" and "' + str(session['d1']) + ' ' + str(session['h2'])[:8] + '"'
 
+    query2 = "SELECT " + session["graph_var_x2"] + " ," + session["graph_var_y2"] + \
+             ' from operation WHERE timestamp BETWEEN "' + session['d2'] + ' ' + str(session['h3'])[:8] + \
+             '" and "' + str(session['d2']) + ' ' + str(session['h4'])[:8] + '"'
+
     df_o = pd.read_sql_query(query, db.engine)
-    bar = plot.create_plot(df_o, session["graph_var_x"], session["graph_var_y"])
+    df_o2 = pd.read_sql_query(query2, db.engine)
+    scatter, donnut = plot.create_plot(df_o, session["graph_var_x"], session["graph_var_y"])
+    scatter2, _ = plot.create_plot(df_o2, session["graph_var_x2"], session["graph_var_y2"])
     session["x_pretty_graph"] = open_dataframes.pretty_var_name(session["graph_var_x"])
     session["y_pretty_graph"] = open_dataframes.pretty_var_name(session["graph_var_y"])
-    return bar
+
+    session["x_pretty_graph2"] = open_dataframes.pretty_var_name(session["graph_var_x2"])
+    session["y_pretty_graph2"] = open_dataframes.pretty_var_name(session["graph_var_y2"])
+    return scatter
 
 
 @app.route('/tables', methods=['GET', 'POST'])
@@ -199,7 +262,7 @@ def add_entry():
     if not bool(request.args):
         return ("Null data")
     else:
-        if float(request.args["latitude"]) > 0:
+        if float(request.args["latitude"]) > 0 and float(request.args["elevation"]) > 0:
 
             '''
             last = Operation.query.order_by(Operation.id.desc()).first()
@@ -224,7 +287,7 @@ def add_entry():
                 (datetime.now(pytz.timezone('America/Bogota')).strftime('%Y-%m-%d %H:%M:%S')),
                 '%Y-%m-%d %H:%M:%S')
 
-            # operation.mec_power = request.args["net_force"] * (float(request.args["speed"])) / (3.6*1000)   # Potencia promedio Kw
+            operation.mec_power = request.args["net_force"] * (float(request.args["speed"])) * 1.6 / (3.6*1000)   # Potencia promedio Kw
 
             db.session.add(operation)
             db.session.commit()
@@ -272,23 +335,6 @@ def register():
 @app.route('/logout')
 def logout():
     logout_user()
-    return redirect(url_for('show_entries'))
-
-
-@app.route('/graph_var', methods=['POST'])
-def graph_var():
-    session["graph_var_x"] = (request.form['variable_x'])
-    session["graph_var_y"] = (request.form['variable_y'])
-    session['form_d1'] = request.form['d1']
-    session['form_h1'] = request.form['h1']
-    session['form_h2'] = request.form['h2']
-
-    session["d1"] = (datetime.strptime(request.form['d1'], '%d/%m/%Y')).strftime("%Y-%m-%d")
-    session["h1"] = (datetime.strptime(request.form['h1'], '%I:%M %p')).strftime("%H:%M:%S")
-    session["h2"] = (datetime.strptime(request.form['h2'], '%I:%M %p')).strftime("%H:%M:%S")
-    if session["h2"] < session["h1"]:
-        session["h1"], session["h2"] = session["h2"], session["h1"] # Swap times
-
     return redirect(url_for('show_entries'))
 
 

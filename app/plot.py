@@ -1,7 +1,8 @@
 import plotly
 import plotly.graph_objs as go
 import json
-
+import pandas as pd
+import plotly.express as px
 
 def create_plot(data_frame, x, y):
     data_scatter = [go.Scatter(x=data_frame[x], y=data_frame[y])]

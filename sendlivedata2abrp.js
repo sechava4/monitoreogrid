@@ -11,7 +11,7 @@
  * Enable:
  *  - install at above path
  *  - add to /store/scripts/ovmsmain.js:
- *                 abrp = require("sendlivedata2abrp");
+ *                 abrp = require('sendlivedata2abrp');
  *  - script reload
  *
  * Usage:
@@ -40,7 +40,8 @@ var old_speed = 0;
 var altitude = 0;
 var old_altitude = 0;
 var run = 0;
-var rise = 0;
+var old_time;
+
 var slope = 0;
 var old_slope = 0;
 var lat = 0;
@@ -58,6 +59,7 @@ var sum_net_force = 0;
 var sum_fr_force = 0;
 var max_power = 0;
 var sum_acc = 0;
+var sum_delta_h = 0;
 var i = 1;
 
 
@@ -73,19 +75,12 @@ function OnRequestFail(error) {
 }
 
 
-
-
-function degreesToRadians(degrees) {
-  return degrees * Math.PI / 180;
-}
-
 function GetUrlABRP() {
     var urljson = URL;
 
-
     urljson += "?";
-    urljson += "latitude=" + lat + "&";    //GPS latitude
-    urljson += "longitude=" + lon + "&";    //GPS longitude
+    urljson += "latitude=" + OvmsMetrics.AsFloat(["v.p.latitude"]).toFixed(8) + "&";    //GPS latitude
+    urljson += "longitude=" + OvmsMetrics.AsFloat(["v.p.longitude"]).toFixed(8) + "&";    //GPS longitude
     urljson += "elevation=" + altitude + "&";    //GPS altitude
     urljson += "speed=" + speed + "&";
     //urljson += "mec_power=" + max_power + "&";       //potencia promedio
@@ -95,6 +90,7 @@ function GetUrlABRP() {
     urljson += "run=" + (sum_run * 1.00 /i) + "&";       //recorrido promedio
     urljson += "net_force=" + (sum_net_force * 1.00 /i) + "&";       //fuerza promedio
     urljson += "friction_force=" + (sum_fr_force * 1.00 /i) + "&";       //fuerza promedio
+    urljson += "en_pot=" + ((sum_delta_h * 1.00 /i) * 9.81 * 170.0)  + "&";       //fuerza promedio
 
     urljson += "odometer=" + trip_odometer + "&";
     //urljson += "odometer=" + OvmsMetrics.AsFloat("v.p.odometer") + "&";
@@ -141,6 +137,7 @@ function GetUrlABRP() {
     sum_acc = 0;
     sum_slope = 0;
     sum_run = 0;
+    sum_delta_h = 0;
     return urljson;
 
 }
@@ -167,29 +164,19 @@ function SendLiveData() {
     var d = new Date();
     var cms = d.getTime();   //current_millis
 
-    lat = OvmsMetrics.AsFloat(["v.p.latitude"]).toFixed(8);
-    lon = OvmsMetrics.AsFloat(["v.p.longitude"]).toFixed(8);
     altitude = OvmsMetrics.AsFloat(["v.p.altitude"]).toFixed();
     speed = OvmsMetrics.AsFloat(["v.p.gpsspeed"]).toFixed();
 
-    acc = (speed - old_speed) * 1.0 / 3.6;
+    var rise = altitude - old_altitude;
+    sum_delta_h = sum_delta_h + rise;
+
+    var dt = (cms - old_time);
+    var acc = (speed - old_speed) * 1000.0 / (dt * 3.6);
     sum_acc = sum_acc + acc;
 
-
-
-    var run = (speed + old_speed) * 1.00 / 7.2;   // meters by (mean speed)
+    var run = ((speed + old_speed) * dt) / (7.2 * 1000);   // meters by (mean speed)
     sum_run = sum_run + run;
     trip_odometer = trip_odometer + run;
-
-    rise = altitude - old_altitude;
-
-    if (run > 0){
-        slope = Math.atan(rise * 1.00 / run);   // radians
-    }
-    else {
-        slope = 0;
-    }
-    sum_slope = sum_slope + slope;
 
     var p = 1.2;    // Air density kg/m3
     var m = 170.0;    // kg
@@ -197,11 +184,11 @@ function SendLiveData() {
     var cr = 0.01;  // Rolling cohef
     var cd = 0.2;   // Drag cohef
 
-    var Fd = (cr * m * 9.81 * Math.cos(slope)) + ( 0.5 * p * A * cd * Math.pow( (speed * 1.0 / 3.6), 2) );
+    var Fd = (cr * m * 9.81 ) + ( 0.5 * p * A * cd * Math.pow( (speed * 1.0 / 3.6), 2) );  //primero * cos(slope)
     sum_fr_force = sum_fr_force + Fd;
 
-    var Fw = m * 9.81 * Math.sin(slope);
-    var F = (m * acc) + Fw + Fd;
+    //var Fw = m * 9.81 * Math.sin(slope);
+    var F = (m * acc) + Fd;    //+ Fw;
     sum_net_force = sum_net_force + F;
 
     mec_power = F * (speed) * 1.341 / (3.6*1000);   //hp
@@ -296,6 +283,7 @@ function SendLiveData() {
     old_lon = lon;
     old_speed = speed;
     old_altitude = altitude;
+    old_time = cms;
     i = i + 1;
 }
 
@@ -318,6 +306,7 @@ exports.send = function(onoff) {
         onetime();
         p = new Date();
         prev = p.getTime();
+        old_time = prev + 1000;
         time_to_os4 = new Date();
         time_to_os4_millis = time_to_os4.getTime();
         first = true;
