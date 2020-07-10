@@ -287,7 +287,7 @@ def add_entry():
                 (datetime.now(pytz.timezone('America/Bogota')).strftime('%Y-%m-%d %H:%M:%S')),
                 '%Y-%m-%d %H:%M:%S')
 
-            operation.mec_power = request.args["net_force"] * (float(request.args["speed"])) * 1.6 / (3.6*1000)   # Potencia promedio Kw
+            operation.mec_power = float(request.args["net_force"]) * (float(request.args["speed"])) * 1.6 / (3.6*1000)   # Potencia promedio Kw
 
             db.session.add(operation)
             db.session.commit()
