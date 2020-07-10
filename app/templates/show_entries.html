@@ -316,11 +316,13 @@
             </div>
             <div class="chart" id = 'myDiv2' >
                 <script>
+                    var name1 = "{{session.y_pretty_graph}}";
+                    console.log(name1);
                     var y0 = {{box | safe}};
                     var trace1 = {
                       y: y0,
                       type: 'box',
-                      name: {{session.y_pretty_graph}},
+                      name: "{{session.y_pretty_graph}}"+" (Fig 1)",
                       boxmean: 'sd'
                     };
 
@@ -328,7 +330,7 @@
                     var trace2 = {
                       y: y2,
                       type: 'box',
-                      name: {{session.y_pretty_graph2}},
+                      name: "{{session.y_pretty_graph2}}"+" (Fig 2)",
                       boxmean: 'sd'
                     };
 
