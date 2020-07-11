@@ -291,9 +291,10 @@ def add_entry():
 
             db.session.add(operation)
             db.session.commit()
-            return ("Data recieved")#redirect(url_for('show_entries'))
+            return "Data received"
         else:
-            return ("Null location")
+            return "Null location"
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
