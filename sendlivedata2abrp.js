@@ -187,6 +187,7 @@ function SendLiveData() {
     var Fd = (cr * m * 9.81 ) + ( 0.5 * p * A * cd * Math.pow( (speed * 1.0 / 3.6), 2) );  //primero * cos(slope)
     sum_fr_force = sum_fr_force + Fd;
 
+
     //var Fw = m * 9.81 * Math.sin(slope);
     var F = (m * acc) + Fd;    //+ Fw;
     sum_net_force = sum_net_force + F;
