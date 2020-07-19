@@ -321,6 +321,7 @@
                     var trace1 = {
                       y: y0,
                       type: 'box',
+                      color: 'blue',
                       name: "{{session.y_pretty_graph}}"+" (Fig 1)",
                       boxmean: 'sd'
                     };
@@ -329,6 +330,7 @@
                     var trace2 = {
                       y: y2,
                       type: 'box',
+                      color: 'orange',
                       name: "{{session.y_pretty_graph2}}"+" (Fig 2)",
                       boxmean: 'sd'
                     };
@@ -343,23 +345,53 @@
                 <script>
 
 
-                    var x0 = {{box | safe}};
+                    var y0 = {{box | safe}};
                     var trace1 = {
-                      x: x0,
-                      type: 'histogram',
+                      y: y0,
+                      type: 'violin',
+                      box: {
+                        visible: true
+                      },
+                      line: {
+                        color: 'black'
+                      },
+                      fillcolor: 'blue',
+                      opacity: 0.6,
+                      meanline: {
+                        visible: true
+                      },
                       name: "{{session.y_pretty_graph}}"+" (Fig 1)",
                     };
 
-                    var x1 = {{box2 | safe}};
+
+                    var y1 = {{box2 | safe}};
                     var trace2 = {
-                      x: x1,
-                      type: 'histogram',
+                      y: y1,
+                      type: 'violin',
+                      box: {
+                        visible: true
+                      },
+                      line: {
+                        color: 'black'
+                      },
+                      fillcolor: 'orange',
+                      opacity: 0.6,
+                      meanline: {
+                        visible: true
+                      },
                       name: "{{session.y_pretty_graph2}}"+" (Fig 2)",
                     };
 
 
+
+
                     var data = [trace1, trace2];
-                    var layout = {barmode: "stack"};
+                    var layout = {
+                      title: "",
+                      yaxis: {
+                        zeroline: false
+                      }
+                    }
                     Plotly.newPlot('histDiv', data, layout);
                 </script>
             </div>
