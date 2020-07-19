@@ -28,7 +28,6 @@
                     <option value="odometer">Odometro (Km)</option>
                     <option value="capacity">Capacidad (Ah)</option>
                     <option value="power_kw">Potencia eléctrica (Kw)</option>
-                    <option value="mec_power_delta_e">Potencia efectiva (ovms) (Hp) </option>
                     <option value="mec_power">Potencia efectiva (server) (Hp) </option>
                     <option value="en_pot">Delta Energía potenical (J) </option>
                     <option value="net_force">Fuerza neta (N) </option>
@@ -176,7 +175,8 @@
       "layers": [{"@@type": "ScatterplotLayer", "data":{{json_stations}}, "filled": true, "getFillColor": [255, 140, 0], "getLineColor": [0, 0, 0], "getPosition": "@@=[longitude, latitude]",
       "id": "2695882c-7d5e-4f89-9e8a-049b84822d70", "lineWidthMinPixels": 1, "opacity": 0.8, "pickable": true, "radiusMaxPixels": 8, "radiusMinPixels": 8, "radiusScale": 6, "stroked": true},
       {"@@type": "LineLayer", "autoHighlight": true, "data": {{json_lines}}, "getSourcePosition": "@@=[longitude,latitude]", "getTargetPosition": "@@=[longitude2,latitude2]", "getWidth": 10, "highlightColor": [255, 255, 0], "id": "e7cf82d5-b4d6-4f9b-86ee-5f8712240607", "pickable": false, "pickingRadius": 10},
-      {"@@type": "ColumnLayer", "data":{{json_operation}},"elevationScale": 5, "getElevation": "@@=var", "getFillColor": "@@=[elevation * 2, 100, 120, 200]", "getPosition": "@@=[longitude, latitude]", "id": "27bac356-e75f-4bab-b330-7c6e7c831819", "pickable": true, "radius": 20}],
+      {"@@type": "TerrainLayer", "elevationData": "https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png", "elevationDecoder": {"bScaler": 0.00390625, "gScaler": 1, "offset": -32768, "rScaler": 256}, "id": "1ead1e5d-b5c3-4764-a170-c426b7e442f2", "texture": "https://api.mapbox.com/v4/mapbox.satellite/{z}/{x}/{y}@2x.png?access_token=pk.eyJ1Ijoic2FudGlhZ28xNzFjYyIsImEiOiJja2NjZTkzOTkwM3ZxMndxa296YTVseGNkIn0.EFcvvL83cLQZYsqSgLVa6A"},
+      {"@@type": "ColumnLayer", "data":{{json_operation}},"elevationScale": 50, "getElevation": "@@=var", "getFillColor": "@@=[2, var * 2,  var * 5,  var* 50]", "getPosition": "@@=[longitude, latitude]", "id": "27bac356-e75f-4bab-b330-7c6e7c831819", "pickable": true, "radius": 20}],
       "mapStyle": "mapbox://styles/mapbox/cjaudgl840gn32rnrepcb9b9g", "views": [{"@@type": "MapView", "controller": true}]};
     const MAPBOX_API_KEY = 'pk.eyJ1Ijoic2FudGlhZ28xNzFjYyIsImEiOiJja2NjZTkzOTkwM3ZxMndxa296YTVseGNkIn0.EFcvvL83cLQZYsqSgLVa6A';
     const tooltip = {'html':'<b>Valor : </b>  <b>{name}</b> Cerca a estaciones: {closest_station1} y {closest_station2}', 'style': {'background': 'grey', 'color': 'white', 'font-family': '"Helvetica Neue", Arial', 'z-index': '10000'}};

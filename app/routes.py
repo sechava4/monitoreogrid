@@ -269,6 +269,7 @@ def add_entry():
             coords_1 = (last.latitude, last.longitude)
             coords_2 = (float(request.args["latitude"]), float(request.args["longitude"]))
             run = geopy.distance.distance(coords_1, coords_2).m      # meters
+            https://api.mapbox.com/v4/mapbox.mapbox-terrain-v2/tilequery/-105.01109,39.75953.json?layers=contour&limit=5&access_token=pk.eyJ1Ijoic2FudGlhZ28xNzFjYyIsImEiOiJja2NjZTkzOTkwM3ZxMndxa296YTVseGNkIn0.EFcvvL83cLQZYsqSgLVa6A
 
             
             rise = float(request.args["elevation"]) - last.elevation
@@ -283,11 +284,13 @@ def add_entry():
             '''
             operation = Operation(
                 **request.args)  # ** pasa un numero variable de argumentos a la funcion/crea instancia
+
             operation.timestamp = datetime.strptime(
                 (datetime.now(pytz.timezone('America/Bogota')).strftime('%Y-%m-%d %H:%M:%S')),
                 '%Y-%m-%d %H:%M:%S')
 
-            operation.mec_power = float(request.args["net_force"]) * (float(request.args["speed"])) * 1.341 / (3.6*1000)   # Potencia promedio hp
+            operation.en_pot = float(request.args["en_pot"]) *9.81 * float(request.args["mass"])   #mgh
+            operation.mec_power = float(request.args["net_force"]) * (float(request.args["mean_speed"])) * 1.341 / (3.6*1000)   # Potencia promedio hp
 
             db.session.add(operation)
             db.session.commit()
