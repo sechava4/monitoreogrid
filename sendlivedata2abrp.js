@@ -36,9 +36,9 @@ var time_to_os4_millis = time_to_os4.getTime();
 
 //Varibales de cálculo
 var speed = 0;
-var old_speed = 0;
+var old_speed = OvmsMetrics.AsFloat(["v.p.gpsspeed"]).toFixed();;
 var altitude = 0;
-var old_altitude = 0;
+var old_altitude = OvmsMetrics.AsFloat(["v.p.altitude"]).toFixed();;
 var run = 0;
 var old_time;
 
@@ -60,7 +60,7 @@ var sum_fr_force = 0;
 var max_power = 0;
 var sum_acc = 0;
 var sum_delta_h = 0;
-var sum_speed = 0;
+var sum_speed = 0.0;
 var i = 1.0;
 
 
@@ -83,22 +83,26 @@ function GetUrlABRP() {
     urljson += "latitude=" + OvmsMetrics.AsFloat(["v.p.latitude"]).toFixed(8) + "&";    //GPS latitude
     urljson += "longitude=" + OvmsMetrics.AsFloat(["v.p.longitude"]).toFixed(8) + "&";    //GPS longitude
     urljson += "elevation=" + altitude + "&";    //GPS altitude
-    urljson += "mean_speed=" + (sum_speed /i).toFixed(2) + "&";
+    urljson += "mean_speed=" + (sum_speed *1.0 /i).toFixed(2) + "&";
     urljson += "speed=" + speed + "&";
     //urljson += "mec_power=" + max_power + "&";       //potencia promedio
     //urljson += "mec_power_delta_e=" + (sum_power * 1.681 /i) + "&";   //potenica máxima
-    urljson += "mean_acc=" + (sum_acc /i).toFixed(2) + "&";       //potencia promedio
-    urljson += "slope=" + (sum_slope /i).toFixed(2) + "&";       //pendiente promedio
-    urljson += "run=" + (sum_run /i).toFixed(2) + "&";       //recorrido promedio
-    urljson += "net_force=" + (sum_net_force /i).toFixed(2) + "&";       //fuerza promedio
-    urljson += "friction_force=" + (sum_fr_force /i).toFixed(2) + "&";       //fuerza promedio
-    urljson += "en_pot=" + (sum_delta_h /i).toFixed(2)   + "&";       //fuerza promedio
+    urljson += "mean_acc=" + (sum_acc *1.0 /i).toFixed(2) + "&";       //potencia promedio
+    urljson += "slope=" + (sum_slope *1.0/i).toFixed(2) + "&";       //pendiente promedio
+    urljson += "run=" + (sum_run *1.0/i).toFixed(2) + "&";       //recorrido promedio
+    urljson += "net_force=" + (sum_net_force *1.0/i).toFixed(2) + "&";       //fuerza promedio
+    urljson += "friction_force=" + (sum_fr_force *1.0/i).toFixed(2) + "&";       //fuerza promedio
+    urljson += "en_pot=" + (sum_delta_h *1.0/i).toFixed(2)   + "&";       //fuerza promedio
 
-    urljson += "odometer=" + trip_odometer + "&";
+    urljson += "odometer=" + trip_odometer.toFixed(2) + "&";
     //urljson += "odometer=" + OvmsMetrics.AsFloat("v.p.odometer") + "&";
     urljson += "vehicle_id=" + "RZ_123" + "&";
     urljson += "user_id=" + "Juan" + "&";
     urljson += "mass=" + 170 + "&";
+    urljson += "freeram=" + OvmsMetrics.Value("m.freeram") + "&";
+    urljson += "tasks=" + OvmsMetrics.Value("m.tasks") + "&";
+    //urljson += "monotonic=" + OvmsMetrics.Value("m.monotonic") + "&";
+    urljson += "net_signal=" + OvmsMetrics.Value("m.net.sq") + "&";
     urljson += "soc=" + OvmsMetrics.AsFloat("v.b.soc") + "&";    //State of charge
     urljson += "soh=" + OvmsMetrics.AsFloat("v.b.soh") + "&";    //State of health
     urljson += "voltage=" + OvmsMetrics.AsFloat("v.b.voltage") + "&";    //Main battery momentary voltage
@@ -132,13 +136,13 @@ function GetUrlABRP() {
     urljson += "charger_type=" + OvmsMetrics.AsFloat("v.c.type") + "&";
     print(urljson);
     i = 1.0;
-    sum_net_force = 0;
-    sum_fr_force = 0;
-    sum_acc = 0;
-    sum_slope = 0;
-    sum_run = 0;
-    sum_delta_h = 0;
-    sum_speed = 0;
+    sum_net_force = 0.0;
+    sum_fr_force = 0.0;
+    sum_acc = 0.0;
+    sum_slope = 0.0;
+    sum_run = 0.0;
+    sum_delta_h = 0.0;
+    sum_speed = 0.0;
     return urljson;
 
 }
@@ -165,38 +169,53 @@ function SendLiveData() {
     var d = new Date();
     var cms = d.getTime();   //current_millis
 
-    altitude = OvmsMetrics.AsFloat(["v.p.altitude"]).toFixed();
-    speed = OvmsMetrics.AsFloat(["v.p.gpsspeed"]).toFixed();
+    altitude = OvmsMetrics.AsFloat(["v.p.altitude"]);
+    speed = OvmsMetrics.AsFloat(["v.p.gpsspeed"]);
+    sum_speed = sum_speed + speed;
+
+    var rise = altitude - old_altitude;
+    sum_delta_h = sum_delta_h + rise;
+
+    var dt = (cms - old_time);
+    var acc = (speed - old_speed) / 3.6);
+    sum_acc = sum_acc + acc;
+
+    var run = (speed + old_speed) / 7.2 ;   // meters by (mean speed)
+    sum_run = sum_run + run;
+    trip_odometer = trip_odometer + run;
+
+    var p = 1.2;    // Air density kg/m3
+    var m = 170.0;    // kg
+    var A = 0.790;  // Frontal area m2
+    var cr = 0.01;  // Rolling cohef
+    var cd = 0.2;   // Drag cohef
+
+    var Fd = (cr * m * 9.81 ) + ( 0.5 * p * A * cd * Math.pow( (speed * 1.0 / 3.6), 2) );  //primero * cos(slope)
+    sum_fr_force = sum_fr_force + Fd;
+
+
+    //var Fw = m * 9.81 * Math.sin(slope);
+    var F = (m * acc) + Fd;    //+ Fw;
+    sum_net_force = sum_net_force + F;
+
+    print('i= ');
+    print(i);
+    print('\n');
+    print('sum_speed= ');
+    print(sum_speed);
+    print('speed= ');
+    print(speed);
+    print('\n');
+    print('sum_acc= ');
+    print(sum_acc);
+    print('cc= ');
+    print(acc);
+    print('\n');
 
     switch (operative_state) {
 
       case 1:
         // Andando sin regenerar
-        sum_speed = sum_speed + speed;
-        var rise = altitude - old_altitude;
-        sum_delta_h = sum_delta_h + rise;
-
-        var dt = (cms - old_time);
-        var acc = (speed - old_speed) * 1000.0 / (dt * 3.6);
-        sum_acc = sum_acc + acc;
-
-        var run = ((speed + old_speed) * dt) / (7.2 * 1000);   // meters by (mean speed)
-        sum_run = sum_run + run;
-        trip_odometer = trip_odometer + run;
-
-        var p = 1.2;    // Air density kg/m3
-        var m = 170.0;    // kg
-        var A = 0.790;  // Frontal area m2
-        var cr = 0.01;  // Rolling cohef
-        var cd = 0.2;   // Drag cohef
-
-        var Fd = (cr * m * 9.81 ) + ( 0.5 * p * A * cd * Math.pow( (speed * 1.0 / 3.6), 2) );  //primero * cos(slope)
-        sum_fr_force = sum_fr_force + Fd;
-
-
-        //var Fw = m * 9.81 * Math.sin(slope);
-        var F = (m * acc) + Fd;    //+ Fw;
-        sum_net_force = sum_net_force + F;
 
         if ((cms - prev) > 8000) {
             Make_Request();
@@ -218,7 +237,7 @@ function SendLiveData() {
         }
         */
         // si han pasado mas de 90 segundos de estar quieto
-        if (speed <= 1) && (Boolean(OvmsMetrics.Value("v.e.on")) == false) ) { //&& ((cms - time_to_os4_millis) > 90000) ) {
+        if ((speed <= 1) && (Boolean(OvmsMetrics.Value("v.e.on")) == false) ) { //&& ((cms - time_to_os4_millis) > 90000) ) {
             operative_state = 4;
             Make_Request();
         }
@@ -235,7 +254,7 @@ function SendLiveData() {
         if ((cms - prev) > 2000) {
             Make_Request();
         }
-        if ((OvmsMetrics.AsFloat("v.p.gpsspeed") > 0) && (Boolean(OvmsMetrics.Value("v.e.regenbrake")) == true) ) {
+        if ((speed > 0) && (Boolean(OvmsMetrics.Value("v.e.regenbrake")) == true) ) {
             first = true;
             operative_state = 1;
             Make_Request();
@@ -262,10 +281,10 @@ function SendLiveData() {
 
       case 4:
         // Detenido no en ruta
-        if ((cms - prev) > 120000) {
+        if ((cms - prev) > 100000) {
             Make_Request();
         }
-        if (OvmsMetrics.AsFloat("v.p.gpsspeed") > 1){
+        if (speed > 1){
             first = true;
             operative_state = 1;
             Make_Request();
