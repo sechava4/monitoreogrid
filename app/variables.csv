@@ -52,3 +52,6 @@ id,var,var_pretty
 50,operative_state, Estado Operativo
 51,en_pot, Delta Energía potenical (J)
 52,mean_speed, Velocidad promedio (Km/h)
+53,freeram, free ram
+54,tasks,number of tasks
+55,net_signal,network quality </option>
