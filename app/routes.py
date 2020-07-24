@@ -290,7 +290,7 @@ def add_entry():
                 '%Y-%m-%d %H:%M:%S')
 
             operation.en_pot = float(request.args["en_pot"]) *9.81 * float(request.args["mass"])   #mgh
-            operation.mec_power = float(request.args["net_force"]) * (float(request.args["mean_speed"])) * 1.341 / (3.6*1000)   # Potencia promedio hp
+            operation.mec_power = float(request.args["net_force"]) * (float(request.args["speed"])) * 1.341 / (3.6*1000)   # Potencia promedio hp
 
             db.session.add(operation)
             db.session.commit()

@@ -24,7 +24,7 @@
 
 const CAR_MODEL = "nissan:leaf";
 const placa = "ASD089";
-const URL = "http://104.248.48.68:8080/addjson";
+const URL = "http://vehiculoselectricos.dis.eafit.edu.co/addjson";
 var objTLM;
 var objTimer;
 var operative_state = 1;
