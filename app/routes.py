@@ -262,7 +262,7 @@ def add_entry():
     if not bool(request.args):
         return ("Null data")
     else:
-        if float(request.args["latitude"]) > 0 and float(request.args["elevation"]) > 0:
+        if float(request.args["latitude"]) > 0 and ((float(request.args["elevation"]) >  0) and (float(request.args["elevation"]) < 3000)):
 
             '''
             last = Operation.query.order_by(Operation.id.desc()).first()
