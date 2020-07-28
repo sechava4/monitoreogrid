@@ -1,27 +1,3 @@
-/**
- *       /store/scripts/sendlivedata2abrp.js
- *
- * Module plugin:
- *  Send live data to a better route planner
- *  This version uses the embedded GSM of OVMS, so there's an impact on data consumption
- *  /!\ requires OVMS firmware version 3.2.008-147 minimum (for HTTP call)
- *
- * Version 1.0   2019   dar63 (forum https://www.openvehicles.com)
- *
- * Enable:
- *  - install at above path
- *  - add to /store/scripts/ovmsmain.js:
- *                 abrp = require('sendlivedata2abrp');
- *  - script reload
- *
- * Usage:
- *  - script eval abrp.info()         => to display vehicle data to be sent to abrp
- *  - script eval abrp.onetime()      => to launch one time the request to abrp server
- *  - script eval abrp.send(1)        => toggle send data to abrp
- *  -                      (0)        => stop sending data
- *
- **/
-
 const CAR_MODEL = "nissan:leaf";
 const placa = "ASD089";
 const URL = "http://vehiculoselectricos.dis.eafit.edu.co/addjson";

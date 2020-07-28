@@ -118,7 +118,7 @@ def get_heights(var, d1, h1, h2):
             elif var in "mean_acc":
                 df['var'] = df[var].map(lambda x: x*45)
             else:
-                df['var'] = df[var].map(lambda x: x*6)
+                df['var'] = df[var].map(lambda x: x*5)
             df = df[["latitude", "longitude", 'name', 'var']]
     except IndexError:
         pass
