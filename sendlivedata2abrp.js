@@ -1,3 +1,4 @@
+
 const CAR_MODEL = "nissan:leaf";
 const placa = "ASD089";
 const URL = "http://vehiculoselectricos.dis.eafit.edu.co/addjson";
@@ -38,6 +39,8 @@ var sum_acc = 0;
 var sum_delta_h = 0;
 var sum_speed = 0.0;
 var i = 1.0;
+
+objTimer = PubSub.subscribe("ticker.1", SendLiveData); // update each second
 
 
 // http request callback if successful
@@ -282,33 +285,3 @@ function SendLiveData() {
 }
 
 
-
-//test purpose : one time execution
-function onetime() {
-    Make_Request();
-}
-
-// API method abrp.onetime():
-exports.onetime = function() {
-    onetime();
-}
-
-
-// API method abrp.send():
-exports.send = function(onoff) {
-    if (onoff) {
-        onetime();
-        p = new Date();
-        prev = p.getTime();
-        old_time = prev + 1000;
-        time_to_os4 = new Date();
-        time_to_os4_millis = time_to_os4.getTime();
-        first = true;
-
-        //Periodically perform subscribed function
-        objTimer = PubSub.subscribe("ticker.1", SendLiveData); // update each second
-    }
-    else {
-        PubSub.unsubscribe(objTimer);
-    }
-}
