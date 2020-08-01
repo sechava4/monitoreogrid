@@ -1,6 +1,7 @@
 {% extends "layout.html" %}
 {% block body  %}
 <div>
+
     <title>Dasboard</title>
         <h2>
             {{ current_user.username }}
@@ -163,20 +164,33 @@
                     <button class="btn btn-dark" type="submit">Ver</button>
                 </div>
 
-                <div class="container" id = "grafica">
-                    <div class="chart" id="bargraph" >
+                <div style="width: 100%">
+                    <div id = "bargraph" style="width:70%;float: left">
                         <script>
                             var graphs = {{plot | safe}};
                             console.log(graphs);
-                            Plotly.plot('bargraph',
-                                        graphs,
-                                        {});
+                            Plotly.plot('bargraph', graphs, {});
+                        </script>
+                    </div>
 
+                    <div id = 'boxDiv2' style="width:30%;float: right;">
+                        <script>
+                            var name1 = "{{session.y_pretty_graph}}";
+                            var y0 = {{box | safe}};
+                            var trace1 = {
+                              y: y0,
+                              type: 'box',
+                              color: 'blue',
+                              name: "{{session.y_pretty_graph}}",
+                              boxmean: 'sd'
+                            };
+
+                            var data = [trace1];
+                            Plotly.newPlot('boxDiv2', data);
                         </script>
                     </div>
                 </div>
-
-                <div class="col-auto">
+                <div class="col-auto" >
                     <label class="label label-default" for="FormControlSelect1"> Eje X </label>
                     <select class="form-control" id="FormControlSelect1" name = variable_x2>
                         <option value="{{session.graph_var_x2}}"> {{session.x_pretty_graph2}}</option>
@@ -318,65 +332,53 @@
                 </script>
             </form>
         </div>
-        <div class="container" id = "grafica2">
-            <div class="chart" id="bargraph2" >
-                <script>
-                    var graphs2 = {{plot2 | safe}};
+        <div>
+            <div style="width:100%;height:450px">
+                <div class="chart" id="bargraph2" style="width:70%;float: left">
+                    <script>
+                        var graphs2 = {{plot2 | safe}};
 
-                    var trace1 = {
-                      x: graphs2[0]['x'],
-                      y: graphs2[0]['y'],
-                      fill: 'tozeroy',
-                      type: 'scatter',
-                      shape: "spline"
-                    };
+                        var trace1 = {
+                          x: graphs2[0]['x'],
+                          y: graphs2[0]['y'],
+                          fill: 'tozeroy',
+                          type: 'scatter',
+                          shape: "spline"
+                        };
 
-                    smoothTrace = {
-                       'type': 'scatter',
-                       'mode': 'lines',
-                       'x': graphs2[0]['x'],
-                       'y': graphs2[0]['y'],
-                       fill: 'tozeroy',
-                       'line': {
-                            'shape': 'spline',
-                            'smoothing': 0.7}
-                      }
+                        smoothTrace = {
+                           'type': 'scatter',
+                           'mode': 'lines',
+                           'x': graphs2[0]['x'],
+                           'y': graphs2[0]['y'],
+                           fill: 'tozeroy',
+                           'line': {
+                                'shape': 'spline',
+                                'smoothing': 0.7}
+                          }
 
-                    data=[smoothTrace]
-                    Plotly.newPlot('bargraph2',data, {});
-                </script>
+                        data=[smoothTrace]
+                        Plotly.newPlot('bargraph2',data, {});
+                    </script>
+                </div>
+                <div class="chart" id = 'boxDiv' style="width:30%;float: right" >
+                    <script>
+                        var y2 = {{box2 | safe}};
+                        var trace2 = {
+                          y: y2,
+                          type: 'box',
+                          color: 'orange',
+                          name: "{{session.y_pretty_graph2}}"+" (Fig 2)",
+                          boxmean: 'sd'
+                        };
+
+                        var data = [trace2];
+                        Plotly.newPlot('boxDiv', data);
+                    </script>
+                </div>
             </div>
-            <div class="chart" id = 'boxDiv' >
+            <div class="chart" id = 'histDiv' style="width:100%;">
                 <script>
-                    var name1 = "{{session.y_pretty_graph}}";
-                    var y0 = {{box | safe}};
-                    var trace1 = {
-                      y: y0,
-                      type: 'box',
-                      color: 'blue',
-                      name: "{{session.y_pretty_graph}}"+" (Fig 1)",
-                      boxmean: 'sd'
-                    };
-
-                    var y2 = {{box2 | safe}};
-                    var trace2 = {
-                      y: y2,
-                      type: 'box',
-                      color: 'orange',
-                      name: "{{session.y_pretty_graph2}}"+" (Fig 2)",
-                      boxmean: 'sd'
-                    };
-
-                    var data = [trace1, trace2];
-
-                    Plotly.newPlot('boxDiv', data);
-                </script>
-            </div>
-
-            <div class="chart" id = 'histDiv' >
-                <script>
-
-
                     var y0 = {{box | safe}};
                     var trace1 = {
                       y: y0,
@@ -393,6 +395,7 @@
                         visible: true
                       },
                       name: "{{session.y_pretty_graph}}"+" (Fig 1)",
+                      boxmean: 'sd'
                     };
 
 
@@ -412,10 +415,8 @@
                         visible: true
                       },
                       name: "{{session.y_pretty_graph2}}"+" (Fig 2)",
+                      boxmean: 'sd'
                     };
-
-
-
 
                     var data = [trace1, trace2];
                     var layout = {
@@ -429,6 +430,8 @@
             </div>
 
         </div>
+
+
 
     <script>
         $(document).ready(function(){

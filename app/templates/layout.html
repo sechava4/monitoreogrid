@@ -1,4 +1,7 @@
 <doctypehtml>
+
+        <!-- <link rel="stylesheet" type="text/css" href="../static/style.css"> -->
+
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -23,8 +26,10 @@
     <script src='https://api.mapbox.com/mapbox-gl-js/v1.11.0/mapbox-gl.js'></script>
     <link href='https://api.mapbox.com/mapbox-gl-js/v1.11.0/mapbox-gl.css' rel='stylesheet' />
 
+
+
      <nav class="navbar navbar-default">
-        <div class="container">
+        <div >
 
             <div class="navbar-header">
                 <a class="navbar-brand" href="#">
@@ -57,7 +62,7 @@
           </li>
         </ul>
      </div>
-    <div class="container">
+    <div >
         {% with messages = get_flashed_messages() %}
         {% if messages %}
             {% for message in messages %}
@@ -67,6 +72,7 @@
         {% endwith %}
         {% block body %}
         {% endblock %}
+
         <p class="mt-5 mb-3 text-muted text-center">&copy;GRID 2020</p>
     </div>
 

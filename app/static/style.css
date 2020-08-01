@@ -1,5 +1,10 @@
+html, body{
+    margin:0;
+    padding:0;
+    width: 100%; /* this is the important part*/
+}
 
-.variables {width: 20%; float: left; margin: 10px}
+.variables {width: 100%; float: left; margin: 10px}
 
 .form-signin {width: 40%}
 
