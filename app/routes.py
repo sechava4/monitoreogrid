@@ -289,7 +289,8 @@ def add_entry():
                 rise = elevation - last.elevation2
             except Exception:
                 rise = 0
-            print(rise)
+            print('rise = ',rise)
+            print('elevation = ', elevation)
             distance = math.sqrt(run ** 2 + rise ** 2)
 
             operation.elevation2 = elevation
@@ -298,7 +299,7 @@ def add_entry():
                 operation.slope = math.atan(rise/run)  # Conversión a radianes
             except ZeroDivisionError:
                 operation.slope = 0
-            print(operation.slope)
+            print('slope = ',operation.slope)
 
             operation.en_pot = rise * 9.81 * float(request.args["mass"])   #mgh
             operation.mec_power = float(request.args["net_force"]) * (float(request.args["speed"])) * 1.341 / (3.6*1000)   # Potencia promedio hp
