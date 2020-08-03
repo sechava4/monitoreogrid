@@ -54,4 +54,5 @@ id,var,var_pretty
 52,mean_speed, Velocidad promedio (Km/h)
 53,freeram, free ram
 54,tasks,number of tasks
-55,net_signal,network quality </option>
+55,net_signal,network quality
+56,elevation2,Altitud (google)(msnm)

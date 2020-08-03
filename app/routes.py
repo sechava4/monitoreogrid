@@ -11,6 +11,8 @@ import os
 import geopy.distance
 from datetime import datetime
 import pytz
+import requests
+import math
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -264,24 +266,6 @@ def add_entry():
     else:
         if float(request.args["latitude"]) > 0 and ((float(request.args["elevation"]) >  0) and (float(request.args["elevation"]) < 3000)):
 
-            '''
-            last = Operation.query.order_by(Operation.id.desc()).first()
-            coords_1 = (last.latitude, last.longitude)
-            coords_2 = (float(request.args["latitude"]), float(request.args["longitude"]))
-            run = geopy.distance.distance(coords_1, coords_2).m      # meters
-            https://api.mapbox.com/v4/mapbox.mapbox-terrain-v2/tilequery/-105.01109,39.75953.json?layers=contour&limit=5&access_token=pk.eyJ1Ijoic2FudGlhZ28xNzFjYyIsImEiOiJja2NjZTkzOTkwM3ZxMndxa296YTVseGNkIn0.EFcvvL83cLQZYsqSgLVa6A
-
-            
-            rise = float(request.args["elevation"]) - last.elevation
-            distance = math.sqrt(run**2 + rise**2)
-
-            try:
-                operation.slope = math.atan(rise/run)  # Conversión a radianes
-            except ZeroDivisionError:
-                operation.slope = 0
-            print(operation.slope)
-
-            '''
             operation = Operation(
                 **request.args)  # ** pasa un numero variable de argumentos a la funcion/crea instancia
 
@@ -289,7 +273,34 @@ def add_entry():
                 (datetime.now(pytz.timezone('America/Bogota')).strftime('%Y-%m-%d %H:%M:%S')),
                 '%Y-%m-%d %H:%M:%S')
 
-            operation.en_pot = float(request.args["en_pot"]) *9.81 * float(request.args["mass"])   #mgh
+            last = Operation.query.order_by(Operation.id.desc()).first()
+            coords_1 = (last.latitude, last.longitude)
+            coords_2 = (float(request.args["latitude"]), float(request.args["longitude"]))
+            run = geopy.distance.distance(coords_1, coords_2).m  # meters
+
+            google_url = 'https://maps.googleapis.com/maps/api/elevation/json?locations=' + \
+                         request.args["latitude"] + ',' + request.args["longitude"] + \
+                         '&key=AIzaSyChV7Sy3km3Fi8hGKQ8K9t7n7J9f6yq9cI'
+
+            r = requests.get(google_url).json()
+            elevation = r['results'][0]['elevation']
+
+            try:
+                rise = elevation - last.elevation2
+            except Exception:
+                rise = 0
+            print(rise)
+            distance = math.sqrt(run ** 2 + rise ** 2)
+
+            operation.elevation2 = elevation
+
+            try:
+                operation.slope = math.atan(rise/run)  # Conversión a radianes
+            except ZeroDivisionError:
+                operation.slope = 0
+            print(operation.slope)
+
+            operation.en_pot = rise * 9.81 * float(request.args["mass"])   #mgh
             operation.mec_power = float(request.args["net_force"]) * (float(request.args["speed"])) * 1.341 / (3.6*1000)   # Potencia promedio hp
 
             db.session.add(operation)

@@ -79,6 +79,7 @@ class Operation(db.Model):
     latitude = db.Column(db.Float)
     longitude = db.Column(db.Float)
     elevation = db.Column(db.Float)
+    elevation2 = db.Column(db.Float)
     slope = db.Column(db.Float)
     run = db.Column(db.Float)
     net_force = db.Column(db.Float)
