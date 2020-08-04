@@ -60,8 +60,6 @@ function GetUrlABRP() {
     urljson += "mean_speed=" + (sum_speed *1.0 /i).toFixed(2) + "&";
     urljson += "speed=" + speed + "&";
     urljson += "mean_acc=" + (sum_acc *1.0 /i).toFixed(2) + "&";       //potencia promedio
-    urljson += "net_force=" + (sum_net_force *1.0/i).toFixed(2) + "&";       //fuerza promedio
-    urljson += "friction_force=" + (sum_fr_force *1.0/i).toFixed(2) + "&";       //fuerza promedio
     urljson += "odometer=" + trip_odometer.toFixed(2) + "&";
     //urljson += "odometer=" + OvmsMetrics.AsFloat("v.p.odometer") + "&";
     urljson += "vehicle_id=" + "RZ_123" + "&";
@@ -138,22 +136,8 @@ function SendLiveData() {
     speed = OvmsMetrics.AsFloat(["v.p.gpsspeed"]);
     sum_speed = sum_speed + speed;
 
-    var acc = (speed - old_speed) / 3.6);
+    var acc = (speed - old_speed) / 3.6;
     sum_acc = sum_acc + acc;
-
-    var p = 1.2;    // Air density kg/m3
-    var m = 170.0;    // kg
-    var A = 0.790;  // Frontal area m2
-    var cr = 0.01;  // Rolling cohef
-    var cd = 0.2;   // Drag cohef
-
-    var Fd = (cr * m * 9.81 ) + ( 0.5 * p * A * cd * Math.pow( (speed * 1.0 / 3.6), 2) );  //primero * cos(slope)
-    sum_fr_force = sum_fr_force + Fd;
-
-
-    //var Fw = m * 9.81 * Math.sin(slope);
-    var F = (m * acc) + Fd;    //+ Fw;
-    sum_net_force = sum_net_force + F;
 
     print('i= ');
     print(i);

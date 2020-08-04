@@ -45,7 +45,7 @@ id,var,var_pretty
 43,energy,Energía acomulada (J)
 44,mean_acc, Acelereración promedio (m/s^2)
 45,mec_power, Potencia efectiva (server) (Hp)
-46,mec_power_delta_e, Potencia efectiva (ovms) (Hp)
+46,mec_power_delta_e, Potencia efectiva (OVMS) (Hp)
 47,run, Recorrido desde ultimo registro (m)
 48,net_force, Fuerza neta (N)
 49,friction_force, Fuerza de fricción (N)
@@ -56,3 +56,4 @@ id,var,var_pretty
 54,tasks,number of tasks
 55,net_signal,network quality
 56,elevation2,Altitud (google)(msnm)
+57,mean_acc_server,Aceleración promedio (server) (m/s^2)

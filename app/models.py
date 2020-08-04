@@ -96,6 +96,7 @@ class Operation(db.Model):
     mec_power_delta_e = db.Column(db.Float)
     acceleration = db.Column(db.Float)
     mean_acc = db.Column(db.Float)
+    mean_acc_server = db.Column(db.Float)
     capacity = db.Column(db.Float)
     vehicle_id = db.Column(db.String(64))
     soc = db.Column(db.Float)

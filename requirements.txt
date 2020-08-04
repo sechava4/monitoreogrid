@@ -19,4 +19,4 @@ rq
 pytz
 email_validator
 geopy
-
+requests

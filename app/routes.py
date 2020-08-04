@@ -265,7 +265,6 @@ def add_entry():
         return ("Null data")
     else:
         if float(request.args["latitude"]) > 0 and ((float(request.args["elevation"]) >  0) and (float(request.args["elevation"]) < 3000)):
-
             operation = Operation(
                 **request.args)  # ** pasa un numero variable de argumentos a la funcion/crea instancia
 
@@ -274,6 +273,7 @@ def add_entry():
                 '%Y-%m-%d %H:%M:%S')
 
             last = Operation.query.order_by(Operation.id.desc()).first()
+            delta_t = (operation.timestamp - last.timestamp).total_seconds()
             coords_1 = (last.latitude, last.longitude)
             coords_2 = (float(request.args["latitude"]), float(request.args["longitude"]))
             run = geopy.distance.distance(coords_1, coords_2).m  # meters
@@ -284,26 +284,39 @@ def add_entry():
 
             r = requests.get(google_url).json()
             elevation = r['results'][0]['elevation']
-
-            try:
-                rise = elevation - last.elevation2
-            except Exception:
-                rise = 0
+            rise = elevation - last.elevation2
             print('rise = ',rise)
             print('elevation = ', elevation)
             distance = math.sqrt(run ** 2 + rise ** 2)
-
             operation.elevation2 = elevation
+            operation.run = distance
 
             try:
-                operation.slope = math.atan(rise/run)  # Conversión a radianes
+                slope = math.atan(rise/run)  # radianes
             except ZeroDivisionError:
-                operation.slope = 0
-            print('slope = ',operation.slope)
+                slope = 0
+            degree = (slope * 180) / math.pi
+            operation.slope = degree
+            print('slope = ', operation.slope)
 
-            operation.en_pot = rise * 9.81 * float(request.args["mass"])   #mgh
-            operation.mec_power = float(request.args["net_force"]) * (float(request.args["speed"])) * 1.341 / (3.6*1000)   # Potencia promedio hp
+            p = 1.2  # Air density kg/m3
+            m = float(request.args["mass"])  # kg
+            A = 0.303  # 0.79 car 0.303 motorcycle # Frontal area m2
+            cr = 0.02  # Rolling coefficient
+            cd = 1.8  # 0.29 car 1.8 motorcycle # Drag coefficient
+            operation.mean_acc_server = (float(request.args["speed"]) - last.speed) / (delta_t * 3.6)  # km/h to ms
 
+            operation.friction_force = (cr * m * 9.81 * math.cos(operation.slope)) + \
+                                       (0.5 * p * A * cd * (float(request.args["speed"]) / 3.6) ** 2)   # km/h to m/s
+            Fw = m * 9.81 * math.sin(operation.slope)
+            operation.net_force = (m * operation.mean_acc_server) + Fw + operation.friction_force
+
+            print('acceleration = ', operation.mean_acc_server)
+            operation.mec_power = (operation.net_force * (float(request.args["speed"]) + last.speed) / 2) * 1.341 / 1000  # Hp
+            operation.mec_power_delta_e = ((operation.friction_force + Fw + (m * operation.mean_acc))
+                                           * (float(request.args["speed"]) + last.speed) / 2) * 1.341 / 1000  # Hp
+            print('mec_power = ', operation.mec_power)
+            operation.en_pot = rise * 9.81 * float(request.args["mass"])   # mgh
             db.session.add(operation)
             db.session.commit()
             return "Data received"
