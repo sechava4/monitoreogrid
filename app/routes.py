@@ -313,7 +313,7 @@ def add_entry():
 
             print('acceleration = ', operation.mean_acc_server)
             operation.mec_power = (operation.net_force * (float(request.args["speed"]) + last.speed) / 2) * 1.341 / 1000  # Hp
-            operation.mec_power_delta_e = (operation.friction_force + Fw + (m * operation.mean_acc)) * ((float(request.args["speed"]) + last.speed) / 2) * 1.341 / 1000  # Hp
+            #operation.mec_power_delta_e = (operation.friction_force + Fw + (m * operation.mean_acc)) * ((float(request.args["speed"]) + last.speed) / 2) * 1.341 / 1000  # Hp
             print('mec_power = ', operation.mec_power)
             operation.en_pot = rise * 9.81 * float(request.args["mass"])   # mgh
             db.session.add(operation)
