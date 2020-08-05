@@ -1,4 +1,3 @@
-
 const CAR_MODEL = "nissan:leaf";
 const placa = "ASD089";
 const URL = "http://vehiculoselectricos.dis.eafit.edu.co/addjson";
@@ -13,46 +12,27 @@ var time_to_os4_millis = time_to_os4.getTime();
 
 //Varibales de cálculo
 var speed = 0;
-var old_speed = OvmsMetrics.AsFloat(["v.p.gpsspeed"]).toFixed();;
-var altitude = 0;
-var old_altitude = OvmsMetrics.AsFloat(["v.p.altitude"]).toFixed();;
-var run = 0;
-var old_time;
-
-var slope = 0;
-var old_slope = 0;
+var old_speed = 0;
 var lat = 0;
 var lon = 0;
-var old_lon = 0;
-var old_lat = 0;
-var Fd = 0;  //Friction force
-var F = 0;  //net force
-var trip_odometer = 0;
-var sum_net_force = 0;
-var sum_fr_force = 0;
-var max_power = 0;
 var sum_acc = 0;
 var sum_speed = 0.0;
 var i = 1.0;
 
 objTimer = PubSub.subscribe("ticker.1", SendLiveData); // update each second
 
-
 // http request callback if successful
 function OnRequestDone(resp) {
     print("response="+JSON.stringify(resp)+'\n');
 }
-
 
 // http request callback if failed
 function OnRequestFail(error) {
     print("error="+JSON.stringify(error)+'\n');
 }
 
-
 function GetUrlABRP() {
     var urljson = URL;
-
     urljson += "?";
     urljson += "latitude=" + OvmsMetrics.AsFloat(["v.p.latitude"]).toFixed(8) + "&";    //GPS latitude
     urljson += "longitude=" + OvmsMetrics.AsFloat(["v.p.longitude"]).toFixed(8) + "&";    //GPS longitude
@@ -60,7 +40,6 @@ function GetUrlABRP() {
     urljson += "mean_speed=" + (sum_speed *1.0 /i).toFixed(2) + "&";
     urljson += "speed=" + speed + "&";
     urljson += "mean_acc=" + (sum_acc *1.0 /i).toFixed(2) + "&";       //potencia promedio
-    urljson += "odometer=" + trip_odometer.toFixed(2) + "&";
     //urljson += "odometer=" + OvmsMetrics.AsFloat("v.p.odometer") + "&";
     urljson += "vehicle_id=" + "RZ_123" + "&";
     urljson += "user_id=" + "Juan" + "&";
@@ -102,8 +81,6 @@ function GetUrlABRP() {
     urljson += "charger_type=" + OvmsMetrics.AsFloat("v.c.type") + "&";
     print(urljson);
     i = 1.0;
-    sum_net_force = 0.0;
-    sum_fr_force = 0.0;
     sum_acc = 0.0;
     sum_speed = 0.0;
     return urljson;
@@ -125,7 +102,6 @@ function Make_Request(){
     p = new Date();
     prev = p.getTime();
     HTTP.Request(GetURLcfg());
-
 }
 
 function SendLiveData() {
@@ -151,7 +127,7 @@ function SendLiveData() {
       case 1:
         // Andando sin regenerar
 
-        if ((cms - prev) > 8000) {
+        if (i > 7) {
             Make_Request();
         }
         /*
@@ -185,7 +161,7 @@ function SendLiveData() {
 
       case 2:
         // Andando con freno regenerativo
-        if ((cms - prev) > 2000) {
+        if (i > 2) {
             Make_Request();
         }
         if ((speed > 0) && (Boolean(OvmsMetrics.Value("v.e.regenbrake")) == true) ) {
@@ -202,7 +178,7 @@ function SendLiveData() {
 
       case 3:
         // Detenido cargando
-        if ((cms - prev) > 10000) {
+        if (i > 60) {
             Make_Request();
         }
         if (Boolean(OvmsMetrics.Value("v.c.charging")) == false) {
@@ -215,7 +191,7 @@ function SendLiveData() {
 
       case 4:
         // Detenido no en ruta
-        if ((cms - prev) > 100000) {
+        if (i > 60) {
             Make_Request();
         }
         if (speed > 1){
@@ -231,12 +207,7 @@ function SendLiveData() {
         break;
 
     }
-    old_lat = lat;
-    old_lon = lon;
     old_speed = speed;
-    old_altitude = altitude;
-    old_time = cms;
     i = i + 1;
 }
-
 
