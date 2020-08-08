@@ -6,7 +6,7 @@ from flask import request, session, redirect, url_for, Markup, \
 import pandas as pd
 from flask_login import current_user, login_user, logout_user, login_required
 from werkzeug.urls import url_parse
-from app.models import User, Operation
+from app.models import User, Operation, Vehicle
 import os
 import geopy.distance
 from datetime import datetime
@@ -262,15 +262,17 @@ def show_indicators():
 @app.route('/addjson', methods=['POST', 'GET'])
 def add_entry():
     if not bool(request.args):
-        return ("Null data")
+        return "Null data"
     else:
-        if float(request.args["latitude"]) > 0 and ((float(request.args["elevation"]) >  0) and (float(request.args["elevation"]) < 3000)):
+        if float(request.args["latitude"]) > 0:
             operation = Operation(
                 **request.args)  # ** pasa un numero variable de argumentos a la funcion/crea instancia
 
             operation.timestamp = datetime.strptime(
                 (datetime.now(pytz.timezone('America/Bogota')).strftime('%Y-%m-%d %H:%M:%S')),
                 '%Y-%m-%d %H:%M:%S')
+
+            # insert into vehicle(placa, marca, modelo, year, odometer) values('AVM05C', 'HONDA', 'ECO100', 2011, 30000)
 
             last = Operation.query.order_by(Operation.id.desc()).first()
             delta_t = (operation.timestamp - last.timestamp).total_seconds()
@@ -284,38 +286,34 @@ def add_entry():
 
             r = requests.get(google_url).json()
             elevation = r['results'][0]['elevation']
-            rise = elevation - last.elevation2
-            print('rise = ',rise)
-            print('elevation = ', elevation)
+            rise = elevation - last.elevation
             distance = math.sqrt(run ** 2 + rise ** 2)
-            operation.elevation2 = elevation
+            operation.elevation = elevation
             operation.run = distance
 
+            vehicle = Vehicle.query.filter_by(placa=operation.vehicle_id).first()
+            vehicle.odometer += distance
+
             try:
-                slope = math.atan(rise/run)  # radianes
+                slope = math.atan(rise/run)  # radians
             except ZeroDivisionError:
                 slope = 0
             degree = (slope * 180) / math.pi
             operation.slope = degree
-            print('slope = ', operation.slope)
 
             p = 1.2  # Air density kg/m3
             m = float(request.args["mass"])  # kg
             A = 0.303  # 0.79 car 0.303 motorcycle # Frontal area m2
             cr = 0.02  # Rolling coefficient
             cd = 1.8  # 0.29 car 1.8 motorcycle # Drag coefficient
-            operation.mean_acc_server = (float(request.args["speed"]) - last.speed) / (delta_t * 3.6)  # km/h to ms
 
-            operation.friction_force = (cr * m * 9.81 * math.cos(operation.slope)) + \
-                                       (0.5 * p * A * cd * (float(request.args["speed"]) / 3.6) ** 2)   # km/h to m/s
-            Fw = m * 9.81 * math.sin(operation.slope)
-            operation.net_force = (m * operation.mean_acc_server) + Fw + operation.friction_force
+            operation.friction_force = (cr * m * 9.81 * math.cos(slope)) + \
+                                       (0.5 * p * A * cd * (float(request.args["mean_speed"]) / 3.6) ** 2)
+            Fw = m * 9.81 * math.sin(slope)
+            operation.net_force = (m * operation.mean_acc) + Fw + operation.friction_force
+            operation.mec_power = (operation.net_force * operation.mean_speed) * 1.341 / 1000  # Hp
+            operation.en_pot = rise * 9.81 * m
 
-            print('acceleration = ', operation.mean_acc_server)
-            operation.mec_power = (operation.net_force * (float(request.args["speed"]) + last.speed) / 2) * 1.341 / 1000  # Hp
-            #operation.mec_power_delta_e = (operation.friction_force + Fw + (m * operation.mean_acc)) * ((float(request.args["speed"]) + last.speed) / 2) * 1.341 / 1000  # Hp
-            print('mec_power = ', operation.mec_power)
-            operation.en_pot = rise * 9.81 * float(request.args["mass"])   # mgh
             db.session.add(operation)
             db.session.commit()
             return "Data received"

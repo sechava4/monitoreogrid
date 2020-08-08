@@ -1,5 +1,5 @@
 const CAR_MODEL = "nissan:leaf";
-const placa = "ASD089";
+const vehicle_id = "AVM05C";
 const URL = "http://vehiculoselectricos.dis.eafit.edu.co/addjson";
 var objTLM;
 var objTimer;
@@ -36,16 +36,13 @@ function GetUrlABRP() {
     urljson += "?";
     urljson += "latitude=" + OvmsMetrics.AsFloat(["v.p.latitude"]).toFixed(8) + "&";    //GPS latitude
     urljson += "longitude=" + OvmsMetrics.AsFloat(["v.p.longitude"]).toFixed(8) + "&";    //GPS longitude
-    urljson += "elevation=" + altitude + "&";    //GPS altitude
-    urljson += "mean_speed=" + (sum_speed *1.0 /i).toFixed(2) + "&";
+    urljson += "mean_speed=" + (sum_speed *1.0 /(i - 1)).toFixed(2) + "&";
     urljson += "speed=" + speed + "&";
-    urljson += "mean_acc=" + (sum_acc *1.0 /i).toFixed(2) + "&";       //potencia promedio
-    //urljson += "odometer=" + OvmsMetrics.AsFloat("v.p.odometer") + "&";
+    urljson += "mean_acc=" + (sum_acc *1.0 /(i - 1)).toFixed(2) + "&";       //potencia promedio
     urljson += "vehicle_id=" + "RZ_123" + "&";
     urljson += "user_id=" + "Juan" + "&";
     urljson += "mass=" + 170 + "&";
     urljson += "freeram=" + OvmsMetrics.Value("m.freeram") + "&";
-    urljson += "tasks=" + OvmsMetrics.Value("m.tasks") + "&";
     //urljson += "monotonic=" + OvmsMetrics.Value("m.monotonic") + "&";
     urljson += "net_signal=" + OvmsMetrics.Value("m.net.sq") + "&";
     urljson += "soc=" + OvmsMetrics.AsFloat("v.b.soc") + "&";    //State of charge
@@ -57,6 +54,7 @@ function GetUrlABRP() {
     urljson += "ext_temp=" + OvmsMetrics.AsFloat("v.e.temp") + "&";    //Ambient temperature
     urljson += "power_kw=" + OvmsMetrics.AsFloat(["v.b.power"]).toFixed(2) + "&";    //Main battery momentary power
     urljson += "operative_state=" + operative_state + "&";    //OS
+    urljson += "vehicle_id=" + vehicle_id + "&";
     urljson += "acceleration=" + OvmsMetrics.AsFloat("v.p.acceleration") + "&";    //Engine momentary acceleration
     urljson += "throttle=" + OvmsMetrics.AsFloat("v.e.throttle") + "&";    //Engine momentary THROTTLE
     urljson += "regen_brake=" + OvmsMetrics.AsFloat("v.e.regenbrake") + "&";    //Engine momentary Regen value
@@ -108,7 +106,6 @@ function SendLiveData() {
     var d = new Date();
     var cms = d.getTime();   //current_millis
 
-    altitude = OvmsMetrics.AsFloat(["v.p.altitude"]);
     speed = OvmsMetrics.AsFloat(["v.p.gpsspeed"]);
     sum_speed = sum_speed + speed;
 
@@ -210,4 +207,3 @@ function SendLiveData() {
     old_speed = speed;
     i = i + 1;
 }
-

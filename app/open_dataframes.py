@@ -111,7 +111,7 @@ def get_heights(var, d1, h1, h2):
     print(var)
     try:
         if df[var].iloc[0] is not None:
-            if var == "elevation":
+            if var in ("elevation", "elevation2"):
                 df['var'] = df[var].map(lambda x: x-1420)
             elif var in ("mec_power_delta_e", "mec_power"):
                 df['var'] = df[var].map(lambda x: x*35)
