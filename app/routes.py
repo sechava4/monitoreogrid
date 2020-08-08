@@ -290,8 +290,9 @@ def add_entry():
             distance = math.sqrt(run ** 2 + rise ** 2)
             operation.elevation = elevation
             operation.run = distance
-
+            print(operation.vehicle_id)
             vehicle = Vehicle.query.filter_by(placa=operation.vehicle_id).first()
+            print(vehicle.marca)
             vehicle.odometer += distance
 
             try:
@@ -310,8 +311,8 @@ def add_entry():
             operation.friction_force = (cr * m * 9.81 * math.cos(slope)) + \
                                        (0.5 * p * A * cd * (float(request.args["mean_speed"]) / 3.6) ** 2)
             Fw = m * 9.81 * math.sin(slope)
-            operation.net_force = (m * operation.mean_acc) + Fw + operation.friction_force
-            operation.mec_power = (operation.net_force * operation.mean_speed) * 1.341 / 1000  # Hp
+            operation.net_force = (m * float(request.args["mean_acc"])) + Fw + operation.friction_force
+            operation.mec_power = (operation.net_force * float(request.args["mean_speed"])) * 1.341 / 1000  # Hp
             operation.en_pot = rise * 9.81 * m
 
             db.session.add(operation)
