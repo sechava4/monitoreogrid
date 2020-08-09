@@ -306,7 +306,7 @@ def add_entry():
             m = float(request.args["mass"])  # kg
             A = 0.303  # 0.79 car 0.303 motorcycle # Frontal area m2
             cr = 0.02  # Rolling coefficient
-            cd = 1.8  # 0.29 car 1.8 motorcycle # Drag coefficient
+            cd = 0.46414637  # 0.29 car 0.46414637 motorcycle # Drag coefficient
 
             operation.friction_force = (cr * m * 9.81 * math.cos(slope)) + \
                                        (0.5 * p * A * cd * (float(request.args["mean_speed"]) / 3.6) ** 2)

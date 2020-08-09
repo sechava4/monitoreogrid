@@ -39,7 +39,6 @@ function GetUrlABRP() {
     urljson += "mean_speed=" + (sum_speed *1.0 /(i - 1)).toFixed(2) + "&";
     urljson += "speed=" + speed + "&";
     urljson += "mean_acc=" + (sum_acc *1.0 /(i - 1)).toFixed(2) + "&";       //potencia promedio
-    urljson += "vehicle_id=" + "RZ_123" + "&";
     urljson += "user_id=" + "Juan" + "&";
     urljson += "mass=" + 170 + "&";
     urljson += "freeram=" + OvmsMetrics.Value("m.freeram") + "&";
@@ -54,7 +53,7 @@ function GetUrlABRP() {
     urljson += "ext_temp=" + OvmsMetrics.AsFloat("v.e.temp") + "&";    //Ambient temperature
     urljson += "power_kw=" + OvmsMetrics.AsFloat(["v.b.power"]).toFixed(2) + "&";    //Main battery momentary power
     urljson += "operative_state=" + operative_state + "&";    //OS
-    urljson += "vehicle_id=" + vehicle_id + "&";
+    urljson += "vehicle_id=" + "OIO53" + "&";
     urljson += "acceleration=" + OvmsMetrics.AsFloat("v.p.acceleration") + "&";    //Engine momentary acceleration
     urljson += "throttle=" + OvmsMetrics.AsFloat("v.e.throttle") + "&";    //Engine momentary THROTTLE
     urljson += "regen_brake=" + OvmsMetrics.AsFloat("v.e.regenbrake") + "&";    //Engine momentary Regen value
