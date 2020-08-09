@@ -293,7 +293,7 @@ def add_entry():
             print(operation.vehicle_id)
             vehicle = Vehicle.query.filter_by(placa=operation.vehicle_id).first()
             print(vehicle.marca)
-            vehicle.odometer += distance
+            vehicle.odometer += distance/1000
 
             try:
                 slope = math.atan(rise/run)  # radians
