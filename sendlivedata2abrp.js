@@ -1,5 +1,5 @@
 const CAR_MODEL = "nissan:leaf";
-const vehicle_id = "OIO53";
+const vehicle_id = "FSV110";
 const URL = "http://vehiculoselectricos.dis.eafit.edu.co/addjson";
 var objTLM;
 var objTimer;
@@ -31,29 +31,35 @@ function OnRequestFail(error) {
     print("error="+JSON.stringify(error)+'\n');
 }
 
+//v.tp.fl.p                                231.952kPa
+//v.tp.fr.p                                230.58kPa
+//v.tp.rl.p                                240.188kPa
+//v.tp.rr.p                                223.717kPa
+
 function GetUrlABRP() {
     var urljson = URL;
     urljson += "?";
     urljson += "latitude=" + OvmsMetrics.AsFloat(["v.p.latitude"]).toFixed(8) + "&";    //GPS latitude
     urljson += "longitude=" + OvmsMetrics.AsFloat(["v.p.longitude"]).toFixed(8) + "&";    //GPS longitude
     urljson += "mean_speed=" + (sum_speed *1.0 /(i - 1)).toFixed(2) + "&";
-    urljson += "speed=" + speed + "&";
+    urljson += "speed=" + OvmsMetrics.AsFloat(["v.p.speed"])+ "&";
     urljson += "mean_acc=" + (sum_acc *1.0 /(i - 1)).toFixed(2) + "&";       //potencia promedio
     urljson += "user_id=" + "Juan" + "&";
-    urljson += "mass=" + 170 + "&";
+    urljson += "mass=" + 1528  + "&";
     urljson += "freeram=" + OvmsMetrics.Value("m.freeram") + "&";
+    urljson += "odometer=" + OvmsMetrics.AsFloat("v.p.odometer") + "&";
     //urljson += "monotonic=" + OvmsMetrics.Value("m.monotonic") + "&";
     urljson += "net_signal=" + OvmsMetrics.Value("m.net.sq") + "&";
     urljson += "soc=" + OvmsMetrics.AsFloat("v.b.soc") + "&";    //State of charge
     urljson += "soh=" + OvmsMetrics.AsFloat("v.b.soh") + "&";    //State of health
-    urljson += "voltage=" + OvmsMetrics.AsFloat("v.b.voltage") + "&";    //Main battery momentary voltage
-    urljson += "current=" + OvmsMetrics.AsFloat("v.b.current") + "&";    //Main battery momentary current
-    urljson += "capacity=" + OvmsMetrics.AsFloat("v.b.cac") + "&";
+    urljson += "voltage=" + OvmsMetrics.AsFloat("v.b.voltage").toFixed(2) + "&";    //Main battery momentary voltage
+    urljson += "current=" + OvmsMetrics.AsFloat("v.b.current").toFixed(2) + "&";
+    urljson += "capacity=" + OvmsMetrics.AsFloat("xrz.v.avail.energy") + "&";
     urljson += "batt_temp=" + OvmsMetrics.AsFloat("v.b.temp") + "&";    //Main battery momentary temperature
     urljson += "ext_temp=" + OvmsMetrics.AsFloat("v.e.temp") + "&";    //Ambient temperature
     urljson += "power_kw=" + OvmsMetrics.AsFloat(["v.b.power"]).toFixed(2) + "&";    //Main battery momentary power
     urljson += "operative_state=" + operative_state + "&";    //OS
-    urljson += "vehicle_id=" + "OIO53" + "&";
+    urljson += "vehicle_id=" + vehicle_id + "&";
     urljson += "acceleration=" + OvmsMetrics.AsFloat("v.p.acceleration") + "&";    //Engine momentary acceleration
     urljson += "throttle=" + OvmsMetrics.AsFloat("v.e.throttle") + "&";    //Engine momentary THROTTLE
     urljson += "regen_brake=" + OvmsMetrics.AsFloat("v.e.regenbrake") + "&";    //Engine momentary Regen value
@@ -71,8 +77,9 @@ function GetUrlABRP() {
 
     // Analizar drivetime para el cambio de estados
 
-    urljson += "coulomb_rec=" + OvmsMetrics.AsFloat("v.b.coulomb.recd") + "&";
-    urljson += "energy_rec=" + OvmsMetrics.AsFloat("v.b.energy.recd") + "&";
+    //urljson += "coulomb_rec=" + OvmsMetrics.AsFloat("v.b.coulomb.recd") + "&";
+    //urljson += "energy_rec=" + OvmsMetrics.AsFloat("v.b.energy.recd") + "&";
+
     urljson += "tpms=" + OvmsMetrics.AsFloat("v.tp.fl.p") + "&";
     urljson += "charge_time=" + OvmsMetrics.AsFloat("v.c.time") + "&";
     urljson += "charger_type=" + OvmsMetrics.AsFloat("v.c.type") + "&";
@@ -105,7 +112,7 @@ function SendLiveData() {
     var d = new Date();
     var cms = d.getTime();   //current_millis
 
-    speed = OvmsMetrics.AsFloat(["v.p.gpsspeed"]);
+    speed = OvmsMetrics.AsFloat(["v.p.speed"]);
     sum_speed = sum_speed + speed;
 
     var acc = (speed - old_speed) / 3.6;

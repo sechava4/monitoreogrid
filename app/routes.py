@@ -293,7 +293,7 @@ def add_entry():
             print(operation.vehicle_id)
             vehicle = Vehicle.query.filter_by(placa=operation.vehicle_id).first()
             print(vehicle.marca)
-            vehicle.odometer += distance/1000
+            vehicle.odometer = float(request.args["odometer"])
 
             try:
                 slope = math.atan(rise/run)  # radians
@@ -306,7 +306,8 @@ def add_entry():
             m = float(request.args["mass"])  # kg
             A = 0.303  # 0.79 car 0.303 motorcycle # Frontal area m2
             cr = 0.02  # Rolling coefficient
-            cd = 1.8  # 0.29 car 1.8 motorcycle # Drag coefficient
+            cd = 0.3  # 0.29 car 1.8 motorcycle # Drag coefficient
+            # cr = 0.005 + (1 / p) (0.01 + 0.0095 (v / 100)2)  pressure in Bar V in kmH
 
             operation.friction_force = (cr * m * 9.81 * math.cos(slope)) + \
                                        (0.5 * p * A * cd * (float(request.args["mean_speed"])/3.6) ** 2)
