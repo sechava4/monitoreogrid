@@ -115,8 +115,10 @@ class Operation(db.Model):
     range_full = db.Column(db.Integer)
     drivetime = db.Column(db.Integer)
     drivemode = db.Column(db.String(64))
+
     charge_time = db.Column(db.Integer)
     charger_type = db.Column(db.String(64))
+
     footbrake = db.Column(db.Integer)
     engine_temp = db.Column(db.Float)
     is_charging = db.Column(db.Integer)
