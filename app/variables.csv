@@ -61,3 +61,4 @@ id,var,var_pretty
 59,charge_current,Corriente de carga (A)
 60,charge_time,Tiempo de Carga (s)
 61,charger_type,Tipo de cargador
+62,eff,Eficiencia (%)

@@ -53,11 +53,13 @@ function GetUrlABRP() {
     urljson += "soc=" + OvmsMetrics.AsFloat("v.b.soc") + "&";    //State of charge
     urljson += "soh=" + OvmsMetrics.AsFloat("v.b.soh") + "&";    //State of health
     urljson += "voltage=" + OvmsMetrics.AsFloat("v.b.voltage").toFixed(2) + "&";    //Main battery momentary voltage
-    urljson += "current=" + OvmsMetrics.AsFloat("v.b.current").toFixed(2) + "&";
+    urljson += "current=" + (OvmsMetrics.AsFloat("v.b.current")*-1.00).toFixed(2) + "&";
     urljson += "capacity=" + OvmsMetrics.AsFloat("xrz.v.avail.energy") + "&";
     urljson += "batt_temp=" + OvmsMetrics.AsFloat("v.b.temp") + "&";    //Main battery momentary temperature
     urljson += "ext_temp=" + OvmsMetrics.AsFloat("v.e.temp") + "&";    //Ambient temperature
-    urljson += "power_kw=" + OvmsMetrics.AsFloat(["v.b.power"]).toFixed(2) + "&";    //Main battery momentary power
+
+    urljson += "power_kw=" + ( OvmsMetrics.AsFloat("v.b.voltage") * OvmsMetrics.AsFloat("v.b.current") / (-1000.0) ).toFixed(3)  + "&";    //Main battery momentary power
+
     urljson += "operative_state=" + operative_state + "&";    //OS
     urljson += "vehicle_id=" + vehicle_id + "&";
     urljson += "acceleration=" + OvmsMetrics.AsFloat("v.p.acceleration") + "&";    //Engine momentary acceleration
@@ -124,12 +126,6 @@ function SendLiveData() {
     var acc = (speed - old_speed) / 3.6;
     sum_acc = sum_acc + acc;
 
-    print('i= ');
-    print(i);
-    print('\n');
-    print('sum_speed= ');
-    print(sum_speed);
-    print('\n');
 
     switch (operative_state) {
 
@@ -161,7 +157,7 @@ function SendLiveData() {
             Make_Request();
         }
 
-        else if (Boolean(OvmsMetrics.Value("v.e.regenbrake")) == true){
+        else if ( (speed >= 1) && (OvmsMetrics.AsFloat("v.b.current") > 0 ) ){
             operative_state = 2;
             Make_Request();
         }
@@ -173,12 +169,12 @@ function SendLiveData() {
         if (i > 2) {
             Make_Request();
         }
-        if ((speed > 0) && (Boolean(OvmsMetrics.Value("v.e.regenbrake")) == true) ) {
+        if ( (speed >= 1) && (OvmsMetrics.AsFloat("v.b.current") < 0 ) ) {
             first = true;
             operative_state = 1;
             Make_Request();
         }
-        else if (OvmsMetrics.AsFloat("v.p.gpsspeed") <= 1) {
+        else if (speed <= 1) {
             operative_state = 4;
             Make_Request();
         }
