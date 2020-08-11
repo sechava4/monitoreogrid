@@ -57,3 +57,7 @@ id,var,var_pretty
 55,net_signal,network quality
 56,elevation2,Altitud (google)(msnm)
 57,mean_acc_server,Aceleración promedio (server) (m/s^2)
+58,energy_rec, Energia recuperada (Kwh)
+59,charge_current,Corriente de carga (A)
+60,charge_time,Tiempo de Carga (s)
+61,charger_type,Tipo de cargador

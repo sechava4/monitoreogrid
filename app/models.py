@@ -103,6 +103,9 @@ class Operation(db.Model):
     soh = db.Column(db.Float)
     voltage = db.Column(db.Float)
     current = db.Column(db.Float)
+
+    charge_current = db.Column(db.Float)
+
     throttle = db.Column(db.Integer)
     regen_brake = db.Column(db.Float)
     mass = db.Column(db.Integer)
