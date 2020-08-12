@@ -313,8 +313,8 @@ def add_entry():
                                        (0.5 * p * A * cd * (float(request.args["mean_speed"])/3.6) ** 2)
             Fw = m * 9.81 * math.sin(slope)
             operation.net_force = (m * float(request.args["mean_acc"])) + Fw + operation.friction_force
-            operation.mec_power = (operation.net_force * float(request.args["mean_speed"])/3.6) * 1.3 / 1000 * 1.34
-            operation.eff = 100 * float(operation.mec_power) / float(operation.power_kw)
+            operation.mec_power = (operation.net_force * float(request.args["mean_speed"])/3.6) * 0.606 / 1000
+            operation.eff = 100 * abs(float(operation.mec_power) / float(operation.power_kw))
             operation.en_pot = rise * 9.81 * m
 
             db.session.add(operation)
