@@ -15,6 +15,37 @@
         <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/c3/0.7.18/c3.min.js"></script>
         <!-- <script type="text/javascript" src="http://d3js.org/d3.v5.min.js"></script> -->
 
+        <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+        <script type="text/javascript">
+          google.charts.load("current", {packages:["calendar"]});
+          google.charts.setOnLoadCallback(drawChart);
+
+            function drawChart() {
+               var dataTable = new google.visualization.DataTable();
+               dataTable.addColumn({ type: 'date', id: 'Date' });
+               dataTable.addColumn({ type: 'number', id: 'Won/Loss' });
+               dataTable.addRows([
+                  for (var i = 0; i < 9; i++) {
+                       n += i;
+                       [ new Date(2020, 3, n), 37032 ],
+
+                    }
+
+                ]);
+
+               var chart = new google.visualization.Calendar(document.getElementById('calendar_basic'));
+
+               var options = {
+                 title: "Actividad vehicular",
+                 height: 350,
+               };
+
+               chart.draw(dataTable, options);
+           }
+        </script>
+
+        <div id="calendar_basic" style="width: 1000px; height: 350px;"></div>
+
         <div class="variables">
             <form role="form" class="form-inline" action="{{ url_for('show_entries') }}" method=post>
                 <div class="col-auto">
@@ -29,7 +60,7 @@
                         <option value="user_id">Usuario</option>
                         <option value="operative_state">Estado Operativo</option>
                         <option value="odometer">Odometro (Km)</option>
-                        <option value="capacity">Capacidad (Ah)</option>
+                        <option value="capacity">Capacidad (kWh)</option>
                         <option value="power_kw">Potencia eléctrica (Kw)</option>
                         <option value="mec_power">Potencia efectiva (server) (Hp) </option>
                         <option value="en_pot">Delta Energía potenical (J) </option>
@@ -71,7 +102,7 @@
                         <option value="user_id">Usuario</option>
                         <option value="operative_state">Estado Operativo</option>
                         <option value="odometer">Odometro (Km)</option>
-                        <option value="capacity">Capacidad (Ah)</option>
+                        <option value="capacity">Capacidad (kWh)</option>
                         <option value="power_kw">Potencia eléctrica (Kw)</option>
                         <option value="mec_power">Potencia efectiva (Kw) </option>
                         <option value="eff">Eficiencia (%) </option>
@@ -212,7 +243,7 @@
                         <option value="user_id">Usuario</option>
                         <option value="operative_state">Estado Operativo</option>
                         <option value="odometer">Odometro (Km)</option>
-                        <option value="capacity">Capacidad (Ah)</option>
+                        <option value="capacity">Capacidad (kWh)</option>
                         <option value="power_kw">Potencia eléctrica (Kw)</option>
                         <option value="mec_power">Potencia efectiva (server) (Hp) </option>
                         <option value="en_pot">Delta Energía potenical (J) </option>
@@ -254,7 +285,7 @@
                         <option value="user_id">Usuario</option>
                         <option value="operative_state">Estado Operativo</option>
                         <option value="odometer">Odometro (Km)</option>
-                        <option value="capacity">Capacidad (Ah)</option>
+                        <option value="capacity">Capacidad (kWh)</option>
 
                         <option value="power_kw">Potencia eléctrica (Kw)</option>
                         <option value="mec_power">Potencia efectiva (Kw) </option>

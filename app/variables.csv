@@ -14,7 +14,7 @@ id,var,var_pretty
 12,ext_temp,Temperatura ambiente (°C)
 13,power_kw,Potencia (Kw)
 14,acceleration,Aceleración motor (m/s^2)
-15,capacity,Capacidad de batería (Ah)
+15,capacity,Capacidad de batería (kWh)
 16,vehicle_id,ID de vehículo
 17,soc,Estado de Carga (SoC)
 18,soh,Estado de Salud (SoH)
