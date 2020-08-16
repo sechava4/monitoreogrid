@@ -209,8 +209,20 @@
                     <div id = "bargraph" style="width:70%;float: left">
                         <script>
                             var graphs = {{plot | safe}};
-                            console.log(graphs);
-                            Plotly.plot('bargraph', graphs, {});
+
+                            smoothTrace1 = {
+                               'type': 'scatter',
+                               'mode': 'lines',
+                               'x': graphs[0]['x'],
+                               'y': graphs[0]['y'],
+                               fill: 'tozeroy',
+                               'line': {
+                                    'shape': 'spline',
+                                    'smoothing': 0.45}
+                           }
+
+                            data1=[smoothTrace1]
+                            Plotly.newPlot('bargraph2',data1, {});
                         </script>
                     </div>
 
