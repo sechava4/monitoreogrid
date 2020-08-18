@@ -24,14 +24,10 @@
                var dataTable = new google.visualization.DataTable();
                dataTable.addColumn({ type: 'date', id: 'Date' });
                dataTable.addColumn({ type: 'number', id: 'Won/Loss' });
-               dataTable.addRows([
-                  for (var i = 0; i < 9; i++) {
-                       n += i;
-                       [ new Date(2020, 3, n), 37032 ],
-
+               for (var i = 0; i < 19; i++) {
+                       var date = new Date(2020, 4, i)
+                       dataTable.addRows([[ date, (37032 + i) ]]);
                     }
-
-                ]);
 
                var chart = new google.visualization.Calendar(document.getElementById('calendar_basic'));
 

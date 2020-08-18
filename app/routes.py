@@ -82,7 +82,9 @@ def show_entries():
         if session["h4"] < session["h3"]:
             session["h3"], session["h4"] = session["h4"], session["h3"]  # Swap times
 
-    query = "SELECT " + session["graph_var_x"] + " ," + session["graph_var_y"] + \
+    query0 = "SELECT drivetime, timestamp from operation"
+
+    query1 = "SELECT " + session["graph_var_x"] + " ," + session["graph_var_y"] + \
             ' from operation WHERE timestamp BETWEEN "' + session['d1'] + ' ' + str(session['h1'])[:8] + \
             '" and "' + str(session['d1']) + ' ' + str(session['h2'])[:8] + '"'
 
@@ -90,8 +92,10 @@ def show_entries():
             ' from operation WHERE timestamp BETWEEN "' + session['d2'] + ' ' + str(session['h3'])[:8] + \
             '" and "' + str(session['d2']) + ' ' + str(session['h4'])[:8] + '"'
 
-    df_o = pd.read_sql_query(query, db.engine)
+    df_calendar = pd.read_sql_query(query0, db.engine)
+    df_o = pd.read_sql_query(query1, db.engine)
     df_o2 = pd.read_sql_query(query2, db.engine)
+    print(df_calendar)
 
     scatter, donnut = plot.create_plot(df_o, session["graph_var_x"], session["graph_var_y"])
     scatter2, _ = plot.create_plot(df_o2, session["graph_var_x2"], session["graph_var_y2"])
