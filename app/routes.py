@@ -13,6 +13,7 @@ from datetime import datetime
 import pytz
 import requests
 import math
+from scipy import stats
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -27,6 +28,7 @@ def show_entries():
         session['d1']
         session['h1']
         session['h2']
+        session["calendar_var"]
 
         session["graph_var_x2"]
         session["graph_var_y2"]
@@ -45,7 +47,8 @@ def show_entries():
         session['h1'] = '00:00:00'
         session['h2'] = now.strftime("%H:%M:%S")
         session["graph_var_x"] = "timestamp"
-        session["graph_var_y"] = "soh"
+        session["graph_var_y"] = "power_kw"
+        session["calendar_var"] = "power_kw"
 
         session['form_d2'] = now.strftime("%d/%m/%Y")
         session['form_h3'] = '0:01 AM'
@@ -54,12 +57,14 @@ def show_entries():
         session['h3'] = '00:00:00'
         session['h4'] = now.strftime("%H:%M:%S")
         session["graph_var_x2"] = "timestamp"
-        session["graph_var_y2"] = "soh"
+        session["graph_var_y2"] = "power_kw"
 
     if request.method == 'POST':
 
         session["graph_var_x"] = (request.form['variable_x'])
         session["graph_var_y"] = (request.form['variable_y'])
+        session["calendar_var"] = (request.form['calendar_var'])
+
         session['form_d1'] = request.form['d1']
         session['form_h1'] = request.form['h1']
         session['form_h2'] = request.form['h2']
@@ -82,7 +87,10 @@ def show_entries():
         if session["h4"] < session["h3"]:
             session["h3"], session["h4"] = session["h4"], session["h3"]  # Swap times
 
-    query0 = "SELECT drivetime, timestamp from operation"
+    print(session["calendar_var"])
+
+    query0 = "SELECT timestamp, MAX(" + session["calendar_var"] + ") as 'max_value'" \
+             " FROM operation GROUP BY date(timestamp)"
 
     query1 = "SELECT " + session["graph_var_x"] + " ," + session["graph_var_y"] + \
             ' from operation WHERE timestamp BETWEEN "' + session['d1'] + ' ' + str(session['h1'])[:8] + \
@@ -93,20 +101,28 @@ def show_entries():
             '" and "' + str(session['d2']) + ' ' + str(session['h4'])[:8] + '"'
 
     df_calendar = pd.read_sql_query(query0, db.engine)
+    df_calendar = df_calendar.dropna()
     df_o = pd.read_sql_query(query1, db.engine)
     df_o2 = pd.read_sql_query(query2, db.engine)
-    print(df_calendar)
+    try:
+        pearson_coef = stats.pearsonr(df_o[session["graph_var_x"]].to_numpy(), df_o[session["graph_var_y"]].to_numpy())
+    except (ValueError, TypeError):
+        pearson_coef = 0
+        pass
+    print(pearson_coef)
 
     scatter, donnut = plot.create_plot(df_o, session["graph_var_x"], session["graph_var_y"])
     scatter2, _ = plot.create_plot(df_o2, session["graph_var_x2"], session["graph_var_y2"])
     box = df_o[session["graph_var_y"]].tolist()
     box2 = df_o2[session["graph_var_y2"]].tolist()
+    session["calendar_pretty"] = open_dataframes.pretty_var_name(session["calendar_var"])
     session["x_pretty_graph"] = open_dataframes.pretty_var_name(session["graph_var_x"])
     session["y_pretty_graph"] = open_dataframes.pretty_var_name(session["graph_var_y"])
 
     session["x_pretty_graph2"] = open_dataframes.pretty_var_name(session["graph_var_x2"])
     session["y_pretty_graph2"] = open_dataframes.pretty_var_name(session["graph_var_y2"])
-    return render_template('show_entries.html', plot=scatter, pie=donnut, box=box, plot2=scatter2, box2=box2)
+    return render_template('show_entries.html', plot=scatter, pie=donnut, box=box, plot2=scatter2, box2=box2,
+                           calendar=df_calendar.to_json(orient='records'))
 
 
 @app.route('/updateplot')
@@ -123,6 +139,7 @@ def update_plot():
     df_o2 = pd.read_sql_query(query2, db.engine)
     scatter, donnut = plot.create_plot(df_o, session["graph_var_x"], session["graph_var_y"])
     scatter2, _ = plot.create_plot(df_o2, session["graph_var_x2"], session["graph_var_y2"])
+    session["calendar_pretty"] = open_dataframes.pretty_var_name(session["calendar_var"])
     session["x_pretty_graph"] = open_dataframes.pretty_var_name(session["graph_var_x"])
     session["y_pretty_graph"] = open_dataframes.pretty_var_name(session["graph_var_y"])
 
