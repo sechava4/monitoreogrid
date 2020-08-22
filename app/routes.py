@@ -89,8 +89,7 @@ def show_entries():
 
     print(session["calendar_var"])
 
-    query0 = "SELECT timestamp, MAX(" + session["calendar_var"] + ") as 'max_value'" \
-             " FROM operation GROUP BY date(timestamp)"
+    query0 = "SELECT date(timestamp), MAX(" + session["calendar_var"] + ") as 'max_value' FROM operation GROUP BY date(timestamp)"
 
     query1 = "SELECT " + session["graph_var_x"] + " ," + session["graph_var_y"] + \
             ' from operation WHERE timestamp BETWEEN "' + session['d1'] + ' ' + str(session['h1'])[:8] + \
@@ -127,6 +126,8 @@ def show_entries():
 
 @app.route('/updateplot')
 def update_plot():
+    "SELECT date(timestamp), MAX(" + session["calendar_var"] + ") as 'max_value' FROM operation GROUP BY date(timestamp)"
+
     query = "SELECT " + session["graph_var_x"] + " ," + session["graph_var_y"] + \
             ' from operation WHERE timestamp BETWEEN "' + session['d1'] + ' ' + str(session['h1'])[:8] + \
             '" and "' + str(session['d1']) + ' ' + str(session['h2'])[:8] + '"'
