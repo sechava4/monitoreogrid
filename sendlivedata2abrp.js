@@ -41,9 +41,9 @@ function GetUrlABRP() {
     urljson += "?";
     urljson += "latitude=" + OvmsMetrics.AsFloat(["v.p.latitude"]).toFixed(8) + "&";    //GPS latitude
     urljson += "longitude=" + OvmsMetrics.AsFloat(["v.p.longitude"]).toFixed(8) + "&";    //GPS longitude
-    urljson += "mean_speed=" + (sum_speed *1.0 /(i - 1)).toFixed(2) + "&";
+    urljson += "mean_speed=" + (sum_speed *1.0 /i).toFixed(2) + "&";
     urljson += "speed=" + OvmsMetrics.AsFloat(["v.p.speed"])+ "&";
-    urljson += "mean_acc=" + (sum_acc *1.0 /(i - 1)).toFixed(2) + "&";       //potencia promedio
+    urljson += "mean_acc=" + (sum_acc *1.0 /i).toFixed(2) + "&";       //potencia promedio
     urljson += "user_id=" + "Juan" + "&";
     urljson += "mass=" + 1528  + "&";
     urljson += "freeram=" + OvmsMetrics.Value("m.freeram") + "&";

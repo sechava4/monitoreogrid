@@ -42,9 +42,10 @@ class Vehicle(db.Model):
     modelo = db.Column(db.String(64))
     year = db.Column(db.Integer)
     capacity_nominal = db.Column(db.Float)
-    odometer = db.Column(db.Integer) #  db.ForeignKey('operation.odometer')) ?
+    odometer = db.Column(db.Integer)  # db.ForeignKey('operation.odometer')) ?
     soh = db.Column(db.Float)
     rul = db.Column(db.Integer)
+    belongs_to = db.Column(db.Integer)  # db.ForeignKey('user.id')) ?
 
     # For debuging purposes, we type the instance name and it prints self,username
     def __repr__(self):
