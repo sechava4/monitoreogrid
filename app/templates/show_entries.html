@@ -3,7 +3,23 @@
 <div>
 
     <title>Dasboard</title>
+    <div id="line_top_x"></div>
+        <ul class="nav nav-tabs">
+          <li class="nav-item">
+            <a class="nav-link" href="">Panel de energía</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('show_vehicle_map') }}" aria-selected="false">Panel topográfico</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link active" href="{{ url_for('show_entries') }}" aria-selected="true" >Gráficos personalizados</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('show_tables') }}" aria-selected="false">Tablas</a>
+          </li>
 
+        </ul>
+     </div>
         <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
 
@@ -33,7 +49,7 @@
                var chart = new google.visualization.Calendar(document.getElementById('calendar_basic'));
 
                var options = {
-                 title: "Máximos diarios",
+                 title: "Valores máximos por día",
                  height: 175,
                };
 
@@ -45,6 +61,7 @@
                     if (item.row != null) {
 
                         var date1 = new Date(data_cal[item.row]['date(timestamp)']);
+                        date1.setDate(date1.getDate() + 1);
                         var dd = String(date1. getDate())
                         var mm = String(date1. getMonth() + 1). padStart(2, '0');
                         var yyyy = date1. getFullYear();
@@ -54,13 +71,14 @@
                         document.getElementById('d2_input').value = date1;
                     };
                 };
-
-
            }
         </script>
 
         <div class="variables">
             <form role="form" class="form-inline" action="{{ url_for('show_entries') }}" method=post>
+
+
+                <div style="width: 100%;margin: 10px;">
                 <select class="form-control" id="CalendarVarSelect" name = calendar_var>
                     <option value="{{session.calendar_var}}"> {{session.calendar_pretty}}</option>
                     <option value="drivetime">Tiempo de manejo</option>
@@ -73,8 +91,9 @@
                     <option value="odometer">Odometro (Km)</option>
                     <option value="capacity">Capacidad (kWh)</option>
                 </select>
+                </div>
+                <div id="calendar_basic" style="width: 100%; height: 175px;margin: 20px;"></div>
 
-                <div id="calendar_basic" style="width: 100%; height: 175px;"></div>
                 <div class="col-auto">
                     <label class="label label-default" for="exampleFormControlSelect1"> Eje X </label>
                     <select class="form-control" id="exampleFormControlSelect1" name = variable_x>

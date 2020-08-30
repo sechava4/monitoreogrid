@@ -47,22 +47,7 @@
                 </ul>
         </div>
     </nav>
-    <div id="line_top_x"></div>
-        <ul class="nav nav-tabs">
-          <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('show_entries') }}">Grafica de operación</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('show_vehicle_map') }}" >Mapas</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('show_indicators') }}">Indicadores</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('show_tables') }}" >Tablas</a>
-          </li>
-        </ul>
-     </div>
+
     <div >
         {% with messages = get_flashed_messages() %}
         {% if messages %}

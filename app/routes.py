@@ -87,7 +87,6 @@ def show_entries():
         if session["h4"] < session["h3"]:
             session["h3"], session["h4"] = session["h4"], session["h3"]  # Swap times
 
-    print(session["calendar_var"])
 
     query0 = "SELECT date(timestamp), MAX(" + session["calendar_var"] + ") as 'max_value' FROM operation GROUP BY date(timestamp)"
 
@@ -202,6 +201,7 @@ def show_zones_map():
         session['d1']
         session['h1']
         session['h2']
+        session["calendar_var"]
 
     except KeyError:
         now = datetime.now(pytz.timezone('America/Bogota'))
@@ -211,6 +211,12 @@ def show_zones_map():
         session['d1'] = now.strftime("%Y-%m-%d")
         session['h1'] = '00:00:00'
         session['h2'] = now.strftime("%H:%M:%S")
+        session["calendar_var"] = "power_kw"
+
+    query0 = "SELECT date(timestamp), MAX(" + session[
+        "calendar_var"] + ") as 'max_value' FROM operation GROUP BY date(timestamp)"
+    df_calendar = pd.read_sql_query(query0, db.engine)
+    session["calendar_pretty"] = open_dataframes.pretty_var_name(session["calendar_var"])
 
     lines_df = open_dataframes.get_lines(session['d1'], session['h1'], session['h2'])
     zones = open_dataframes.get_zones()
@@ -221,7 +227,8 @@ def show_zones_map():
     json_lines = Markup(lines_df.to_json(orient='records'))
     json_zones = Markup(zones.to_json(orient='records'))
 
-    return render_template('zones_map.html',json_zones=json_zones, json_lines=json_lines)
+    return render_template('zones_map.html', json_zones=json_zones, json_lines=json_lines,
+                           calendar=df_calendar.to_json(orient='records'))
 
 
 @app.route('/vehicle_map', methods=['GET', 'POST'])
@@ -236,6 +243,7 @@ def show_vehicle_map():
         session['d1']
         session['h1']
         session['h2']
+        session["calendar_var"]
     except KeyError:
         session["map_var"] = "elevation"
         session["map_car"] = "seleccione vehiculo"
@@ -246,6 +254,12 @@ def show_vehicle_map():
         session['d1'] = now.strftime("%Y-%m-%d")
         session['h1'] = '00:00:00'
         session['h2'] = now.strftime("%H:%M:%S ")
+        session["calendar_var"] = "power_kw"
+
+    query0 = "SELECT date(timestamp), MAX(" + session[
+        "calendar_var"] + ") as 'max_value' FROM operation GROUP BY date(timestamp)"
+    df_calendar = pd.read_sql_query(query0, db.engine)
+    session["calendar_pretty"] = open_dataframes.pretty_var_name(session["calendar_var"])
 
     stations_df = open_dataframes.get_stations()
     json_stations = Markup(stations_df.to_json(orient='records'))
@@ -268,17 +282,11 @@ def show_vehicle_map():
     json_operation = Markup(alturas_df.to_json(orient='records'))
 
     return render_template('vehicle_map.html', json_lines=json_lines, json_operation=json_operation,
-                           json_stations=json_stations)
+                           json_stations=json_stations,calendar=df_calendar.to_json(orient='records'))
 
     # return Json para hacer el render en el cliente
     #
 
-@app.route('/gauges')
-@login_required
-def show_indicators():
-    df = pd.read_sql_query("SELECT * from operation limit 1", db.engine)
-    titles = df.columns.values
-    return render_template('indicators.html')
 
 
 @app.route('/addjson', methods=['POST', 'GET'])

@@ -3,6 +3,23 @@
 {% block body %}
 <head>
     <title>Tablas </title>
+    <div id="line_top_x"></div>
+        <ul class="nav nav-tabs">
+          <li class="nav-item">
+            <a class="nav-link" href="">Panel de energía</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('show_vehicle_map') }}" aria-selected="false">Panel topográfico</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('show_entries') }}" aria-selected="false" >Gráficos personalizados</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link active" href="{{ url_for('show_tables') }}" aria-selected="true">Tablas</a>
+          </li>
+
+        </ul>
+     </div>
 
 
     <div class="variables">
