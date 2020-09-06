@@ -87,8 +87,8 @@ def show_entries():
         if session["h4"] < session["h3"]:
             session["h3"], session["h4"] = session["h4"], session["h3"]  # Swap times
 
-
-    query0 = "SELECT date(timestamp), MAX(" + session["calendar_var"] + ") as 'max_value' FROM operation GROUP BY date(timestamp)"
+    query0 = "SELECT date(timestamp), MAX(" + session["calendar_var"] + \
+             ") as 'max_value' FROM operation GROUP BY date(timestamp)"
 
     query1 = "SELECT " + session["graph_var_x"] + " ," + session["graph_var_y"] + \
             ' from operation WHERE timestamp BETWEEN "' + session['d1'] + ' ' + str(session['h1'])[:8] + \
