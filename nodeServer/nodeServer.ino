@@ -1,175 +1,228 @@
-#include <ESP8266WiFi.h>
-#include <ESP8266WebServer.h>
-/*Put your SSID & Password*/
-const char* ssid = "OVMS1";  // Enter SSID here
-const char* password = "OVMSinit";  //Enter Password here
+#include <WiFi.h>
+#include "MPU9250.h"
+#include "Waveshare_10Dof-D.h"
+#include <ArduinoJson.h>
 
-ESP8266WebServer server(80);
+const int capacity = JSON_OBJECT_SIZE(15);
+StaticJsonDocument<capacity> doc;
 
+//https://robologs.net/2014/10/15/tutorial-de-arduino-y-mpu-6050/
+int16_t AcX, AcY, AcZ, GyX, GyY, GyZ;
+//Ratios de conversion
+#define A_R 16384.0
+#define G_R 131.0
+//Conversion de radianes a grados 180/PI
+#define RAD_A_DEG = 57.295779
+
+//Definicion Angulos
+float Acc[2];
+float Gy[2];
+float Angle[2];
+
+// an MPU9250 object with the MPU-9250 sensor on I2C bus 0 with address 0x68
+MPU9250 IMU(Wire, 0x68);
+int status;
+
+// Replace with your network credentials
+const char* ssid = "2018030011WTJO";
+const char* password = "OVMSinit";
+
+// Set web server port number to 80
+WiFiServer server(80);
+
+// Variable to store the HTTP request
+String header;
+
+// Auxiliar variables to store the current output state
+String output26State = "off";
+String output27State = "off";
+
+// Assign output variables to GPIO pins
+
+// Current time
+unsigned long currentTime = millis();
+// Previous time
+unsigned long previousTime = 0;
+// Define timeout time in milliseconds (example: 2000ms = 2s)
+const long timeoutTime = 2000;
 
 void setup() {
   Serial.begin(115200);
-  delay(100);
-  pinMode(LED1pin, OUTPUT);
-  pinMode(LED2pin, OUTPUT);
+  while (!Serial) {}
+  // start communication with IMU
+  IMU_EN_SENSOR_TYPE enMotionSensorType, enPressureType;
+  imuInit( &enMotionSensorType,  &enPressureType);
+  status = IMU.begin();
+  if (status < 0) {
+    Serial.println("IMU initialization unsuccessful");
+    Serial.println("Check IMU wiring or try cycling power");
+    Serial.print("Status: ");
+    Serial.println(status);
+    while (1) {}
+  }
+  // setting the accelerometer full scale range to +/-8G
+  IMU.setAccelRange(MPU9250::ACCEL_RANGE_8G);
+  // setting the gyroscope full scale range to +/-500 deg/s
+  IMU.setGyroRange(MPU9250::GYRO_RANGE_500DPS);
+  // setting DLPF bandwidth to 20 Hz
+  IMU.setDlpfBandwidth(MPU9250::DLPF_BANDWIDTH_20HZ);
+  // setting SRD to 19 for a 50 Hz update rate
+  IMU.setSrd(19);
+  // Initialize the output variables as outputs
 
-  Serial.println("Connecting to ");
+  // Connect to Wi-Fi network with SSID and password
+  Serial.print("Connecting to ");
   Serial.println(ssid);
-
-  //connect to your local wi-fi network
   WiFi.begin(ssid, password);
-
-  //check wi-fi is connected to wi-fi network
   while (WiFi.status() != WL_CONNECTED) {
-    delay(1000);
+    delay(500);
     Serial.print(".");
   }
+  // Print local IP address and start web server
   Serial.println("");
-  Serial.println("WiFi connected..!");
-  Serial.print("Got IP: ");  Serial.println(WiFi.localIP());
-
-  server.on("/", handle_OnConnect);
-  server.on("/led1on", handle_led1on);
-  server.on("/led1off", handle_led1off);
-  server.on("/led2on", handle_led2on);
-  server.on("/led2off", handle_led2off);
-  server.on("/JsonInput", handle_jsonInput);
-  server.onNotFound(handleNotFound);
-
+  Serial.println("WiFi connected.");
+  Serial.println("IP address: ");
+  Serial.println(WiFi.localIP());
   server.begin();
-  Serial.println("HTTP server started");
 }
+
 void loop() {
-  server.handleClient();
-  if (LED1status)
-  {
-    digitalWrite(LED1pin, HIGH);
-  }
-  else
-  {
-    digitalWrite(LED1pin, LOW);
-  }
 
-  if (LED2status)
-  {
-    digitalWrite(LED2pin, HIGH);
-  }
-  else
-  {
-    digitalWrite(LED2pin, LOW);
-  }
-}
+  IMU.readSensor();
+  int32_t s32PressureVal = 0, s32TemperatureVal = 0, s32AltitudeVal = 0;
+  pressSensorDataGet(&s32TemperatureVal, &s32PressureVal, &s32AltitudeVal);
 
-void handle_OnConnect() {
-  LED1status = LOW;
-  LED2status = LOW;
-  Serial.println("GPIO7 Status: OFF | GPIO6 Status: OFF");
-  server.send(200, "text/html", SendHTML(LED1status, LED2status));
-}
+  AcX = IMU.getAccelX_mss();
+  Serial.print("\t");
+  AcY = IMU.getAccelY_mss();
+  Serial.print("\t");
+  AcZ = IMU.getAccelZ_mss();
 
-void handle_led1on() {
-  LED1status = HIGH;
+  Acc[1] = atan(-1 * (AcX / A_R) / sqrt(pow((AcY / A_R), 2) + pow((AcZ / A_R), 2))) * RAD_TO_DEG;
+  Acc[0] = atan((AcY / A_R) / sqrt(pow((AcX / A_R), 2) + pow((AcZ / A_R), 2))) * RAD_TO_DEG;
 
-  Serial.println("GPIO7 Status: ON");
-  server.send(200, "text/html", SendHTML(true, LED2status));
-}
+  GyX = IMU.getGyroX_rads();
+  GyY = IMU.getGyroY_rads();
 
-void handle_jsonInput() {
 
-}
+  //Calculo del angulo del Giroscopio
+  Gy[0] = GyX / G_R;
+  Gy[1] = GyY / G_R;
 
-void handle_led1off() {
-  LED1status = LOW;
-  Serial.println("GPIO7 Status: OFF");
-  server.send(200, "text/html", SendHTML(false, LED2status));
-}
-
-void handle_led2on() {
-  LED2status = HIGH;
-  Serial.println("GPIO6 Status: ON");
-  server.send(200, "text/html", SendHTML(LED1status, true));
-}
-
-void handle_led2off() {
-  LED2status = LOW;
-  Serial.println("GPIO6 Status: OFF");
-  server.send(200, "text/html", SendHTML(LED1status, false));
-}
-
-void handleNotFound() {
-  String message = "File Not Found\n\n";
-  message += "URI: ";
-  message += server.uri();
-  message += "\nMethod: ";
-  message += (server.method() == HTTP_GET) ? "GET" : "POST";
-  message += "\nArguments: ";
-  message += server.args();
-  message += "\n";
-  for (uint8_t i = 0; i < server.args(); i++) {
-    message += " " + server.argName(i) + ": " + server.arg(i) + "\n";
-  }
-  server.send(404, "text/plain", message);
-}
-
-String SendHTML(uint8_t led1stat, uint8_t led2stat) {
-  String ptr = "<!DOCTYPE html> <html>\n";
-  ptr += "<head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, user-scalable=no\">\n";
-  ptr += "<title>LED Control</title>\n";
-
-  ptr += "<style>html { font-family: Helvetica; display: inline-block; margin: 0px auto; text-align: center;}\n";
-  ptr += "body{margin-top: 50px;} h1 {color: #444444;margin: 50px auto 30px;} h3 {color: #444444;margin-bottom: 50px;}\n";
-  ptr += ".button {display: block;width: 80px;background-color: #1abc9c;border: none;color: white;padding: 13px 30px;text-decoration: none;font-size: 25px;margin: 0px auto 35px;cursor: pointer;border-radius: 4px;}\n";
-  ptr += ".button-on {background-color: #1abc9c;}\n";
-  ptr += ".button-on:active {background-color: #16a085;}\n";
-  ptr += ".button-off {background-color: #34495e;}\n";
-  ptr += ".button-off:active {background-color: #2c3e50;}\n";
-  ptr += "p {font-size: 14px;color: #888;margin-bottom: 10px;}\n";
-  ptr += "</style>\n";
-
-  ptr += "</head>\n";
-  ptr += "<body>\n";
-  ptr += "<h1>ESP8266 Web Server</h1>\n";
-  ptr += "<h3>Using Station(STA) Mode</h3>\n";
-
-  if (led1stat)
-  {
-    ptr += "<p>LED1 Status: ON</p><a class=\"button button-off\" href=\"/led1off\">OFF</a>\n";
-  }
-  else
-  {
-    ptr += "<p>LED1 Status: OFF</p><a class=\"button button-on\" href=\"/led1on\">ON</a>\n";
+  Angle[0] = 0.97 * (Angle[0] + Gy[0] * 0.010) + 0.03 * Acc[0];
+  Angle[1] = 0.97 * (Angle[1] + Gy[1] * 0.010) + 0.03 * Acc[1];
+  if (isnan(Angle[1])) {
+    ESP.restart();
   }
 
-  if (led2stat)
-  {
-    ptr += "<p>LED2 Status: ON</p><a class=\"button button-off\" href=\"/led2off\">OFF</a>\n";
-  }
-  else
-  {
-    ptr += "<p>LED2 Status: OFF</p><a class=\"button button-on\" href=\"/led2on\">ON</a>\n";
-  }
 
-  ptr += "</body>\n";
-  ptr += "</html>\n";
-  return ptr;
+  Serial.println(Angle[1]);
+
+
+  WiFiClient client = server.available();   // Listen for incoming clients
+
+  //if (0) {
+  if (client) {                             // If a new client connects,
+    currentTime = millis();
+    previousTime = currentTime;
+    Serial.println("New Client.");          // print a message out in the serial port
+    String currentLine = "";                // make a String to hold incoming data from the client
+    while (client.connected() && currentTime - previousTime <= timeoutTime) {  // loop while the client's connected
+      currentTime = millis();
+      if (client.available()) {             // if there's bytes to read from the client,
+        char c = client.read();             // read a byte, then
+        Serial.write(c);                    // print it out the serial monitor
+        header += c;
+        if (c == '\n') {                    // if the byte is a newline character
+          // if the current line is blank, you got two newline characters in a row.
+          // that's the end of the client HTTP request, so send a response:
+          if (currentLine.length() == 0) {
+            // HTTP headers always start with a response code (e.g. HTTP/1.1 200 OK)
+            // and a content-type so the client knows what's coming, then a blank line:
+            client.println("HTTP/1.1 200 OK");
+            client.println("Content-type:text/html");
+            client.println("Connection: close");
+            client.println();
+
+            if (header.indexOf("GET /data") >= 0) {
+              doc["angle_x"] = round(Angle[0] * 100.0) / 100.0;
+              doc["angle_y"] = round(Angle[1] * 100.0) / 100.0;
+              doc["temp"] = round(IMU.getTemperature_C() * 100.0) / 100.0;
+              doc["pressure"] = round((float)s32PressureVal / 100.0);
+              doc["elevation2"] = round((float)s32AltitudeVal / 100.0);
+              serializeJson(doc, client);
+              //client.println(doc);
+              //client.println();
+              //serializeJsonPretty(doc, client);
+              // The HTTP response ends with another blank line
+            }
+
+            else {
+              if (header.indexOf("GET /26/on") >= 0) {
+                Serial.println("GPIO 26 on");
+                output26State = "on";
+              } else if (header.indexOf("GET /26/off") >= 0) {
+                Serial.println("GPIO 26 off");
+                output26State = "off";
+              } else if (header.indexOf("GET /27/on") >= 0) {
+                Serial.println("GPIO 27 on");
+                output27State = "on";
+              } else if (header.indexOf("GET /27/off") >= 0) {
+                Serial.println("GPIO 27 off");
+                output27State = "off";
+              }
+
+              // Display the HTML web page
+              client.println("<!DOCTYPE html><html>");
+              client.println("<head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">");
+              client.println("<link rel=\"icon\" href=\"data:,\">");
+              // CSS to style the on/off buttons
+              // Feel free to change the background-color and font-size attributes to fit your preferences
+              client.println("<style>html { font-family: Helvetica; display: inline-block; margin: 0px auto; text-align: center;}");
+              client.println(".button { background-color: #4CAF50; border: none; color: white; padding: 16px 40px;");
+              client.println("text-decoration: none; font-size: 30px; margin: 2px; cursor: pointer;}");
+              client.println(".button2 {background-color: #555555;}</style></head>");
+
+              // Web Page Heading
+              client.println("<body><h1>ESP32 Web Server</h1>");
+
+              // Display current state, and ON/OFF buttons for GPIO 26
+              client.println("<p>GPIO 26 - State " + output26State + "</p>");
+              // If the output26State is off, it displays the ON button
+              if (output26State == "off") {
+                client.println("<p><a href=\"/26/on\"><button class=\"button\">ON</button></a></p>");
+              } else {
+                client.println("<p><a href=\"/26/off\"><button class=\"button button2\">OFF</button></a></p>");
+              }
+
+              // Display current state, and ON/OFF buttons for GPIO 27
+              client.println("<p>GPIO 27 - State " + output27State + "</p>");
+              // If the output27State is off, it displays the ON button
+              if (output27State == "off") {
+                client.println("<p><a href=\"/27/on\"><button class=\"button\">ON</button></a></p>");
+              } else {
+                client.println("<p><a href=\"/27/off\"><button class=\"button button2\">OFF</button></a></p>");
+              }
+              client.println("</body></html>");
+
+              // The HTTP response ends with another blank line
+              client.println();
+              // Break out of the while loop
+            }
+            break;
+          } else { // if you got a newline, then clear currentLine
+            currentLine = "";
+          }
+        } else if (c != '\r') {  // if you got a  return character,
+          currentLine += c;      // add it to the end of the currentLine
+        }
+      }
+    }
+    // Clear the header variable
+    header = "";
+    // Close the connection
+    client.stop();
+    Serial.println("Client disconnected.");
+    Serial.println("");
+  }
 }
-
-String (temp, 400,
-
-         "<html>\
-  <head>\
-    <meta http-equiv='refresh' content='5'/>\
-    <title>ESP8266 Demo</title>\
-    <style>\
-      body { background-color: #cccccc; font-family: Arial, Helvetica, Sans-Serif; Color: #000088; }\
-    </style>\
-  </head>\
-  <body>\
-    <h1>Hello from ESP8266!</h1>\
-    <p>Uptime: %02d:%02d:%02d</p>\
-    <img src=\"/test.svg\" />\
-  </body>\
-</html>",
-
-         hr, min % 60, sec % 60
-        );

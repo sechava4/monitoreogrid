@@ -1,6 +1,8 @@
 const CAR_MODEL = "nissan:leaf";
-const vehicle_id = "FSV110";
+//const vehicle_id = "FSV110";
+const vehicle_id = "OIO53";
 const URL = "http://vehiculoselectricos.dis.eafit.edu.co/addjson";
+const URL_esp32 = "http://192.168.4.3/data";
 var objTLM;
 var objTimer;
 var operative_state = 1;
@@ -18,12 +20,20 @@ var lon = 0;
 var sum_acc = 0;
 var sum_speed = 0.0;
 var i = 1.0;
+var arr_from_json
 
 objTimer = PubSub.subscribe("ticker.1", SendLiveData); // update each second
 
 // http request callback if successful
 function OnRequestDone(resp) {
     print("response="+JSON.stringify(resp)+'\n');
+}
+
+function OnRequestDoneJson(resp) {
+    print("response="+JSON.stringify(resp)+'\n');
+    var data = resp.body;
+    arr_from_json = JSON.parse(data);
+    HTTP.Request(GetURLcfg());
 }
 
 // http request callback if failed
@@ -56,7 +66,7 @@ function GetUrlABRP() {
     urljson += "current=" + (OvmsMetrics.AsFloat("v.b.current")*-1.00).toFixed(2) + "&";
     urljson += "capacity=" + OvmsMetrics.AsFloat("xrz.v.avail.energy") + "&";
     urljson += "batt_temp=" + OvmsMetrics.AsFloat("v.b.temp") + "&";    //Main battery momentary temperature
-    urljson += "ext_temp=" + OvmsMetrics.AsFloat("v.e.temp") + "&";    //Ambient temperature
+    //urljson += "ext_temp=" + OvmsMetrics.AsFloat("v.e.temp") + "&";    //Ambient temperature
 
     urljson += "power_kw=" + ( OvmsMetrics.AsFloat("v.b.voltage") * OvmsMetrics.AsFloat("v.b.current") / (-1000.0) ).toFixed(3)  + "&";    //Main battery momentary power
 
@@ -91,6 +101,9 @@ function GetUrlABRP() {
     urljson += "tpms=" + OvmsMetrics.AsFloat("v.tp.fl.p") + "&";
     urljson += "charge_time=" + OvmsMetrics.AsFloat("v.c.time") + "&";
     urljson += "charger_type=" + OvmsMetrics.AsFloat("v.c.type") + "&";
+    urljson += "angle_x=" + arr_from_json["angle_x"] + "&";
+    urljson += "angle_y=" + arr_from_json["angle_y"] + "&";
+    urljson += "ext_temp=" + arr_from_json["temp"] + "&";
     print(urljson);
     i = 1.0;
     sum_acc = 0.0;
@@ -110,10 +123,20 @@ function GetURLcfg() {
     return cfg;
 }
 
+function GetURL_auxdata() {
+    var cfg = {
+    url: URL_esp32,
+    timeout: 5000,
+    done: function(resp) {OnRequestDoneJson(resp)},
+    fail: function(err)  {OnRequestFail(err)}
+    };
+    return cfg;
+}
+
 function Make_Request(){
     p = new Date();
     prev = p.getTime();
-    HTTP.Request(GetURLcfg());
+    HTTP.Request(GetURL_auxdata());
 }
 
 function SendLiveData() {
@@ -121,6 +144,7 @@ function SendLiveData() {
     var cms = d.getTime();   //current_millis
 
     speed = OvmsMetrics.AsFloat(["v.p.speed"]);
+    speed = OvmsMetrics.AsFloat(["v.p.gpsspeed"]);
     sum_speed = sum_speed + speed;
 
     var acc = (speed - old_speed) / 3.6;
@@ -132,7 +156,7 @@ function SendLiveData() {
       case 1:
         // Andando sin regenerar
 
-        if (i > 7) {
+        if (i > 8) {
             Make_Request();
         }
         /*
@@ -166,7 +190,7 @@ function SendLiveData() {
 
       case 2:
         // Andando con freno regenerativo
-        if (i > 2) {
+        if (i > 6) {
             Make_Request();
         }
         if ( (speed >= 1) && (OvmsMetrics.AsFloat("v.b.current") < 0 ) ) {

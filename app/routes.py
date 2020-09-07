@@ -344,8 +344,15 @@ def add_entry():
             Fw = m * 9.81 * math.sin(slope)
             operation.net_force = (m * float(request.args["mean_acc"])) + Fw + operation.friction_force
             operation.mec_power = (operation.net_force * float(request.args["mean_speed"])/3.6) / 1000
-            operation.eff = 100 * abs(float(operation.mec_power) / float(operation.power_kw))
+            # operation.eff = 100 * abs(float(operation.mec_power) / float(operation.power_kw))
             operation.en_pot = rise * 9.81 * m
+
+            # WANG MODEL IMPLEMANTATION
+            Ah = float(request.args["current"]) * delta_t / 3600
+            c_rate = float(request.args["current"]) / 100
+            b = 448.96 * c_rate ^ 2 - 6301.1 * c_rate + 33840
+            operation.q_loss = b * math.exp((-31700 + (c_rate * 370.3)) /
+                                            (8.314472*float(request.args["ext_temp"]))) *Ah ^ 0.552
 
             db.session.add(operation)
             db.session.commit()

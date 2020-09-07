@@ -62,3 +62,6 @@ id,var,var_pretty
 60,charge_time,Tiempo de Carga (s)
 61,charger_type,Tipo de cargador
 62,eff,Eficiencia (%)
+63,angle_x,Angulo X
+64,angle_y,Angulo Y
+65,q_loss,Perdida de Capacidad
