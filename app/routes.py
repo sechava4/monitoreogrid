@@ -285,8 +285,6 @@ def show_vehicle_map():
                            json_stations=json_stations,calendar=df_calendar.to_json(orient='records'))
 
     # return Json para hacer el render en el cliente
-    #
-
 
 
 @app.route('/addjson', methods=['POST', 'GET'])
@@ -333,19 +331,19 @@ def add_entry():
             operation.slope = degree
 
             p = 1.2  # Air density kg/m3
-            m = float(request.args["mass"])  # kg
-            A = 0.303  # 0.79 car 0.303 motorcycle # Frontal area m2
+            vehicle.weight = float(request.args["mass"])  # kg
             cr = 0.02  # Rolling coefficient
-            cd = 0.29  # 0.29 car 1.8 motorcycle # Drag coefficient
             # cr = 0.005 + (1 / p) (0.01 + 0.0095 (v / 100)2)  pressure in Bar V in kmH
 
-            operation.friction_force = (cr * m * 9.81 * math.cos(slope)) + \
-                                       (0.5 * p * A * cd * (float(request.args["mean_speed"])/3.6) ** 2)
-            Fw = m * 9.81 * math.sin(slope)
-            operation.net_force = (m * float(request.args["mean_acc"])) + Fw + operation.friction_force
+            operation.friction_force = (cr * vehicle.weight * 9.81 * math.cos(slope)) + \
+                                       (0.5 * p * vehicle.frontal_area * vehicle.cd
+                                        * (float(request.args["mean_speed"]) / 3.6) ** 2)
+
+            Fw = vehicle.weight * 9.81 * math.sin(slope)
+            operation.net_force = (vehicle.weight * float(request.args["mean_acc"])) + Fw + operation.friction_force
             operation.mec_power = (operation.net_force * float(request.args["mean_speed"])/3.6) / 1000
             # operation.eff = 100 * abs(float(operation.mec_power) / float(operation.power_kw))
-            operation.en_pot = rise * 9.81 * m
+            operation.en_pot = rise * 9.81 * vehicle.weight
 
             # WANG MODEL IMPLEMANTATION
             Ah = float(request.args["current"]) * delta_t / 3600
