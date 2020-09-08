@@ -330,6 +330,7 @@ def add_entry():
             degree = (slope * 180) / math.pi
             operation.slope = degree
 
+            # JIMENEZ MODEL IMPLEMANTATION
             p = 1.2  # Air density kg/m3
             vehicle.weight = float(request.args["mass"])  # kg
             cr = 0.02  # Rolling coefficient
@@ -416,6 +417,7 @@ def map_var():
         session["h1"], session["h2"] = session["h2"], session["h1"]  # Swap times
 
     return redirect(url_for('show_vehicle_map'))
+
 
 @app.route('/zones_interval', methods=['POST'])
 def zones_interval():

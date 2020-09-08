@@ -41,9 +41,9 @@ class Vehicle(db.Model):
     marca = db.Column(db.String(64))
     modelo = db.Column(db.String(64))
     year = db.Column(db.Integer)
-    weight = db.Column(db.Integer)
-    cd = db.Column(db.Integer)  # 0.29 car 1.8 motorcycle # Drag coefficient
-    frontal_area = db.Column(db.Integer)  # 0.303  # 0.79 car 0.303 motorcycle # Frontal area m2
+    weight = db.Column(db.Float)
+    cd = db.Column(db.Float)  # 0.29 car 1.8 motorcycle # Drag coefficient
+    frontal_area = db.Column(db.Float)  # 0.303  # 0.79 car 0.303 motorcycle # Frontal area m2
     capacity_nominal = db.Column(db.Float)
     odometer = db.Column(db.Integer)  # db.ForeignKey('operation.odometer')) ?
     soh = db.Column(db.Float)
