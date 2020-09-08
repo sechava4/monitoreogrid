@@ -13,15 +13,20 @@ int16_t AcX, AcY, AcZ, GyX, GyY, GyZ;
 #define G_R 131.0
 //Conversion de radianes a grados 180/PI
 #define RAD_A_DEG = 57.295779
+static uint32_t lastMillis = millis();
 
 //Definicion Angulos
 float Acc[2];
 float Gy[2];
+//float Gy_ant[2];
 float Angle[2];
+//float alpha[2];
 
 // an MPU9250 object with the MPU-9250 sensor on I2C bus 0 with address 0x68
 MPU9250 IMU(Wire, 0x68);
 int status;
+
+int32_t s32PressureVal = 0, s32TemperatureVal = 0, s32AltitudeVal = 0;
 
 // Replace with your network credentials
 const char* ssid = "2018030011WTJO";
@@ -88,35 +93,46 @@ void setup() {
 
 void loop() {
 
-  IMU.readSensor();
-  int32_t s32PressureVal = 0, s32TemperatureVal = 0, s32AltitudeVal = 0;
-  pressSensorDataGet(&s32TemperatureVal, &s32PressureVal, &s32AltitudeVal);
+  if (millis() - lastMillis > 100) {
+    lastMillis = millis();
+    IMU.readSensor();
+    pressSensorDataGet(&s32TemperatureVal, &s32PressureVal, &s32AltitudeVal);
 
-  AcX = IMU.getAccelX_mss();
-  Serial.print("\t");
-  AcY = IMU.getAccelY_mss();
-  Serial.print("\t");
-  AcZ = IMU.getAccelZ_mss();
+    AcX = IMU.getAccelX_mss();
+    Serial.print("\t");
+    AcY = IMU.getAccelY_mss();
+    Serial.print("\t");
+    AcZ = IMU.getAccelZ_mss();
 
-  Acc[1] = atan(-1 * (AcX / A_R) / sqrt(pow((AcY / A_R), 2) + pow((AcZ / A_R), 2))) * RAD_TO_DEG;
-  Acc[0] = atan((AcY / A_R) / sqrt(pow((AcX / A_R), 2) + pow((AcZ / A_R), 2))) * RAD_TO_DEG;
+    Acc[1] = atan(-1 * (AcX / A_R) / sqrt(pow((AcY / A_R), 2) + pow((AcZ / A_R), 2))) * RAD_TO_DEG;
+    Acc[0] = atan((AcY / A_R) / sqrt(pow((AcX / A_R), 2) + pow((AcZ / A_R), 2))) * RAD_TO_DEG;
 
-  GyX = IMU.getGyroX_rads();
-  GyY = IMU.getGyroY_rads();
+    GyX = IMU.getGyroX_rads();
+    GyY = IMU.getGyroY_rads();
+
+    //Calculo del angulo del Giroscopio
+    Gy[0] = GyX / G_R;
+    Gy[1] = GyY / G_R;
+
+    Angle[0] = 0.90 * (Angle[0] + Gy[0] * 0.1) + 0.1 * Acc[0];
+    Angle[1] = 0.90 * (Angle[1] + Gy[1] * 0.1) + 0.1 * Acc[1];
+
+    //    alpha[0] = (Gy[0] - Gy_ant[0]) / 0.1;
+    //    alpha[1] = (Gy[1] - Gy_ant[1]) / 0.1;
+    //Angle[0] = alpha[0] * (Angle[0] + Gy[0] * 0.1) + (1 - alpha[0]) * atan2((AcX/A_R),(AcY/A_R));
+    //Angle[0] = alpha[0] *  (Angle[0] + Gy[0] *  0.1) + (1 − alpha[1] ) * atan2 ( (AcX / A_R) , (AcY / A_R) );
+    //    Gy_ant[0] = Gy[0];
+    //    Gy_ant[1] = Gy[1];
+
+    if (isnan(Angle[1])) {
+      ESP.restart();
+    }
 
 
-  //Calculo del angulo del Giroscopio
-  Gy[0] = GyX / G_R;
-  Gy[1] = GyY / G_R;
-
-  Angle[0] = 0.97 * (Angle[0] + Gy[0] * 0.010) + 0.03 * Acc[0];
-  Angle[1] = 0.97 * (Angle[1] + Gy[1] * 0.010) + 0.03 * Acc[1];
-  if (isnan(Angle[1])) {
-    ESP.restart();
+    Serial.print(Angle[0], 6);
+    Serial.print("----");
+    Serial.println(Angle[1], 6);
   }
-
-
-  Serial.println(Angle[1]);
 
 
   WiFiClient client = server.available();   // Listen for incoming clients
