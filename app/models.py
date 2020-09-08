@@ -142,6 +142,7 @@ class Operation(db.Model):
     net_signal = db.Column(db.Float)
     occupants = db.Column(db.Integer)
     rpm = db.Column(db.Integer)
+    ilumination = db.Column(db.Float)
     station_id = db.Column(db.Integer)
     sensor_data = db.Column(db.String(128))
 
