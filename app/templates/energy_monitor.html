@@ -26,34 +26,10 @@
         <div id = "bargraph" style="width:70%;float: left">
             <script>
                 var graphs = {{plot | safe}};
-                var graphs_regen = {{plot2 | safe}};
+                //color_line = {{color | safe}}
+                console.log(graphs);
 
-                smoothTrace = {
-                   'type': 'scatter',
-                   'name': 'Consumption',
-                   'mode': 'lines',
-                   'x': graphs[0]['x'],
-                   'y': graphs[0]['y'],
-                   fill: 'tozeroy',
-                   'line': {
-                        'shape': 'spline',
-                        'smoothing': 0.45}
-                  }
-
-                  smoothTrace_regen = {
-                   'type': 'scatter',
-                   'name': 'Regeneration',
-                   'mode': 'lines',
-                   'x': graphs_regen[0]['x'],
-                   'y': graphs_regen[0]['y'],
-                   fill: 'tozeroy',
-                   'line': {
-                        'shape': 'spline',
-                        'smoothing': 0.45}
-                  }
-
-                data=[smoothTrace,smoothTrace_regen]
-                Plotly.newPlot('bargraph',data, {});
+                Plotly.newPlot('bargraph',graphs['data'], graphs['layout']);
             </script>
         </div>
         <div id="PieDiv" style="width:30%;float: right">
@@ -64,7 +40,7 @@
           var data = [{
           type: "pie",
           values: donnut_data[0]['values'],
-          labels: ['Consumo', 'Regeneración'],
+          labels: ['Regeneración', 'Consumo'],
           textinfo: "label+percent",
           textposition: "outside",
           automargin: true

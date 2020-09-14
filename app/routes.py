@@ -14,6 +14,7 @@ import pytz
 import requests
 import math
 from scipy import stats
+import numpy as np
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -153,10 +154,10 @@ def update_plot():
 def energy_monitor():
     now = datetime.now(pytz.timezone('America/Bogota'))
     session["energy_t1"] = now
-    delta_t = 30
+    delta_t = 300
     session["energy_t2"] = now - timedelta(days=delta_t)
-    query1 = 'SELECT timestamp, mec_power AS cons from operation WHERE timestamp BETWEEN "' + str(session["energy_t2"]) + \
-             '" and "' + str(session["energy_t1"]) + '" AND mec_power > 0 ORDER BY timestamp'
+    query1 = 'SELECT timestamp, mec_power from operation WHERE timestamp BETWEEN "' + str(session["energy_t2"]) + \
+             '" and "' + str(session["energy_t1"]) + '" ORDER BY timestamp'
 
     query2 = 'SELECT timestamp, mec_power AS regen from operation WHERE timestamp BETWEEN "' + str(session["energy_t2"]) + \
              '" and "' + str(session["energy_t1"]) + '" AND mec_power < 0 ORDER BY timestamp'
@@ -164,11 +165,12 @@ def energy_monitor():
     df_o = pd.read_sql_query(query1, db.engine)
     df_o2 = pd.read_sql_query(query2, db.engine)
 
-    scatter_cons = plot.create_plot(df_o, "timestamp", "cons")
-    scatter_regen = plot.create_plot(df_o2, "timestamp", "regen")
-    donnut = plot.create_donnut(df_o["cons"], df_o2["regen"], "cons", "regen")
+    scatter_cons = plot.create_double_plot(df_o, "timestamp", "cons", "regen")
+    # scatter_regen = plot.create_plot(df_o2, "timestamp", "regen")
 
-    return render_template('energy_monitor.html', plot=scatter_cons, plot2=scatter_regen, donnut=donnut)
+    donnut = plot.create_donnut(df_o, "cons", "regen")
+
+    return render_template('energy_monitor.html', plot=scatter_cons, donnut=donnut)
 
 
 @app.route('/tables', methods=['GET', 'POST'])
