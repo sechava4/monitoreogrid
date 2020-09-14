@@ -21,7 +21,7 @@ def jimenez(weight, frontal_area, cd, slope, speed, acc):
         if speed < 5:
             k = 0.5 * speed
     else:
-        k = 0.5 + 0.015 * (speed - 5);
+        k = 0.5 + 0.015 * (speed - 5)
 
     if mec_power < 0:
         jimenez_consumption = k * nte * ne * mec_power
