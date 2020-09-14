@@ -15,7 +15,7 @@ def create_plot(data_frame, x, y):
 def create_donnut(series1, series2, x, y):
 
     labels = [x, y]
-    values = [series1.sum(), series2.sum()]
+    values = [abs(series1.sum()), abs(series2.sum())]
 
     data_donnut =[go.Pie(labels=labels, values=values, hole=.3)]
 
