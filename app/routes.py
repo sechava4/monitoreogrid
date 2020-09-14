@@ -155,11 +155,11 @@ def energy_monitor():
     session["energy_t1"] = now
     delta_t = 30
     session["energy_t2"] = now - timedelta(days=delta_t)
-    query1 = 'SELECT timestamp, mec_power AS cons from operation WHERE timestamp BETWEEN "' + str(session["energy_t1"]) + \
-             '" and "' + str(session["energy_t2"]) + '" AND mec_power > 0 ORDER BY timestamp'
+    query1 = 'SELECT timestamp, mec_power AS cons from operation WHERE timestamp BETWEEN "' + str(session["energy_t2"]) + \
+             '" and "' + str(session["energy_t1"]) + '" AND mec_power > 0 ORDER BY timestamp'
 
-    query2 = 'SELECT timestamp, mec_power AS regen from operation WHERE timestamp BETWEEN "' + str(session["energy_t1"]) + \
-             '" and "' + str(session["energy_t2"]) + '" AND mec_power < 0 ORDER BY timestamp'
+    query2 = 'SELECT timestamp, mec_power AS regen from operation WHERE timestamp BETWEEN "' + str(session["energy_t2"]) + \
+             '" and "' + str(session["energy_t1"]) + '" AND mec_power < 0 ORDER BY timestamp'
 
     df_o = pd.read_sql_query(query1, db.engine)
     df_o2 = pd.read_sql_query(query2, db.engine)
