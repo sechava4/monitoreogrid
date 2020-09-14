@@ -358,8 +358,9 @@ def add_entry():
 
             # JIMENEZ MODEL IMPLEMANTATION
             vehicle.weight = float(request.args["mass"])
-            consumption_values = consumption_models.jimenez(vehicle.weight, vehicle.frontal_area,
-                                                            vehicle.cd, slope, operation.mean_speed, operation.mean_acc)
+            consumption_values = consumption_models.jimenez(vehicle.weight, float(vehicle.frontal_area),
+                                                            float(vehicle.cd), slope, float(operation.mean_speed),
+                                                            float(operation.mean_acc))
 
             operation.consumption = consumption_values[0]
             operation.mec_power = consumption_values[1]
