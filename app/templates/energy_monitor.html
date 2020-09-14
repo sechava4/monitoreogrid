@@ -29,7 +29,32 @@
                 //color_line = {{color | safe}}
                 console.log(graphs);
 
-                Plotly.newPlot('bargraph',graphs['data'], graphs['layout']);
+                smoothTrace = {
+                   'type': 'scatter',
+                   'name': 'Consumption',
+                   'mode': 'lines',
+                   'x': graphs['data'][0]['x'],
+                   'y': graphs['data'][0]['y'],
+                   fill: 'tozeroy',
+                   'line': {
+                        'shape': 'spline',
+                        'smoothing': 0}
+                  }
+
+                  smoothTrace_regen = {
+                   'type': 'scatter',
+                   'name': 'Regeneration',
+                   'mode': 'lines',
+                   'x': graphs['data'][1]['x'],
+                   'y': graphs['data'][1]['y'],
+                   fill: 'tozeroy',
+                   'line': {
+                        'shape': 'spline',
+                        'smoothing': 0}
+                  }
+
+                data=[smoothTrace,smoothTrace_regen]
+                Plotly.newPlot('bargraph',data, {});
             </script>
         </div>
         <div id="PieDiv" style="width:30%;float: right">
