@@ -1,3 +1,6 @@
+//https://robologs.net/2014/10/15/tutorial-de-arduino-y-mpu-6050/
+//https://randomnerdtutorials.com/esp32-static-fixed-ip-address-arduino-ide/
+
 #include <WiFi.h>
 #include "MPU9250.h"
 #include "Waveshare_10Dof-D.h"
@@ -6,7 +9,7 @@
 const int capacity = JSON_OBJECT_SIZE(15);
 StaticJsonDocument<capacity> doc;
 
-//https://robologs.net/2014/10/15/tutorial-de-arduino-y-mpu-6050/
+
 int16_t AcX, AcY, AcZ, GyX, GyY, GyZ;
 //Ratios de conversion
 #define A_R 16384.0
@@ -20,6 +23,8 @@ float Acc[2];
 float Gy[2];
 //float Gy_ant[2];
 float Angle[2];
+float mean_angle[2];
+uint16_t counter = 1; 
 //float alpha[2];
 
 // an MPU9250 object with the MPU-9250 sensor on I2C bus 0 with address 0x68
@@ -41,6 +46,15 @@ String header;
 // Auxiliar variables to store the current output state
 String output26State = "off";
 String output27State = "off";
+
+// Set your Static IP address
+IPAddress local_IP(192, 168, 4, 3);
+// Set your Gateway IP address
+IPAddress gateway(192, 168, 4, 10);
+
+IPAddress subnet(255, 255, 0, 0);
+IPAddress primaryDNS(8, 8, 8, 8);   //optional
+IPAddress secondaryDNS(8, 8, 4, 4); //optional
 
 // Assign output variables to GPIO pins
 
@@ -75,6 +89,11 @@ void setup() {
   IMU.setSrd(19);
   // Initialize the output variables as outputs
 
+  // Configures static IP address
+if (!WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS)) {
+    Serial.println("STA Failed to configure");
+  }
+
   // Connect to Wi-Fi network with SSID and password
   Serial.print("Connecting to ");
   Serial.println(ssid);
@@ -86,6 +105,7 @@ void setup() {
   // Print local IP address and start web server
   Serial.println("");
   Serial.println("WiFi connected.");
+
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
   server.begin();
@@ -93,7 +113,7 @@ void setup() {
 
 void loop() {
 
-  if (millis() - lastMillis > 100) {
+  if (millis() - lastMillis > 50) {
     lastMillis = millis();
     IMU.readSensor();
     pressSensorDataGet(&s32TemperatureVal, &s32PressureVal, &s32AltitudeVal);
@@ -114,24 +134,19 @@ void loop() {
     Gy[0] = GyX / G_R;
     Gy[1] = GyY / G_R;
 
-    Angle[0] = 0.90 * (Angle[0] + Gy[0] * 0.1) + 0.1 * Acc[0];
-    Angle[1] = 0.90 * (Angle[1] + Gy[1] * 0.1) + 0.1 * Acc[1];
-
-    //    alpha[0] = (Gy[0] - Gy_ant[0]) / 0.1;
-    //    alpha[1] = (Gy[1] - Gy_ant[1]) / 0.1;
-    //Angle[0] = alpha[0] * (Angle[0] + Gy[0] * 0.1) + (1 - alpha[0]) * atan2((AcX/A_R),(AcY/A_R));
-    //Angle[0] = alpha[0] *  (Angle[0] + Gy[0] *  0.1) + (1 − alpha[1] ) * atan2 ( (AcX / A_R) , (AcY / A_R) );
-    //    Gy_ant[0] = Gy[0];
-    //    Gy_ant[1] = Gy[1];
+    Angle[0] = 0.92 * (Angle[0] + Gy[0] * 0.05) + 0.08 * Acc[0];  //dt = 0.05
+    Angle[1] = 0.92 * (Angle[1] + Gy[1] * 0.05) + 0.08 * Acc[1];
 
     if (isnan(Angle[1])) {
       ESP.restart();
     }
 
-
     Serial.print(Angle[0], 6);
     Serial.print("----");
     Serial.println(Angle[1], 6);
+    mean_angle[0] += Angle[0];
+    mean_angle[1] += Angle[1];
+    counter++;
   }
 
 
@@ -161,13 +176,20 @@ void loop() {
             client.println();
 
             if (header.indexOf("GET /data") >= 0) {
-              doc["angle_x"] = round(Angle[0] * 100.0) / 100.0;
-              doc["angle_y"] = round(Angle[1] * 100.0) / 100.0;
+             
+              doc["angle_x"] = round(mean_angle[0]/counter * 100.0) / 100.0;
+              doc["angle_y"] = round(mean_angle[1]/counter * 100.0) / 100.0;
               doc["temp"] = round(IMU.getTemperature_C() * 100.0) / 100.0;
               doc["pressure"] = round((float)s32PressureVal / 100.0);
               doc["elevation2"] = round((float)s32AltitudeVal / 100.0);
               serializeJson(doc, client);
-              //client.println(doc);
+              
+              Serial.print(round(mean_angle[0]/counter * 100.0) / 100.0);
+              Serial.print("----");
+              Serial.println(round(mean_angle[1]/counter * 100.0) / 100.0);
+              mean_angle[0] = 0;
+              mean_angle[1] = 0;
+              counter = 1;
               //client.println();
               //serializeJsonPretty(doc, client);
               // The HTTP response ends with another blank line

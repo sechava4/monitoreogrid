@@ -42,6 +42,7 @@ class Vehicle(db.Model):
     modelo = db.Column(db.String(64))
     year = db.Column(db.Integer)
     weight = db.Column(db.Float)
+    # https://en.wikipedia.org/wiki/Automobile_drag_coefficient
     cd = db.Column(db.Float)  # 0.29 car 1.8 motorcycle # Drag coefficient
     frontal_area = db.Column(db.Float)  # 0.303  # 0.79 car 0.303 motorcycle # Frontal area m2
     capacity_nominal = db.Column(db.Float)

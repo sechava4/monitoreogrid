@@ -75,7 +75,7 @@ function GetUrlABRP() {
     urljson += "acceleration=" + OvmsMetrics.AsFloat("v.p.acceleration") + "&";    //Engine momentary acceleration
     urljson += "throttle=" + OvmsMetrics.AsFloat("v.e.throttle") + "&";    //Engine momentary THROTTLE
     urljson += "regen_brake=" + OvmsMetrics.AsFloat("v.e.regenbrake") + "&";    //Engine momentary Regen value
-    urljson += "consumption=" + OvmsMetrics.AsFloat("v.b.consumption") + "&";
+    //urljson += "consumption=" + OvmsMetrics.AsFloat("v.b.consumption") + "&";
     urljson += "range_est=" + OvmsMetrics.AsFloat("v.b.range.est") + "&";
     urljson += "range_ideal=" + OvmsMetrics.AsFloat("v.b.range.ideal") + "&";
     urljson += "range_full=" + OvmsMetrics.AsFloat("v.b.range.full") + "&";

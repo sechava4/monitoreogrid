@@ -1,0 +1,84 @@
+{% extends "layout.html" %}
+{% block body  %}
+<div>
+
+    <title>Panel de gestión energética</title>
+    <div id="line_top_x"></div>
+        <ul class="nav nav-tabs">
+          <li class="nav-item">
+            <a class="nav-link active" href="{{ url_for('energy_monitor') }}">Panel de energía</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('show_vehicle_map') }}" aria-selected="false">Panel topográfico</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('show_entries') }}" aria-selected="true" >Gráficos personalizados</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('show_tables') }}" aria-selected="false">Tablas</a>
+          </li>
+
+        </ul>
+     </div>
+        <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+    <div style="width: 100%">
+        <div id = "bargraph" style="width:70%;float: left">
+            <script>
+                var graphs = {{plot | safe}};
+                var graphs_regen = {{plot2 | safe}};
+
+                smoothTrace = {
+                   'type': 'scatter',
+                   'name': 'Consumption',
+                   'mode': 'lines',
+                   'x': graphs[0]['x'],
+                   'y': graphs[0]['y'],
+                   fill: 'tozeroy',
+                   'line': {
+                        'shape': 'spline',
+                        'smoothing': 0.45}
+                  }
+
+                  smoothTrace_regen = {
+                   'type': 'scatter',
+                   'name': 'Regeneration',
+                   'mode': 'lines',
+                   'x': graphs_regen[0]['x'],
+                   'y': graphs_regen[0]['y'],
+                   fill: 'tozeroy',
+                   'line': {
+                        'shape': 'spline',
+                        'smoothing': 0.45}
+                  }
+
+                data=[smoothTrace,smoothTrace_regen]
+                Plotly.newPlot('bargraph',data, {});
+            </script>
+        </div>
+        <div id="PieDiv" style="width:30%;float: right">
+         <script>
+          var donnut_data = {{donnut | safe}};
+          console.log(donnut_data[0]);
+
+          var data = [{
+          type: "pie",
+          values: [donnut_data[0]['values'],
+          labels: ['Consumo', 'Regeneración'],
+          textinfo: "label+percent",
+          textposition: "outside",
+          automargin: true
+        }]
+
+        var layout = {
+          height: 400,
+          width: 400,
+          }
+
+        Plotly.newPlot('PieDiv', data, layout)
+        </script>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

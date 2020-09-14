@@ -1,4 +1,4 @@
-from app import app, open_dataframes, plot, db
+from app import app, open_dataframes, plot, db, consumption_models
 from app.closest_points import Trees
 from app.forms import LoginForm, RegistrationForm, TablesForm
 from flask import request, session, redirect, url_for, Markup, \
@@ -9,7 +9,7 @@ from werkzeug.urls import url_parse
 from app.models import User, Operation, Vehicle
 import os
 import geopy.distance
-from datetime import datetime
+from datetime import datetime, timedelta
 import pytz
 import requests
 import math
@@ -109,8 +109,8 @@ def show_entries():
         pass
     print(pearson_coef)
 
-    scatter, donnut = plot.create_plot(df_o, session["graph_var_x"], session["graph_var_y"])
-    scatter2, _ = plot.create_plot(df_o2, session["graph_var_x2"], session["graph_var_y2"])
+    scatter = plot.create_plot(df_o, session["graph_var_x"], session["graph_var_y"])
+    scatter2 = plot.create_plot(df_o2, session["graph_var_x2"], session["graph_var_y2"])
     box = df_o[session["graph_var_y"]].tolist()
     box2 = df_o2[session["graph_var_y2"]].tolist()
     session["calendar_pretty"] = open_dataframes.pretty_var_name(session["calendar_var"])
@@ -119,7 +119,7 @@ def show_entries():
 
     session["x_pretty_graph2"] = open_dataframes.pretty_var_name(session["graph_var_x2"])
     session["y_pretty_graph2"] = open_dataframes.pretty_var_name(session["graph_var_y2"])
-    return render_template('show_entries.html', plot=scatter, pie=donnut, box=box, plot2=scatter2, box2=box2,
+    return render_template('show_entries.html', plot=scatter, box=box, plot2=scatter2, box2=box2,
                            calendar=df_calendar.to_json(orient='records'))
 
 
@@ -137,8 +137,8 @@ def update_plot():
 
     df_o = pd.read_sql_query(query, db.engine)
     df_o2 = pd.read_sql_query(query2, db.engine)
-    scatter, donnut = plot.create_plot(df_o, session["graph_var_x"], session["graph_var_y"])
-    scatter2, _ = plot.create_plot(df_o2, session["graph_var_x2"], session["graph_var_y2"])
+    scatter = plot.create_plot(df_o, session["graph_var_x"], session["graph_var_y"])
+    scatter2 = plot.create_plot(df_o2, session["graph_var_x2"], session["graph_var_y2"])
     session["calendar_pretty"] = open_dataframes.pretty_var_name(session["calendar_var"])
     session["x_pretty_graph"] = open_dataframes.pretty_var_name(session["graph_var_x"])
     session["y_pretty_graph"] = open_dataframes.pretty_var_name(session["graph_var_y"])
@@ -146,6 +146,29 @@ def update_plot():
     session["x_pretty_graph2"] = open_dataframes.pretty_var_name(session["graph_var_x2"])
     session["y_pretty_graph2"] = open_dataframes.pretty_var_name(session["graph_var_y2"])
     return scatter
+
+
+@app.route('/energy', methods=['GET', 'POST'])
+@login_required
+def energy_monitor():
+    now = datetime.now(pytz.timezone('America/Bogota'))
+    session["energy_t1"] = now
+    delta_t = 30
+    session["energy_t2"] = now - timedelta(days=delta_t)
+    query1 = 'SELECT timestamp, mec_power AS cons from operation WHERE timestamp BETWEEN "' + str(session["energy_t1"]) + \
+             '" and "' + str(session["energy_t2"]) + '" AND mec_power > 0 ORDER BY timestamp'
+
+    query2 = 'SELECT timestamp, mec_power AS regen from operation WHERE timestamp BETWEEN "' + str(session["energy_t1"]) + \
+             '" and "' + str(session["energy_t2"]) + '" AND mec_power < 0 ORDER BY timestamp'
+
+    df_o = pd.read_sql_query(query1, db.engine)
+    df_o2 = pd.read_sql_query(query2, db.engine)
+
+    scatter_cons = plot.create_plot(df_o, "timestamp", "cons")
+    scatter_regen = plot.create_plot(df_o2, "timestamp", "regen")
+    donnut = plot.create_donnut(df_o["cons"], df_o2["regen"], "cons", "regen")
+
+    return render_template('energy_monitor.html', plot=scatter_cons, plot2=scatter_regen, donnut=donnut)
 
 
 @app.route('/tables', methods=['GET', 'POST'])
@@ -301,6 +324,7 @@ def add_entry():
                 '%Y-%m-%d %H:%M:%S')
 
             # insert into vehicle(placa, marca, modelo, year, odometer) values('AVM05C', 'HONDA', 'ECO100', 2011, 30000)
+            operation.angle_y = operation.angle_y - 9.27
 
             last = Operation.query.order_by(Operation.id.desc()).first()
             delta_t = (operation.timestamp - last.timestamp).total_seconds()
@@ -331,19 +355,15 @@ def add_entry():
             operation.slope = degree
 
             # JIMENEZ MODEL IMPLEMANTATION
-            p = 1.2  # Air density kg/m3
-            vehicle.weight = float(request.args["mass"])  # kg
-            cr = 0.02  # Rolling coefficient
-            # cr = 0.005 + (1 / p) (0.01 + 0.0095 (v / 100)2)  pressure in Bar V in kmH
+            vehicle.weight = float(request.args["mass"])
+            consumption_values = consumption_models.jimenez(vehicle.weight, vehicle.frontal_area,
+                                                            vehicle.cd, slope, operation.mean_speed, operation.mean_acc)
 
-            operation.friction_force = (cr * vehicle.weight * 9.81 * math.cos(slope)) + \
-                                       (0.5 * p * vehicle.frontal_area * vehicle.cd
-                                        * (float(request.args["mean_speed"]) / 3.6) ** 2)
+            operation.consumption = consumption_values[0]
+            operation.mec_power = consumption_values[1]
+            operation.net_force = consumption_values[2]
+            operation.friction_force = consumption_values[3]
 
-            Fw = vehicle.weight * 9.81 * math.sin(slope)
-            operation.net_force = (vehicle.weight * float(request.args["mean_acc"])) + Fw + operation.friction_force
-            operation.mec_power = (operation.net_force * float(request.args["mean_speed"])/3.6) / 1000
-            # operation.eff = 100 * abs(float(operation.mec_power) / float(operation.power_kw))
             operation.en_pot = rise * 9.81 * vehicle.weight
 
             # WANG MODEL IMPLEMANTATION
