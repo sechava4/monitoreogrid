@@ -154,7 +154,7 @@ def update_plot():
 def energy_monitor():
     now = datetime.now(pytz.timezone('America/Bogota'))
     session["energy_t1"] = now
-    delta_t = 30
+    delta_t = 60
     session["energy_t2"] = now - timedelta(days=delta_t)
     query1 = 'SELECT timestamp, power_kw from operation WHERE timestamp BETWEEN "' + str(session["energy_t2"]) + \
              '" and "' + str(session["energy_t1"]) + '" ORDER BY timestamp'
