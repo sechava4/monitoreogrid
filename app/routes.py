@@ -362,10 +362,10 @@ def add_entry():
                                                             float(vehicle.cd), slope, float(operation.mean_speed),
                                                             float(operation.mean_acc))
 
-            operation.consumption = consumption_values[0]
-            operation.mec_power = consumption_values[1]
-            operation.net_force = consumption_values[2]
-            operation.friction_force = consumption_values[3]
+            operation.consumption = float(consumption_values[0])
+            operation.mec_power = float(consumption_values[1])
+            operation.net_force = float(consumption_values[2])
+            operation.friction_force = float(consumption_values[3])
 
             operation.en_pot = rise * 9.81 * vehicle.weight
 
