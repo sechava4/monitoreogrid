@@ -14,7 +14,7 @@ class LoginForm(FlaskForm):
 
 class TablesForm(FlaskForm):
     records = IntegerField('Registros ', validators=[DataRequired()])
-    dataset = SelectField('dataset',choices=[("rutas.csv", "Rutas"), ("21_rutas_accel.csv", "Aceleraciones")])
+    dataset = SelectField('dataset', choices=[("rutas.csv", "Rutas"), ("21_rutas_accel.csv", "Aceleraciones")])
     submit = SubmitField('Ver')
 
 

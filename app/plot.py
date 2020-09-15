@@ -10,8 +10,6 @@ def create_double_plot(data_frame, x_name, y_name):
     y = data_frame[y_name].to_numpy()
     y1 = np.where(y >= 0, y, 0)
     y2 = np.where(y <= 0, y, 0)
-    # mask = np.where(y > 0, y, 0)
-    # notmask = np.where(y < 0, )
 
     fig = go.Figure(go.Scatter(x=x, y=y1, mode='lines', name='Consumption',
                                fill='tozeroy', fillcolor='blue'))

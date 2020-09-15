@@ -1,6 +1,9 @@
 {% extends "layout.html" %}
 {% block body  %}
 <div>
+    <head>
+      <link rel="stylesheet" type="text/css" href="/static/style.css" />
+    </head>
 
     <title>Panel de gestión energética</title>
     <div id="line_top_x"></div>
@@ -22,6 +25,24 @@
      </div>
         <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 
+<div class="wrapper">
+  <div class="box header">
+      <div class="form-group form-inline">
+        <h3>Ver actividad de &nbsp</h3>
+        <select class="form-control input-lg">
+          <option value="last_hour">Última hora</option>
+          <option value="today">Hoy</option>
+          <option value="month">2 días</option>
+          <option value="week">Ultima semana</option>
+          <option value="day">Ultimo mes</option>
+        </select>
+    </div>
+  </div>
+
+</div>
+
+
+
     <div style="width: 100%">
         <div id = "bargraph" style="width:70%;float: left">
             <script>
@@ -31,30 +52,58 @@
 
                 smoothTrace = {
                    'type': 'scatter',
-                   'name': 'Consumption',
+                   'name': 'Consumo',
                    'mode': 'lines',
                    'x': graphs['data'][0]['x'],
                    'y': graphs['data'][0]['y'],
                    fill: 'tozeroy',
+                   fillcolor: '#9999ff',
+
                    'line': {
+                        'color': '#3333ff',
                         'shape': 'spline',
                         'smoothing': 0}
                   }
 
                   smoothTrace_regen = {
                    'type': 'scatter',
-                   'name': 'Regeneration',
+                   'name': 'Regeneración',
                    'mode': 'lines',
                    'x': graphs['data'][1]['x'],
                    'y': graphs['data'][1]['y'],
                    fill: 'tozeroy',
+                   fillcolor: '#99ff99',
                    'line': {
+                        'color': '#33ff33',
                         'shape': 'spline',
                         'smoothing': 0}
                   }
 
+                var layout = {
+                  title: {
+                    text:'Energía consumida y recuperada',
+                    font: {
+                      family: 'Bansc, monospace',
+                      size: 24
+                    },
+                    xref: 'paper',
+                    x: 0.05,
+                  },
+
+                  yaxis: {
+                    title: {
+                      text: 'kW',
+                      font: {
+                        family: 'Courier New, monospace',
+                        size: 18,
+                        color: '#7f7f7f'
+                      }
+                    }
+                  }
+                };
+
                 data=[smoothTrace,smoothTrace_regen]
-                Plotly.newPlot('bargraph',data, {});
+                Plotly.newPlot('bargraph',data, layout);
             </script>
         </div>
         <div id="PieDiv" style="width:30%;float: right">
@@ -66,6 +115,10 @@
           type: "pie",
           values: donnut_data[0]['values'],
           labels: ['Regeneración', 'Consumo'],
+          marker: {
+            colors:  ['#99ff99', '#9999ff']
+          },
+
           textinfo: "label+percent",
           textposition: "outside",
           automargin: true
