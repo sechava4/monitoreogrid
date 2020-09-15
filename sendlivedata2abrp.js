@@ -55,10 +55,10 @@ function GetUrlABRP() {
     urljson += "speed=" + OvmsMetrics.AsFloat(["v.p.speed"])+ "&";
     urljson += "mean_acc=" + (sum_acc *1.0 /i).toFixed(2) + "&";       //potencia promedio
     urljson += "user_id=" + "Juan" + "&";
-    urljson += "mass=" + 1528  + "&";
+    // urljson += "mass=" + 1528  + "&";
     urljson += "freeram=" + OvmsMetrics.Value("m.freeram") + "&";
     urljson += "odometer=" + OvmsMetrics.AsFloat("v.p.odometer") + "&";
-    //urljson += "monotonic=" + OvmsMetrics.Value("m.monotonic") + "&";
+    // urljson += "monotonic=" + OvmsMetrics.Value("m.monotonic") + "&";
     urljson += "net_signal=" + OvmsMetrics.Value("m.net.sq") + "&";
     urljson += "soc=" + OvmsMetrics.AsFloat("v.b.soc") + "&";    //State of charge
     urljson += "soh=" + OvmsMetrics.AsFloat("v.b.soh") + "&";    //State of health

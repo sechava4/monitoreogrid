@@ -154,21 +154,14 @@ def update_plot():
 def energy_monitor():
     now = datetime.now(pytz.timezone('America/Bogota'))
     session["energy_t1"] = now
-    delta_t = 60
+    delta_t = 300
     session["energy_t2"] = now - timedelta(days=delta_t)
-    query1 = 'SELECT timestamp, power_kw from operation WHERE timestamp BETWEEN "' + str(session["energy_t2"]) + \
+    query1 = 'SELECT timestamp, mec_power from operation WHERE timestamp BETWEEN "' + str(session["energy_t2"]) + \
              '" and "' + str(session["energy_t1"]) + '" ORDER BY timestamp'
 
-    query2 = 'SELECT timestamp, power_kw AS regen from operation WHERE timestamp BETWEEN "' + str(session["energy_t2"]) + \
-             '" and "' + str(session["energy_t1"]) + '" AND mec_power < 0 ORDER BY timestamp'
-
     df_o = pd.read_sql_query(query1, db.engine)
-    df_o2 = pd.read_sql_query(query2, db.engine)
-
-    scatter_cons = plot.create_double_plot(df_o, "timestamp", "cons", "regen")
-    # scatter_regen = plot.create_plot(df_o2, "timestamp", "regen")
-
-    donnut = plot.create_donnut(df_o, "cons", "regen")
+    scatter_cons = plot.create_double_plot(df_o, "timestamp", "mec_power")
+    donnut = plot.create_donnut(df_o, "cons", "regen", "mec_power")
 
     return render_template('energy_monitor.html', plot=scatter_cons, donnut=donnut)
 
