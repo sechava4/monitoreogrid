@@ -79,7 +79,7 @@
 
 
                 <div style="width: 100%;margin: 10px;">
-                <select class="form-control" id="CalendarVarSelect" name = calendar_var>
+                <select class="form-control" id="CalendarVarSelect" name = calendar_var onchange="this.form.submit();">
                     <option value="{{session.calendar_var}}"> {{session.calendar_pretty}}</option>
                     <option value="drivetime">Tiempo de manejo</option>
                     <option value="mec_power">Potencia efectiva (server) (kW) </option>
@@ -96,7 +96,7 @@
 
                 <div class="col-auto">
                     <label class="label label-default" for="exampleFormControlSelect1"> Eje X </label>
-                    <select class="form-control" id="exampleFormControlSelect1" name = variable_x>
+                    <select class="form-control" id="exampleFormControlSelect1" name = variable_x >
                         <option value="{{session.graph_var_x}}"> {{session.x_pretty_graph}}</option>
                         <option value="timestamp">Tiempo</option>
                         <option value="elevation">Altitud (msnm)</option>
@@ -139,7 +139,7 @@
                 </div>
                 <div class="col-auto">
                     <label class="label label-default" for="exampleFormControlSelect2"> Eje Y </label>
-                    <select class="form-control" id="exampleFormControlSelect2" name = variable_y>
+                    <select class="form-control" id="exampleFormControlSelect2" name = variable_y onchange="this.form.submit();">
                         <option value="{{session.graph_var_y}}"> {{session.y_pretty_graph}}</option>
                         <option value="elevation">Altitud (msnm)</option>
                         <option value="slope">Pendiente (°)</option>
@@ -336,7 +336,7 @@
                 </div>
                 <div class="col-auto">
                     <label class="label label-default" for="FormControlSelect2"> Eje Y </label>
-                    <select class="form-control" id="FormControlSelect2" name = variable_y2>
+                    <select class="form-control" id="FormControlSelect2" name = variable_y2 onchange="this.form.submit();">
                         <option value="{{session.graph_var_y2}}"> {{session.y_pretty_graph2}}</option>
                         <option value="elevation">Altitud (msnm)</option>
                         <option value="slope">Pendiente (°)</option>
@@ -564,7 +564,7 @@
             };
             setInterval(function(){
                 loadlink() // this will run after every 60 seconds
-            }, 60000);
+            }, 15000);
         });
     </script>
 </div>

@@ -65,3 +65,14 @@ id,var,var_pretty
 63,angle_x,Angulo X
 64,angle_y,Angulo Y
 65,q_loss,Perdida de Capacidad
+66,1 h, Última hora
+67,2 h, Últimas 2 horas
+68,4 h, Últimas 4 horas
+69,1 d, Hoy
+70,2 d, Últimos 2 días
+71,3 d, Últimos 3 días
+72,8 d, Ultima semana
+73,30 d, Ultimo mes
+74,60 d, Ultimos 60 días
+75,90 d, Ultimos 90 días
+76,365 d, Ultimo año

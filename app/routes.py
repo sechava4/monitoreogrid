@@ -152,18 +152,33 @@ def update_plot():
 @app.route('/energy', methods=['GET', 'POST'])
 @login_required
 def energy_monitor():
+    try:
+        session["time_interval"]
+    except KeyError:
+        session["time_interval"] = '2 d'
+
+    if request.method == 'POST':
+        session["time_interval"] = (request.form['time_interval'])
+
+    # print(session["time_interval"])
     now = datetime.now(pytz.timezone('America/Bogota'))
     session["energy_t1"] = now
-    delta_t = 90
-    session["energy_t2"] = now - timedelta(days=delta_t)
+    number = int(session["time_interval"].split()[0])
+    unit = session["time_interval"].split()[1]
+    if 'h' in unit:
+        session["energy_t2"] = now - timedelta(hours=number)
+    elif 'd' in unit:
+        session["energy_t2"] = now - timedelta(days=number)
+
     query1 = 'SELECT timestamp, mec_power from operation WHERE timestamp BETWEEN "' + str(session["energy_t2"]) + \
              '" and "' + str(session["energy_t1"]) + '" ORDER BY timestamp'
 
     df_o = pd.read_sql_query(query1, db.engine)
     scatter_cons = plot.create_double_plot(df_o, "timestamp", "mec_power")
-    donnut = plot.create_donnut(df_o, "cons", "regen", "mec_power")
+    donut = plot.create_kwh_donut(df_o, "timestamp", "mec_power", "cons", "regen")
+    session["t_int_pretty"] = open_dataframes.pretty_var_name(session["time_interval"])
 
-    return render_template('energy_monitor.html', plot=scatter_cons, donnut=donnut)
+    return render_template('energy_monitor.html', plot=scatter_cons, donut=donut)
 
 
 @app.route('/tables', methods=['GET', 'POST'])

@@ -3,7 +3,8 @@ import plotly.graph_objs as go
 import json
 import pandas as pd
 import numpy as np
-import plotly.express as px
+import time
+
 
 def create_double_plot(data_frame, x_name, y_name):
     x = data_frame[x_name]
@@ -26,12 +27,20 @@ def create_plot(data_frame, x, y):
     return scatter_json
 
 
-def create_donnut(df, x, y, y_name):
+def create_kwh_donut(df, x_name, y_name, out1_name, out2_name):
+    dates = pd.to_datetime(df['timestamp'], format="%Y-%m-%d %H:%M:%S.%f")
+    x = np.array([time.mktime(t.timetuple()) for t in dates])  # total seconds since epoch
 
-    labels = [x, y]
-    series1 = np.where(df[y_name] < 0, df[y_name], 0)
-    series2 = np.where(df[y_name] > 0, df[y_name], 0)
-    values = [abs(series1.sum()), abs(series2.sum())]
-    data_donnut =[go.Pie(labels=labels, values=values, hole=.3)]
-    pie_json = json.dumps(data_donnut, cls=plotly.utils.PlotlyJSONEncoder)
+    y = df[y_name].to_numpy()
+    y1 = np.where(y >= 0, y, 0)
+    y2 = np.where(y <= 0, y, 0)
+    labels = [out1_name, out2_name]
+
+    try:
+        values = [np.around((np.trapz(y1, x)/3.6e+6), 3), abs(np.around((np.trapz(y2, x)/3.6e+6), 3))]  # j to kwh
+    except IndexError:
+        values = [0.000001, 0.000001]
+    print(['Integrals = ', values])
+    data_donut =[go.Pie(labels=labels, values=values, hole=.3)]
+    pie_json = json.dumps(data_donut, cls=plotly.utils.PlotlyJSONEncoder)
     return pie_json
