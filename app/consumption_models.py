@@ -7,6 +7,7 @@ def jimenez(weight, frontal_area, cd, slope, speed, acc):
     cr = 0.02  # Rolling coefficient
     nte = 0.85  # transmission efficiency
     ne = 0.85  # Battery efficiency
+    k = 0   # speed factor
 
     # cr = 0.005 + (1 / p) (0.01 + 0.0095 (v / 100)2)  pressure in Bar V in kmH
 
