@@ -57,6 +57,7 @@
                google.visualization.events.addListener(chart, 'select', selectHandler);
 
                function selectHandler() {
+
                     item = chart.getSelection()[0]
                     if (item.row != null) {
 
@@ -69,13 +70,14 @@
                         console.log(date1);
                         document.getElementById('d1_input').value = date1;
                         document.getElementById('d2_input').value = date1;
+                        document.getElementById('Mainform').submit();
                     };
                 };
            }
         </script>
 
         <div class="variables">
-            <form role="form" class="form-inline" action="{{ url_for('show_entries') }}" method=post>
+            <form role="form" class="form-inline" id="Mainform" action="{{ url_for('show_entries') }}" method=post>
 
 
                 <div style="width: 100%;margin: 10px;">

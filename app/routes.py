@@ -291,6 +291,7 @@ def show_vehicle_map():
 
     query0 = "SELECT date(timestamp), MAX(" + session[
         "calendar_var"] + ") as 'max_value' FROM operation GROUP BY date(timestamp)"
+
     df_calendar = pd.read_sql_query(query0, db.engine)
     session["calendar_pretty"] = open_dataframes.pretty_var_name(session["calendar_var"])
 
@@ -315,7 +316,7 @@ def show_vehicle_map():
     json_operation = Markup(alturas_df.to_json(orient='records'))
 
     return render_template('vehicle_map.html', json_lines=json_lines, json_operation=json_operation,
-                           json_stations=json_stations,calendar=df_calendar.to_json(orient='records'))
+                           json_stations=json_stations, calendar=df_calendar.to_json(orient='records'))
 
     # return Json para hacer el render en el cliente
 
