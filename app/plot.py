@@ -37,7 +37,7 @@ def create_kwh_donut(df, x_name, y_name, out1_name, out2_name):
     labels = [out1_name, out2_name]
 
     try:
-        values = [np.around((np.trapz(y1, x)/3.6e+6), 3), abs(np.around((np.trapz(y2, x)/3.6e+6), 3))]  # j to kwh
+        values = [np.around((np.trapz(y1, x)/3600), 3), abs(np.around((np.trapz(y2, x)/3600), 3))]  # j to kwh
     except IndexError:
         values = [0.000001, 0.000001]
     print(['Integrals = ', values])
