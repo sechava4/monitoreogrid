@@ -99,10 +99,15 @@ def show_entries():
             ' from operation WHERE timestamp BETWEEN "' + session['d2'] + ' ' + str(session['h3'])[:8] + \
             '" and "' + str(session['d2']) + ' ' + str(session['h4'])[:8] + '"'
 
+    # df_exp = pd.read_csv('app/operation.csv', sep=',', index_col=0, decimal=".")
+    # df['timestamp'] = pd.to_datetime(df['timestamp'])"
+    # df_exp.to_sql('DB',db.engine )
+
     df_calendar = pd.read_sql_query(query0, db.engine)
     df_calendar = df_calendar.dropna()
     df_o = pd.read_sql_query(query1, db.engine)
     df_o2 = pd.read_sql_query(query2, db.engine)
+
     try:
         pearson_coef = stats.pearsonr(df_o[session["graph_var_x"]].to_numpy(), df_o[session["graph_var_y"]].to_numpy())
     except (ValueError, TypeError):
@@ -188,18 +193,21 @@ def show_tables():
         session["var1"]
         session["var2"]
         session["var3"]
+        session["var4"]
         session["records"]
     except KeyError:
 
         session["var1"] = "timestamp"
-        session["var2"] = "speed"
+        session["var2"] = "mean_speed"
         session["var3"] = "mean_acc"
+        session["var4"] = "mec_power"
         session["records"] = 20
 
     if request.method == 'POST':
         session["var1"] = (request.form['var1'])
         session["var2"] = (request.form['var2'])
         session["var3"] = (request.form['var3'])
+        session["var4"] = (request.form['var4'])
         session["records"] = (request.form['records'])
         session['form_d1'] = request.form['d1']
         session['form_h1'] = request.form['h1']
@@ -213,15 +221,26 @@ def show_tables():
         if session["h2"] < session["h1"]:
             session["h1"], session["h2"] = session["h2"], session["h1"]  # Swap times
 
-    query = "SELECT " + session["var1"] + " ," + session["var2"] + " ," + session["var3"] + \
+    query0 = "SELECT date(timestamp), MAX(" + session["calendar_var"] + \
+             ") as 'max_value' FROM operation GROUP BY date(timestamp)"
+
+    query = "SELECT " + session["var1"] + " ," + session["var2"] + " ," + session["var3"] + " ," + session["var4"] + \
             ' from operation WHERE timestamp BETWEEN "' + session['d1'] + ' ' + str(session['h1'])[:8] + \
             '" and "' + str(session['d1']) + ' ' + str(session['h2'])[:8] + '" limit ' + str(session["records"])
 
+    df_calendar = pd.read_sql_query(query0, db.engine)
+    df_calendar = df_calendar.dropna()
     df = pd.read_sql_query(query, db.engine)
+    if all(elem in list(df) for elem in ['slope', 'mean_speed', 'mean_acc']):
+        vehicle = Vehicle.query.filter_by(placa="FSV110").first()
+        consumption_models.add_jimenez_row(df, float(vehicle.weight), float(vehicle.frontal_area), float(vehicle.cd))
     session["var1_pretty"] = open_dataframes.pretty_var_name(session["var1"])
     session["var2_pretty"] = open_dataframes.pretty_var_name(session["var2"])
     session["var3_pretty"] = open_dataframes.pretty_var_name(session["var3"])
-    return render_template('tables.html', tables=[df.to_html(classes='data')], titles=df.columns.values)
+    session["var4_pretty"] = open_dataframes.pretty_var_name(session["var4"])
+    session["calendar_pretty"] = open_dataframes.pretty_var_name(session["calendar_var"])
+    return render_template('tables.html', tables=[df.to_html(classes='data')], titles=df.columns.values,
+                           calendar=df_calendar.to_json(orient='records'))
 
 
 @app.route('/zones_map', methods=['GET', 'POST'])
@@ -368,7 +387,8 @@ def add_entry():
             # JIMENEZ MODEL IMPLEMANTATION
             vehicle.weight = float(request.args["mass"])
             consumption_values = consumption_models.jimenez(vehicle.weight, float(vehicle.frontal_area),
-                                                            float(vehicle.cd), slope, float(operation.mean_speed),
+                                                            float(vehicle.cd), operation.slope,
+                                                            float(operation.mean_speed),
                                                             float(operation.mean_acc))
 
             operation.consumption = float(consumption_values[0])

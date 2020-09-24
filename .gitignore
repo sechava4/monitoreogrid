@@ -17,4 +17,6 @@ __pycache__/
 >>>>>>> master
 
 /app/app.db
-/Nodeserver/
+/Nodeserver/j
+/app/db.sql
+/app/operation.csv

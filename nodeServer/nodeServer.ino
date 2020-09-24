@@ -89,10 +89,10 @@ void setup() {
   IMU.setSrd(19);
   // Initialize the output variables as outputs
 
-  // Configures static IP address
-if (!WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS)) {
-    Serial.println("STA Failed to configure");
-  }
+  // Configures static IP address local_IP, gateway, subnet, primaryDNS, secondaryDNS
+//if (!WiFi.config()) {
+//    Serial.println("STA Failed to configure");
+//  }
 
   // Connect to Wi-Fi network with SSID and password
   Serial.print("Connecting to ");
@@ -124,8 +124,8 @@ void loop() {
     Serial.print("\t");
     AcZ = IMU.getAccelZ_mss();
 
-    Acc[1] = atan(-1 * (AcX / A_R) / sqrt(pow((AcY / A_R), 2) + pow((AcZ / A_R), 2))) * RAD_TO_DEG;
     Acc[0] = atan((AcY / A_R) / sqrt(pow((AcX / A_R), 2) + pow((AcZ / A_R), 2))) * RAD_TO_DEG;
+    Acc[1] = atan(-1 * (AcX / A_R) / sqrt(pow((AcY / A_R), 2) + pow((AcZ / A_R), 2))) * RAD_TO_DEG;
 
     GyX = IMU.getGyroX_rads();
     GyY = IMU.getGyroY_rads();
@@ -134,16 +134,18 @@ void loop() {
     Gy[0] = GyX / G_R;
     Gy[1] = GyY / G_R;
 
-    Angle[0] = 0.92 * (Angle[0] + Gy[0] * 0.05) + 0.08 * Acc[0];  //dt = 0.05
-    Angle[1] = 0.92 * (Angle[1] + Gy[1] * 0.05) + 0.08 * Acc[1];
+    Angle[0] = 0.98 * (Angle[0] + Gy[0] * 0.05) + 0.02 * Acc[0];  //dt = 0.05
+    Angle[1] = 0.98 * (Angle[1] + Gy[1] * 0.05) + 0.02 * Acc[1];
 
     if (isnan(Angle[1])) {
       ESP.restart();
     }
 
     Serial.print(Angle[0], 6);
-    Serial.print("----");
-    Serial.println(Angle[1], 6);
+    Serial.print("  :----:  ");
+    Serial.print(Angle[1], 6);
+    Serial.print("  :----:  ");
+    Serial.println(WiFi.localIP());
     mean_angle[0] += Angle[0];
     mean_angle[1] += Angle[1];
     counter++;

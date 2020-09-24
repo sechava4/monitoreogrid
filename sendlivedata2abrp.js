@@ -1,8 +1,9 @@
 const CAR_MODEL = "nissan:leaf";
 //const vehicle_id = "FSV110";
-const vehicle_id = "OIO53";
+const vehicle_id = "AVM05C";
+//const vehicle_id = "OIO53";
 const URL = "http://vehiculoselectricos.dis.eafit.edu.co/addjson";
-const URL_esp32 = "http://192.168.4.3/data";
+const URL_esp32 = "http://192.168.4.4/data";
 var objTLM;
 var objTimer;
 var operative_state = 1;
@@ -55,7 +56,7 @@ function GetUrlABRP() {
     urljson += "speed=" + OvmsMetrics.AsFloat(["v.p.speed"])+ "&";
     urljson += "mean_acc=" + (sum_acc *1.0 /i).toFixed(2) + "&";       //potencia promedio
     urljson += "user_id=" + "Juan" + "&";
-    // urljson += "mass=" + 1528  + "&";
+    urljson += "mass=" + 170  + "&";
     urljson += "freeram=" + OvmsMetrics.Value("m.freeram") + "&";
     urljson += "odometer=" + OvmsMetrics.AsFloat("v.p.odometer") + "&";
     // urljson += "monotonic=" + OvmsMetrics.Value("m.monotonic") + "&";
@@ -104,6 +105,7 @@ function GetUrlABRP() {
     urljson += "angle_x=" + arr_from_json["angle_x"] + "&";
     urljson += "angle_y=" + arr_from_json["angle_y"] + "&";
     urljson += "ext_temp=" + arr_from_json["temp"] + "&";
+    urljson += "elevation2=" + arr_from_json["elevation2"] + "&";
     print(urljson);
     i = 1.0;
     sum_acc = 0.0;

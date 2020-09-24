@@ -1,5 +1,6 @@
 import math
 import numpy as np
+import pandas as pd
 
 
 def jimenez(weight, frontal_area, cd, slope, speed, acc):
@@ -11,9 +12,11 @@ def jimenez(weight, frontal_area, cd, slope, speed, acc):
 
     # cr = 0.005 + (1 / p) (0.01 + 0.0095 (v / 100)2)  pressure in Bar V in kmH
 
-    friction_force = (cr * weight * 9.81 * math.cos(slope)) + \
-                               (0.5 * p * frontal_area * cd
-                                * (speed / 3.6) ** 2)
+    rad = (slope * math.pi) / 180
+
+    friction_force = (cr * weight * 9.81 * math.cos(rad)) + \
+                     (0.5 * p * frontal_area * cd
+                      * (speed / 3.6) ** 2)
 
     Fw = weight * 9.81 * math.sin(slope)
     net_force = weight * acc + Fw + friction_force
@@ -31,3 +34,18 @@ def jimenez(weight, frontal_area, cd, slope, speed, acc):
     print("Jimenez consumption")
     print(jimenez_consumption)
     return np.array([jimenez_consumption, mec_power, net_force, friction_force])
+
+
+def add_jimenez_row(df, weight, frontal_area, cd):
+    print(df)
+    df['added_jimenez'] = df.apply(lambda row: jimenez(weight, frontal_area, cd,
+                                                       row['slope'], row['mean_speed'], row['mean_acc'])[0], axis=1)
+    df['req_power'] = df.apply(lambda row: jimenez(weight, frontal_area, cd,
+                                                   row['slope'], row['mean_speed'], row['mean_acc'])[1], axis=1)
+    df['friction_force_calc'] = df.apply(lambda row: jimenez(weight, frontal_area, cd,
+                                                   row['slope'], row['mean_speed'], row['mean_acc'])[3], axis=1)
+    print(df)
+
+
+if __name__ == '__main__':
+    pass
