@@ -48,7 +48,7 @@ String output26State = "off";
 String output27State = "off";
 
 // Set your Static IP address
-IPAddress local_IP(192, 168, 4, 3);
+IPAddress ip(192, 168, 4, 4);
 // Set your Gateway IP address
 IPAddress gateway(192, 168, 4, 10);
 
@@ -95,6 +95,7 @@ void setup() {
 //  }
 
   // Connect to Wi-Fi network with SSID and password
+  WiFi.config(ip, gateway, subnet, primaryDNS);
   Serial.print("Connecting to ");
   Serial.println(ssid);
   WiFi.begin(ssid, password);

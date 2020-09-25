@@ -20,3 +20,6 @@ __pycache__/
 /Nodeserver/j
 /app/db.sql
 /app/operation.csv
+/Nodeserver/.vscode/
+/Nodeserver/.vscode/
+/Nodeserver/libraries/

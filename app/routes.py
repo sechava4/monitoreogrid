@@ -1,8 +1,8 @@
-from app import app, open_dataframes, plot, db, consumption_models
+from app import app, open_dataframes, plot, db, consumption_models, degradation_models
 from app.closest_points import Trees
 from app.forms import LoginForm, RegistrationForm, TablesForm
 from flask import request, session, redirect, url_for, Markup, \
-    render_template, flash,send_from_directory
+    render_template, flash, send_from_directory
 import pandas as pd
 from flask_login import current_user, login_user, logout_user, login_required
 from werkzeug.urls import url_parse
@@ -168,8 +168,9 @@ def energy_monitor():
     # print(session["time_interval"])
     now = datetime.now(pytz.timezone('America/Bogota'))
     session["energy_t1"] = now
-    number = int(session["time_interval"].split()[0])
-    unit = session["time_interval"].split()[1]
+
+    number = int(session["time_interval"].split()[0])   # example 10 h selects 20
+    unit = session["time_interval"].split()[1]          # example 10 h selects h
     if 'h' in unit:
         session["energy_t2"] = now - timedelta(hours=number)
     elif 'd' in unit:
@@ -194,6 +195,7 @@ def show_tables():
         session["var2"]
         session["var3"]
         session["var4"]
+        session["var5"]
         session["records"]
     except KeyError:
 
@@ -201,6 +203,7 @@ def show_tables():
         session["var2"] = "mean_speed"
         session["var3"] = "mean_acc"
         session["var4"] = "mec_power"
+        session["var5"] = "slope"
         session["records"] = 20
 
     if request.method == 'POST':
@@ -208,6 +211,7 @@ def show_tables():
         session["var2"] = (request.form['var2'])
         session["var3"] = (request.form['var3'])
         session["var4"] = (request.form['var4'])
+        session["var5"] = (request.form['var5'])
         session["records"] = (request.form['records'])
         session['form_d1'] = request.form['d1']
         session['form_h1'] = request.form['h1']
@@ -225,8 +229,9 @@ def show_tables():
              ") as 'max_value' FROM operation GROUP BY date(timestamp)"
 
     query = "SELECT " + session["var1"] + " ," + session["var2"] + " ," + session["var3"] + " ," + session["var4"] + \
-            ' from operation WHERE timestamp BETWEEN "' + session['d1'] + ' ' + str(session['h1'])[:8] + \
-            '" and "' + str(session['d1']) + ' ' + str(session['h2'])[:8] + '" limit ' + str(session["records"])
+            " ," + session["var5"] + ' from operation WHERE timestamp BETWEEN "' + session['d1'] + ' ' + \
+            str(session['h1'])[:8] + '" and "' + str(session['d1']) + ' ' + str(session['h2'])[:8] + '" limit ' + \
+            str(session["records"])
 
     df_calendar = pd.read_sql_query(query0, db.engine)
     df_calendar = df_calendar.dropna()
@@ -234,10 +239,14 @@ def show_tables():
     if all(elem in list(df) for elem in ['slope', 'mean_speed', 'mean_acc']):
         vehicle = Vehicle.query.filter_by(placa="FSV110").first()
         consumption_models.add_jimenez_row(df, float(vehicle.weight), float(vehicle.frontal_area), float(vehicle.cd))
+
+    if all(elem in list(df) for elem in ['current', 'timestamp', 'batt_temp']):
+        degradation_models.add_wang_row(df)
     session["var1_pretty"] = open_dataframes.pretty_var_name(session["var1"])
     session["var2_pretty"] = open_dataframes.pretty_var_name(session["var2"])
     session["var3_pretty"] = open_dataframes.pretty_var_name(session["var3"])
     session["var4_pretty"] = open_dataframes.pretty_var_name(session["var4"])
+    session["var5_pretty"] = open_dataframes.pretty_var_name(session["var5"])
     session["calendar_pretty"] = open_dataframes.pretty_var_name(session["calendar_var"])
     return render_template('tables.html', tables=[df.to_html(classes='data')], titles=df.columns.values,
                            calendar=df_calendar.to_json(orient='records'))

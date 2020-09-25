@@ -14,12 +14,11 @@ def jimenez(weight, frontal_area, cd, slope, speed, acc):
 
     rad = (slope * math.pi) / 180
 
-    friction_force = (cr * weight * 9.81 * math.cos(rad)) + \
-                     (0.5 * p * frontal_area * cd
-                      * (speed / 3.6) ** 2)
+    friction_force = (cr * weight * 9.81 * math.cos(rad)) + (0.5 * p * frontal_area * cd * (speed / 3.6) ** 2)
 
-    Fw = weight * 9.81 * math.sin(slope)
+    Fw = weight * 9.81 * math.sin(rad)
     net_force = weight * acc + Fw + friction_force
+    print([(weight * acc), Fw, friction_force])
     mec_power = (net_force * speed / 3.6) / 1000
     if acc < 0:
         if speed < 5:
@@ -37,14 +36,16 @@ def jimenez(weight, frontal_area, cd, slope, speed, acc):
 
 
 def add_jimenez_row(df, weight, frontal_area, cd):
-    print(df)
-    df['added_jimenez'] = df.apply(lambda row: jimenez(weight, frontal_area, cd,
+    df['jimenez_estimation'] = df.apply(lambda row: jimenez(weight, frontal_area, cd,
                                                        row['slope'], row['mean_speed'], row['mean_acc'])[0], axis=1)
     df['req_power'] = df.apply(lambda row: jimenez(weight, frontal_area, cd,
                                                    row['slope'], row['mean_speed'], row['mean_acc'])[1], axis=1)
+    '''
     df['friction_force_calc'] = df.apply(lambda row: jimenez(weight, frontal_area, cd,
-                                                   row['slope'], row['mean_speed'], row['mean_acc'])[3], axis=1)
-    print(df)
+                                                             row['slope'], row['mean_speed'], row['mean_acc'])[3], axis=1)
+    df['net_force_calc'] = df.apply(lambda row: jimenez(weight, frontal_area, cd,
+                                                        row['slope'], row['mean_speed'], row['mean_acc'])[2], axis=1)
+    '''
 
 
 if __name__ == '__main__':
