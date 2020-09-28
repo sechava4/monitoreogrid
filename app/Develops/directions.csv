@@ -1,0 +1,57 @@
+,Time of day,Direction text,Duration (min),Distance (km)
+1,07:34:21,Salga desde Location 1,0.0,0.0
+2,07:34:21,Vaya al este hacia Calle 40A S,0.08,0.03
+3,07:34:26,Haga un giro a la izquierda por Calle 40A S (Calle 40A Sur 24B),1.82,0.53
+4,07:36:10,Gire a la derecha por Calle 40 S (Calle 40 Sur 25B),2.48,0.78
+5,07:36:50,Gire a la derecha por Carrera 27 (Carrera 27 39B S),2.76,0.86
+6,07:37:07,Gire a la izquierda por Calle 39B S y después gire a la derecha por Carrera 27B,3.15,1.0
+7,07:37:30,Gire a la derecha en Calle 39A S para seguir por Carrera 27B (Carrera 27B 39 S),3.44,1.08
+8,07:37:47,Gire a la izquierda,3.52,1.12
+9,07:37:52,Siga adelante por Calle 39 S,4.75,1.67
+10,07:39:06,Siga adelante por Carrera 29A (Carrera 29A 38 S),5.15,1.78
+11,07:39:30,Gire a la derecha por Carrera 29 (Carrera 29 37B S),5.43,1.89
+12,07:39:47,Manténgase a la izquierda en la bifurcación por Carrera 29 (Carrera 29 37B S),5.65,1.96
+13,07:39:51,Gire a la izquierda por Calle 37 S,5.68,1.97
+14,07:40:01,Gire a la derecha por Diagonal 31 (Diagonal 31 36A S),6.51,2.26
+15,07:40:51,Manténgase a la izquierda en la bifurcación hacia Medellín / Avenida Las Vegas,8.55,3.17
+16,07:42:54,Siga adelante por Carrera 42B (Carrera 42B 26A S),8.64,3.2
+17,07:42:59,Siga adelante por Calle 26B S (Avenida Jesús María Mejía),9.94,3.7
+18,07:44:17,Gire a la derecha por Carrera 43A (Avenida El Poblado),10.98,4.1
+19,07:45:20,Gire a la derecha y después gire a la derecha por Avenida El Poblado,11.04,4.13
+20,07:45:23,Gire a la izquierda,11.13,4.19
+21,07:45:29,Gire a la derecha por Carrera 42 y después gire a la derecha por Calle 21 S,11.41,4.3
+22,07:45:46,Gire a la derecha por Calle 22A S (Calle 22A Sur 43A),11.59,4.37
+23,07:45:56,Gire a la derecha por Calle 21 S (Calle 21 Sur 43A),11.69,4.41
+24,07:46:02,Gire a la izquierda por Calle 18C S (Calle 18C Sur 43A),13.07,5.03
+25,07:47:25,Gire a la derecha por Avenida Regional (Carrera 49),14.2,5.98
+26,07:48:33,Siga adelante por Calle 10 S,14.29,6.04
+27,07:48:38,Gire a la izquierda por Carrera 48C (Carrera 48C 10 S),14.66,6.27
+28,07:49:00,"Ha llegado a Location 2, que se encuentra a la derecha",14.66,6.27
+29,07:49:00,Salga de Location 2,14.66,6.27
+30,07:49:00,Siga hacia el norte por Carrera 48C (Carrera 48C 10 S),14.93,6.45
+31,07:49:17,Manténgase a la izquierda en la bifurcación por Carrera 48C (Carrera 48C 10 S),14.97,6.48
+32,07:49:19,Gire a la derecha por Avenida Regional (Carrera 49),15.15,6.63
+33,07:49:30,Gire a la derecha por la rampa por Avenida El Poblado / Avenida Las Vegas,15.73,6.92
+34,07:50:05,Tome la rampa a Calle 4 S (Puente de la 4 Sur),16.26,7.19
+35,07:50:36,Siga adelante por Calle 4 S (Puente de la 4 Sur) hacia Loma Balsos,16.32,7.22
+36,07:50:40,Gire a la derecha por Carrera 43C (Carrera 43C 4 S),16.57,7.36
+37,07:50:55,Siga adelante por Carrera 43B (Carrera 43B 6 S),17.24,7.69
+38,07:51:35,Gire a la derecha por Calle 9 S (Calle 9 43B S),17.76,7.94
+39,07:52:06,Manténgase a la derecha en la bifurcación por Calle 9 S,18.23,8.21
+40,07:52:35,Manténgase a la izquierda en la bifurcación por Calle 9 S (Calle 9 Sur 35),18.3,8.24
+41,07:52:39,Manténgase a la izquierda en la bifurcación por Calle 9 S (Loma Los Balsos),19.38,8.73
+42,07:53:44,Manténgase a la derecha en la bifurcación por Calle 9 S (Calle 9 Sur 32),19.89,9.01
+43,07:54:14,Gire a la izquierda por Carrera 29D (Carrera 29D 7B S),21.05,9.48
+44,07:55:24,Gire a la derecha por Calle 5 S (Avenida Loma Los González),21.6,9.7
+45,07:55:57,Manténgase a la izquierda en la bifurcación,21.74,9.75
+46,07:56:05,Gire a la izquierda por Carrera 29A (Carrera 29A 4),22.04,9.88
+47,07:56:23,Gire a la derecha por Calle 4 S (Calle 4 Sur 29),22.24,9.96
+48,07:56:35,Gire a la derecha,22.3,9.97
+49,07:56:39,Gire a la derecha por Calle 2 S (Calle 2 25AA S),22.53,10.1
+50,07:56:53,Siga adelante por Carrera 25AA (Carrera 25AA 3B S),22.76,10.2
+51,07:57:06,Gire a la derecha,22.97,10.29
+52,07:57:19,Manténgase a la izquierda en la bifurcación,23.1,10.33
+53,07:57:27,Gire a la izquierda por Carrera 25 (Transversal Superior),23.51,10.52
+54,07:57:51,Manténgase a la derecha en la bifurcación por Carrera 25,23.78,10.64
+55,07:58:08,Manténgase a la derecha en la bifurcación por Carrera 25,24.03,10.75
+56,07:58:23,"Ha llegado a Location 3, que se encuentra a la derecha",24.03,10.75

@@ -3,7 +3,8 @@ const CAR_MODEL = "nissan:leaf";
 const vehicle_id = "AVM05C";
 //const vehicle_id = "OIO53";
 const URL = "http://vehiculoselectricos.dis.eafit.edu.co/addjson";
-const URL_esp32 = "http://192.168.4.4/data";
+var URL_esp32 = "http://192.168.4.2/data";
+var espurl = 2;
 var objTLM;
 var objTimer;
 var operative_state = 1;
@@ -40,6 +41,19 @@ function OnRequestDoneJson(resp) {
 // http request callback if failed
 function OnRequestFail(error) {
     print("error="+JSON.stringify(error)+'\n');
+}
+
+function OnRequestFailJson(error) {
+    print("error="+JSON.stringify(error)+'\n');
+    print(JSON.stringify(error));
+    if (JSON.stringify(error) == "timeout") {
+        print('trying next url');
+        espurl =espurl + 1;
+    }
+    espurl =espurl + 1;
+    if (espurl>7) {
+        espurl = 2
+    }
 }
 
 //v.tp.fl.p                                231.952kPa
@@ -126,11 +140,25 @@ function GetURLcfg() {
 }
 
 function GetURL_auxdata() {
+    switch (espurl) {
+        case 2:
+            URL_esp32 = "http://192.168.4.2/data";
+        break;
+        case 3:
+            URL_esp32 = "http://192.168.4.3/data";
+        break;
+        case 4:
+            URL_esp32 = "http://192.168.4.4/data";
+        break;
+        case 5:
+            URL_esp32 = "http://192.168.4.5/data";
+        break;
+    }
     var cfg = {
     url: URL_esp32,
     timeout: 5000,
     done: function(resp) {OnRequestDoneJson(resp)},
-    fail: function(err)  {OnRequestFail(err)}
+    fail: function(err)  {OnRequestFailJson(err)}
     };
     return cfg;
 }
