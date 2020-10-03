@@ -10,7 +10,7 @@ def wang(current, delta_t, batt_temp):
     c_rate = current / 100   # 100 = Amperios hora totales bateria
     if c_rate > 0:
         b = 448.96 * c_rate ** 2 - 6301.1 * c_rate + 33840
-        q_loss = b * math.exp((-31700 + (c_rate * 370.3)) / (8.314472 * batt_temp)) * ah ** 0.552
+        q_loss = b * math.exp((-31700 + (c_rate * 370.3)) / (8.314472 * (batt_temp))) * ah ** 0.552
     else:
         q_loss = 0
 

@@ -238,7 +238,7 @@ def show_tables():
     df = pd.read_sql_query(query, db.engine)
     if all(elem in list(df) for elem in ['slope', 'mean_speed', 'mean_acc']):
         vehicle = Vehicle.query.filter_by(placa="FSV110").first()
-        consumption_models.add_jimenez_row(df, float(vehicle.weight), float(vehicle.frontal_area), float(vehicle.cd))
+        consumption_models.add_consumption_cols(df, float(vehicle.weight), float(vehicle.frontal_area), float(vehicle.cd))
 
     if all(elem in list(df) for elem in ['current', 'timestamp', 'batt_temp']):
         degradation_models.add_wang_row(df)

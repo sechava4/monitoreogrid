@@ -1,2 +1,0 @@
-{"@@type": "ColumnLayer", "data":{{session.json_operation}},"extruded": true,
-"getPosition": "@@=[longitude, latitude]", "get_elevation": "@@=[elevation]", "id": "columnas", "pickable": true, "radius": 20 })],
