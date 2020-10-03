@@ -41,7 +41,6 @@ r = pydeck.Deck(
 
 r.to_html()
 '''
-
 import pydeck
 import os
 
