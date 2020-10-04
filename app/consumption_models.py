@@ -1,7 +1,8 @@
 import math
 import numpy as np
 import pandas as pd
-
+import time
+from scipy import integrate
 
 def fiori(mass, frontal_area, cd, slope, speed, acc):
     g = 9.8066
@@ -32,12 +33,17 @@ def fiori(mass, frontal_area, cd, slope, speed, acc):
     return np.array([fiori_consumption, p_wheels, p_motor])
 
 
-def jimenez(mass, frontal_area, cd, slope, speed, acc):
+def jimenez(mass, frontal_area, cd, slope, speed, acc):   # tpms
+
     p = 1.2  # Air density kg/m3
-    cr = 0.02  # Rolling coefficient
-    nte = 0.85  # transmission efficiency
-    ne = 0.85  # Battery efficiency
+    cr = 0.001 * (1 + speed/(100*3.6))  # Rolling coefficient 1
+    bar = 30/14.504
+    cr2 = 0.005 + (1 / bar)*(0.01 + 0.0095*(speed / 100)**2)  # Rolling coefficient 2
+    n_drive = 0.95  # transmission efficiency
+    n_motor = 0.85  # Battery efficiency
+    n_batt = 0.98  # Battery efficiency
     k = 0   # speed factor
+    p_aux = 0.2  # kW aux components
 
     # cr = 0.005 + (1 / p) (0.01 + 0.0095 (v / 100)2)  pressure in Bar V in kmH
 
@@ -52,15 +58,14 @@ def jimenez(mass, frontal_area, cd, slope, speed, acc):
     speed = speed / 3.6
 
     if speed < 5:
-            k = 0.5 * speed
+            k = 0.77 * speed
     else:
-        k = 0.5 + 0.015 * (speed - 5)
+        k = 0.77 + 0.015 * (speed - 5)
 
-    k=1
     if mec_power < 0:
-        jimenez_consumption = k * nte * ne * mec_power
+        jimenez_consumption = k * n_drive * n_motor * mec_power
     else:
-        jimenez_consumption = mec_power / (nte * ne)
+        jimenez_consumption = mec_power / (n_drive * n_motor)
 
     print("Jimenez consumption")
     print(jimenez_consumption)
@@ -84,6 +89,21 @@ def add_consumption_cols(df, mass, frontal_area, cd):
     '''
     df['req_power'] = df.apply(lambda row: jimenez(mass, frontal_area, cd,
                                                    row['slope'], row['mean_speed'], row['mean_acc'])[1], axis=1)
+
+    dates = pd.to_datetime(df['timestamp'], format="%Y-%m-%d %H:%M:%S.%f")
+    x = np.array([time.mktime(t.timetuple()) for t in dates])  # total seconds since epoch
+
+    '''
+    y = df[y_name].to_numpy()
+    y1 = np.where(y >= 0, y, 0)
+    y2 = np.where(y <= 0, y, 0)
+    labels = [out1_name, out2_name]
+
+    try:
+    '''
+    df['jimenez_int'] = (integrate.cumtrapz(df['jimenez_estimation'], x, initial=0))/3600
+    df['power_int'] = (integrate.cumtrapz(df['power_kw'], x, initial=0))/3600
+    # values = [np.around((np.trapz(y1, x) / 3600), 3), abs(np.around((np.trapz(y2, x) / 3600), 3))]  # j to kwh
 
 
 

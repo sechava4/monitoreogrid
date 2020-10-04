@@ -21,6 +21,7 @@ var lat = 0;
 var lon = 0;
 var sum_acc = 0;
 var sum_speed = 0.0;
+var sum_current = 0.0;
 var i = 1.0;
 var arr_from_json
 
@@ -79,6 +80,9 @@ function GetUrlABRP() {
     urljson += "soh=" + OvmsMetrics.AsFloat("v.b.soh") + "&";    //State of health
     urljson += "voltage=" + OvmsMetrics.AsFloat("v.b.voltage").toFixed(2) + "&";    //Main battery momentary voltage
     urljson += "current=" + (OvmsMetrics.AsFloat("v.b.current")*-1.00).toFixed(2) + "&";
+
+    //urljson += "mean_current=" + (sum_current *-1.0 /i).toFixed(2) + "&";
+
     urljson += "capacity=" + OvmsMetrics.AsFloat("xrz.v.avail.energy") + "&";
     urljson += "batt_temp=" + OvmsMetrics.AsFloat("v.b.temp") + "&";    //Main battery momentary temperature
     //urljson += "ext_temp=" + OvmsMetrics.AsFloat("v.e.temp") + "&";    //Ambient temperature
@@ -124,6 +128,7 @@ function GetUrlABRP() {
     i = 1.0;
     sum_acc = 0.0;
     sum_speed = 0.0;
+    sum_current = 0.0;
     return urljson;
 
 }
@@ -173,9 +178,12 @@ function SendLiveData() {
     var d = new Date();
     var cms = d.getTime();   //current_millis
 
-    speed = OvmsMetrics.AsFloat(["v.p.speed"]);
+    //speed = OvmsMetrics.AsFloat(["v.p.speed"]);
     speed = OvmsMetrics.AsFloat(["v.p.gpsspeed"]);
     sum_speed = sum_speed + speed;
+
+    //current = OvmsMetrics.AsFloat(["v.b.current"]);
+    //sum_current = sum_current + current;
 
     var acc = (speed - old_speed) / 3.6;
     sum_acc = sum_acc + acc;

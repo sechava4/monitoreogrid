@@ -199,7 +199,7 @@ def show_tables():
         session["records"]
     except KeyError:
 
-        session["var1"] = "timestamp"
+        session["var1"] = "odometer"
         session["var2"] = "mean_speed"
         session["var3"] = "mean_acc"
         session["var4"] = "mec_power"
@@ -228,7 +228,7 @@ def show_tables():
     query0 = "SELECT date(timestamp), MAX(" + session["calendar_var"] + \
              ") as 'max_value' FROM operation GROUP BY date(timestamp)"
 
-    query = "SELECT " + session["var1"] + " ," + session["var2"] + " ," + session["var3"] + " ," + session["var4"] + \
+    query = "SELECT timestamp, " + session["var1"] + " ," + session["var2"] + " ," + session["var3"] + " ," + session["var4"] + \
             " ," + session["var5"] + ' from operation WHERE timestamp BETWEEN "' + session['d1'] + ' ' + \
             str(session['h1'])[:8] + '" and "' + str(session['d1']) + ' ' + str(session['h2'])[:8] + '" limit ' + \
             str(session["records"])
@@ -236,11 +236,17 @@ def show_tables():
     df_calendar = pd.read_sql_query(query0, db.engine)
     df_calendar = df_calendar.dropna()
     df = pd.read_sql_query(query, db.engine)
-    if all(elem in list(df) for elem in ['slope', 'mean_speed', 'mean_acc']):
+    scatter = 0
+    integral_jimenez = 0
+    integral_power = 0
+    if all(elem in list(df) for elem in ['slope', 'mean_speed', 'mean_acc', 'power_kw']):
         vehicle = Vehicle.query.filter_by(placa="FSV110").first()
         consumption_models.add_consumption_cols(df, float(vehicle.weight), float(vehicle.frontal_area), float(vehicle.cd))
+        scatter = plot.create_plot(df, "jimenez_estimation", "power_kw")
+        integral_jimenez = plot.create_plot(df, "timestamp", "jimenez_int")
+        integral_power = plot.create_plot(df, "timestamp", "power_int")
 
-    if all(elem in list(df) for elem in ['current', 'timestamp', 'batt_temp']):
+    if all(elem in list(df) for elem in ['current', 'batt_temp']):
         degradation_models.add_wang_row(df)
     session["var1_pretty"] = open_dataframes.pretty_var_name(session["var1"])
     session["var2_pretty"] = open_dataframes.pretty_var_name(session["var2"])
@@ -248,7 +254,8 @@ def show_tables():
     session["var4_pretty"] = open_dataframes.pretty_var_name(session["var4"])
     session["var5_pretty"] = open_dataframes.pretty_var_name(session["var5"])
     session["calendar_pretty"] = open_dataframes.pretty_var_name(session["calendar_var"])
-    return render_template('tables.html', tables=[df.to_html(classes='data')], titles=df.columns.values,
+    return render_template('tables.html', tables=[df.to_html(classes='data')], titles=df.columns.values, plot=scatter,
+                           plotint1=integral_jimenez, plotint2=integral_power,
                            calendar=df_calendar.to_json(orient='records'))
 
 

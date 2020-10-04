@@ -67,7 +67,7 @@
        }
     </script>
 
-
+    Hint: select slope, mean_speed, mean_acc, power_kw for consumption models evaluation
     <div class="variables">
             <form role="form" class="form-inline" id="Mainform" action="{{ url_for('show_tables') }}" method=post>
                 <div style="width: 100%;margin: 10px;">
@@ -89,7 +89,6 @@
                     <label class="label label-default" for="exampleFormControlSelect1"> Variable 1 </label>
                     <select class="form-control" id="exampleFormControlSelect1" name = var1>
                         <option value="{{session.var1}}"> {{session.var1_pretty}}</option>
-                        <option value="timestamp">Tiempo</option>
                         <option value="elevation">Altitud (msnm)</option>
                         <option value="slope">Pendiente (°)</option>
                         <option value="mean_speed">Velocidad promedio (Km/h)</option>
@@ -423,7 +422,57 @@
             </form>
         </div>
 
+ <div style="width: 100%">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <div id = "bargraph" style="width:50%;float: left">
+        <script>
+            var graphs = {{plot | safe}};
 
+            scatter_trace = {
+               'type': 'scatter',
+               'mode': 'markers',
+               'x': graphs[0]['x'],
+               'y': graphs[0]['y'],
+               //fill: 'tozeroy',
+               //'line': {'shape': 'spline', 'smoothing': 0.45}
+           }
+
+
+            data1=[scatter_trace]
+            Plotly.newPlot('bargraph',data1, {});
+        </script>
+    </div>
+    <div id = "bargraph2" style="width:50%;float: right">
+        <script>
+            var integral_j = {{plotint1 | safe}};
+            var integral_p = {{plotint2 | safe}};
+
+            smoothTrace1 = {
+               'type': 'scatter',
+               'name': 'Consumo estimado (kWh)',
+               'mode': 'markers',
+               'x': integral_j[0]['x'],
+               'y': integral_j[0]['y'],
+               fill: 'tozeroy',
+               'line': {'shape': 'spline', 'smoothing': 0.2}
+           }
+
+           smoothTrace2 = {
+               'type': 'scatter',
+               'name': 'Consumo real (kWh)',
+               'mode': 'markers',
+               'x': integral_p[0]['x'],
+               'y': integral_p[0]['y'],
+               fill: 'tozeroy',
+               'line': {'shape': 'spline', 'smoothing': 0.2}
+           }
+
+
+            data_integrals = [smoothTrace1, smoothTrace2]
+            Plotly.newPlot('bargraph2', data_integrals, {});
+        </script>
+    </div>
+</div>
 
 
     <table class="table">
