@@ -419,11 +419,14 @@ def add_entry():
             operation.en_pot = rise * 9.81 * vehicle.weight
 
             # WANG MODEL IMPLEMANTATION
-            Ah = float(request.args["current"]) * delta_t / 3600
-            c_rate = float(request.args["current"]) / 100
-            b = 448.96 * c_rate ** 2 - 6301.1 * c_rate + 33840
-            operation.q_loss = b * math.exp((-31700 + (c_rate * 370.3)) /
-                                            (8.314472*float(request.args["batt_temp"]))) *Ah ** 0.552
+            current = float(request.args["current"])
+            ah = current * delta_t / 3600
+            c_rate = current / 100  # 100 = Amperios hora totales bateria
+            if c_rate > 0:
+                b = 448.96 * c_rate ** 2 - 6301.1 * c_rate + 33840
+                operation.q_loss = b * math.exp((-31700 + (c_rate * 370.3)) / (8.314472 * (float(request.args["batt_temp"])))) * ah ** 0.552
+            else:
+                operation.q_loss = 0
 
             db.session.add(operation)
             db.session.commit()

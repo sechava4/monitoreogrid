@@ -117,12 +117,12 @@ function GetUrlABRP() {
     urljson += "tpms=" + OvmsMetrics.AsFloat("v.tp.fl.p") + "&";
     urljson += "charge_time=" + OvmsMetrics.AsFloat("v.c.time") + "&";
     urljson += "charger_type=" + OvmsMetrics.AsFloat("v.c.type") + "&";
-    /*
+
     urljson += "angle_x=" + arr_from_json["angle_x"] + "&";
     urljson += "angle_y=" + arr_from_json["angle_y"] + "&";
-    urljson += "ext_temp=" + arr_from_json["temp"] + "&";
+    //urljson += "ext_temp=" + arr_from_json["temp"] + "&";
     urljson += "elevation2=" + arr_from_json["elevation2"] + "&";
-    */
+
     print(urljson);
     i = 1.0;
     sum_acc = 0.0;
@@ -170,8 +170,8 @@ function GetURL_auxdata() {
 function Make_Request(){
     p = new Date();
     prev = p.getTime();
-    //HTTP.Request(GetURL_auxdata());
-    HTTP.Request(GetURLcfg());
+    HTTP.Request(GetURL_auxdata());
+    //HTTP.Request(GetURLcfg());
 }
 
 function SendLiveData() {
