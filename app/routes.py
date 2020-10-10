@@ -374,7 +374,7 @@ def add_entry():
                 '%Y-%m-%d %H:%M:%S')
 
             # insert into vehicle(placa, marca, modelo, year, odometer) values('AVM05C', 'HONDA', 'ECO100', 2011, 30000)
-            operation.angle_y = -float(request.args["angle_y"]) - 9.27
+            #operation.angle_y = -float(request.args["angle_y"]) - 9.27
 
             last = Operation.query.order_by(Operation.id.desc()).first()
             delta_t = (operation.timestamp - last.timestamp).total_seconds()
