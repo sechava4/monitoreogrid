@@ -58,9 +58,9 @@ def jimenez(mass, frontal_area, cd, slope, speed, acc):   # tpms
     speed = speed / 3.6
 
     if speed < 5:
-            k = 0.79 * speed
+            k = 0.78 * speed
     else:
-        k = 0.79+ 0.015 * (speed - 5)
+        k = 0.78+ 0.015 * (speed - 5)
 
     if mec_power < 0:
         jimenez_consumption = k * n_drive * n_motor * mec_power
