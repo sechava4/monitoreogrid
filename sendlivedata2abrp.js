@@ -95,27 +95,24 @@ function GetUrlABRP() {
     urljson += "throttle=" + OvmsMetrics.AsFloat("v.e.throttle") + "&";    //Engine momentary THROTTLE
     urljson += "regen_brake=" + OvmsMetrics.AsFloat("v.e.regenbrake") + "&";    //Engine momentary Regen value
     //urljson += "consumption=" + OvmsMetrics.AsFloat("v.b.consumption") + "&";
+
+
+
     urljson += "range_est=" + OvmsMetrics.AsFloat("v.b.range.est") + "&";
     urljson += "range_ideal=" + OvmsMetrics.AsFloat("v.b.range.ideal") + "&";
     urljson += "range_full=" + OvmsMetrics.AsFloat("v.b.range.full") + "&";
     urljson += "drivetime=" + OvmsMetrics.AsFloat("v.e.drivetime") + "&";
     urljson += "drivemode=" + OvmsMetrics.Value("v.e.drivemode") + "&";
-
     urljson += "charger_type=" + OvmsMetrics.Value("v.c.type") + "&";
     urljson += "charge_current=" + OvmsMetrics.AsFloat("v.c.current") + "&";
     urljson += "charge_time=" + OvmsMetrics.AsFloat("v.c.time") + "&";
     urljson += "energy_rec=" + OvmsMetrics.AsFloat("v.c.kwh") + "&";
-
 
     urljson += "footbrake=" + OvmsMetrics.AsFloat("v.e.footbrake") + "&";
     urljson += "engine_temp=" + OvmsMetrics.AsFloat("v.m.temp") + "&";
     urljson += "coulomb=" + OvmsMetrics.AsFloat("v.b.coulomb.used") + "&";
     urljson += "energy=" + OvmsMetrics.AsFloat("v.b.energy.used") + "&";
     urljson += "rpm=" + OvmsMetrics.AsFloat("v.m.rpm") + "&";
-
-    // Analizar drivetime para el cambio de estados
-
-    //urljson += "coulomb_rec=" + OvmsMetrics.AsFloat("v.b.coulomb.recd") + "&";
 
     urljson += "tpms=" + OvmsMetrics.AsFloat("v.tp.fl.p") + "&";
     urljson += "charge_time=" + OvmsMetrics.AsFloat("v.c.time") + "&";

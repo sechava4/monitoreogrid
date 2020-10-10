@@ -239,12 +239,16 @@ def show_tables():
     scatter = 0
     integral_jimenez = 0
     integral_power = 0
-    if all(elem in list(df) for elem in ['slope', 'mean_speed', 'mean_acc', 'power_kw']):
+    if all(elem in list(df) for elem in ['slope', 'mean_speed', 'mean_acc', 'power_kw']) and len(set(list(df))) == 6:
+        print(len(set(list(df)))) # != len(set(your_list))
         vehicle = Vehicle.query.filter_by(placa="FSV110").first()
+
         consumption_models.add_consumption_cols(df, float(vehicle.weight), float(vehicle.frontal_area), float(vehicle.cd))
         scatter = plot.create_plot(df, "jimenez_estimation", "power_kw")
         integral_jimenez = plot.create_plot(df, "timestamp", "jimenez_int")
+        integral_fiori = plot.create_plot(df, "timestamp", "fiori_int")
         integral_power = plot.create_plot(df, "timestamp", "power_int")
+
 
     if all(elem in list(df) for elem in ['current', 'batt_temp']):
         degradation_models.add_wang_row(df)
@@ -255,7 +259,7 @@ def show_tables():
     session["var5_pretty"] = open_dataframes.pretty_var_name(session["var5"])
     session["calendar_pretty"] = open_dataframes.pretty_var_name(session["calendar_var"])
     return render_template('tables.html', tables=[df.to_html(classes='data')], titles=df.columns.values, plot=scatter,
-                           plotint1=integral_jimenez, plotint2=integral_power,
+                           plotint1=integral_jimenez, plotint2=integral_power, plotint3=integral_fiori,
                            calendar=df_calendar.to_json(orient='records'))
 
 

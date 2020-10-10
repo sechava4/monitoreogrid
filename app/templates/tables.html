@@ -431,6 +431,7 @@
             scatter_trace = {
                'type': 'scatter',
                'mode': 'markers',
+               'name': 'Jimenez vs potencia e',
                'x': graphs[0]['x'],
                'y': graphs[0]['y'],
                //fill: 'tozeroy',
@@ -446,11 +447,12 @@
         <script>
             var integral_j = {{plotint1 | safe}};
             var integral_p = {{plotint2 | safe}};
+            var integral_f = {{plotint3 | safe}};
 
             smoothTrace1 = {
                'type': 'scatter',
-               'name': 'Consumo estimado (kWh)',
-               'mode': 'markers',
+               'name': 'Consumo estimado (Jimenez)(kWh)',
+               'mode': 'lines',
                'x': integral_j[0]['x'],
                'y': integral_j[0]['y'],
                fill: 'tozeroy',
@@ -460,15 +462,25 @@
            smoothTrace2 = {
                'type': 'scatter',
                'name': 'Consumo real (kWh)',
-               'mode': 'markers',
+               'mode': 'lines',
                'x': integral_p[0]['x'],
                'y': integral_p[0]['y'],
                fill: 'tozeroy',
                'line': {'shape': 'spline', 'smoothing': 0.2}
            }
 
+           smoothTrace3 = {
+               'type': 'scatter',
+               'name': 'Consumo estimado (Fiori)(kWh)',
+               'mode': 'lines',
+               'x': integral_f[0]['x'],
+               'y': integral_f[0]['y'],
+               fill: 'tozeroy',
+               'line': {'shape': 'spline', 'smoothing': 0.2}
+           }
 
-            data_integrals = [smoothTrace1, smoothTrace2]
+
+            data_integrals = [smoothTrace1, smoothTrace2, smoothTrace3]
             Plotly.newPlot('bargraph2', data_integrals, {});
         </script>
     </div>
@@ -476,11 +488,7 @@
 
 
     <table class="table">
-    <thead>
-        <tr>
-            <th>{{session.dataset}}</th>
-        <tr>
-    </thead>
+
     <tbody>
         {% for table in tables %}
         <tr>

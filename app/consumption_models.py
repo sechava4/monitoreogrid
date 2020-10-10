@@ -39,9 +39,9 @@ def jimenez(mass, frontal_area, cd, slope, speed, acc):   # tpms
     cr = 0.001 * (1 + speed/(100*3.6))  # Rolling coefficient 1
     bar = 30/14.504
     cr2 = 0.005 + (1 / bar)*(0.01 + 0.0095*(speed / 100)**2)  # Rolling coefficient 2
-    n_drive = 0.95  # transmission efficiency
-    n_motor = 0.85  # Battery efficiency
-    n_batt = 0.98  # Battery efficiency
+    n_drive = 0.94  # transmission efficiency
+    n_motor = 0.85  # Motor efficiency
+    n_batt = 0.97  # Battery efficiency
     k = 0   # speed factor
     p_aux = 0.2  # kW aux components
 
@@ -58,17 +58,15 @@ def jimenez(mass, frontal_area, cd, slope, speed, acc):   # tpms
     speed = speed / 3.6
 
     if speed < 5:
-            k = 0.77 * speed
+            k = 0.79 * speed
     else:
-        k = 0.77 + 0.015 * (speed - 5)
+        k = 0.79+ 0.015 * (speed - 5)
 
     if mec_power < 0:
         jimenez_consumption = k * n_drive * n_motor * mec_power
     else:
         jimenez_consumption = mec_power / (n_drive * n_motor)
 
-    print("Jimenez consumption")
-    print(jimenez_consumption)
     return np.array([jimenez_consumption, mec_power, net_force, friction_force])
 
 
@@ -92,6 +90,7 @@ def add_consumption_cols(df, mass, frontal_area, cd):
 
     dates = pd.to_datetime(df['timestamp'], format="%Y-%m-%d %H:%M:%S.%f")
     x = np.array([time.mktime(t.timetuple()) for t in dates])  # total seconds since epoch
+    x1=x
 
     '''
     y = df[y_name].to_numpy()
@@ -101,8 +100,10 @@ def add_consumption_cols(df, mass, frontal_area, cd):
 
     try:
     '''
+    print(['len(x)', x.shape,'len(y)',df['jimenez_estimation'].shape, 'len(power)', df['power_kw'].shape])
     df['jimenez_int'] = (integrate.cumtrapz(df['jimenez_estimation'], x, initial=0))/3600
-    df['power_int'] = (integrate.cumtrapz(df['power_kw'], x, initial=0))/3600
+    df['fiori_int'] = (integrate.cumtrapz(df['fiori_estimation'], x, initial=0)) / 3600
+    df['power_int'] = (integrate.cumtrapz(df['power_kw'], x.squeeze(), initial=0,))/3600
     # values = [np.around((np.trapz(y1, x) / 3600), 3), abs(np.around((np.trapz(y2, x) / 3600), 3))]  # j to kwh
 
 

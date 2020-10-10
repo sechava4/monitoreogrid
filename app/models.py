@@ -112,9 +112,7 @@ class Operation(db.Model):
     angle_x = db.Column(db.Float)
     angle_y = db.Column(db.Float)
     q_loss = db.Column(db.Float)
-
     charge_current = db.Column(db.Float)
-
     throttle = db.Column(db.Integer)
     regen_brake = db.Column(db.Float)
     mass = db.Column(db.Integer)
@@ -124,11 +122,8 @@ class Operation(db.Model):
     range_full = db.Column(db.Integer)
     drivetime = db.Column(db.Integer)
     drivemode = db.Column(db.String(64))
-
     charge_time = db.Column(db.Integer)
     charger_type = db.Column(db.String(64))
-
-
     footbrake = db.Column(db.Integer)
     engine_temp = db.Column(db.Float)
     is_charging = db.Column(db.Integer)
