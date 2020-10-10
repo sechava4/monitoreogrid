@@ -55,7 +55,7 @@ id,var,var_pretty
 53,freeram, free ram
 54,tasks,number of tasks
 55,net_signal,network quality
-56,elevation2,Altitud (google)(msnm)
+56,elevation2,Altitud (Barometrica)(msnm)
 57,mean_acc_server,Aceleración promedio (server) (m/s^2)
 58,energy_rec, Energia recuperada (Kwh)
 59,charge_current,Corriente de carga (A)

@@ -248,7 +248,10 @@ def show_tables():
         integral_jimenez = plot.create_plot(df, "timestamp", "jimenez_int")
         integral_fiori = plot.create_plot(df, "timestamp", "fiori_int")
         integral_power = plot.create_plot(df, "timestamp", "power_int")
-
+    else:
+        integral_jimenez = 0
+        integral_fiori = 0
+        integral_power = 0
 
     if all(elem in list(df) for elem in ['current', 'batt_temp']):
         degradation_models.add_wang_row(df)
