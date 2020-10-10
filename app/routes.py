@@ -423,7 +423,7 @@ def add_entry():
             c_rate = float(request.args["current"]) / 100
             b = 448.96 * c_rate ** 2 - 6301.1 * c_rate + 33840
             operation.q_loss = b * math.exp((-31700 + (c_rate * 370.3)) /
-                                            (8.314472*float(request.args["ext_temp"]))) *Ah ** 0.552
+                                            (8.314472*float(request.args["batt_temp"]))) *Ah ** 0.552
 
             db.session.add(operation)
             db.session.commit()
