@@ -7,7 +7,7 @@ id,var,var_pretty
 5,accelerationX,Aceleración X
 6,accelerationY,Aceleración Y
 7,accelerationZ,Aceleración Z
-8,speed,Velocidad (Km/h)
+8,speed,Velocidad instantánea(Km/h)
 9,odometer,Odometro (Km)
 10,user_id,ID usuario
 11,batt_temp,Temperatura de batería (°C)
