@@ -29,24 +29,21 @@
     </head>
 
 
-     <nav class="navbar navbar-default">
-        <div >
+     <nav class="navbar navbar-light bg-light justify-content-between">
+         <a href="{{ url_for('show_entries') }}">Home <span class="sr-only">(current)</span></a>
+        {% if current_user.is_anonymous %}
+        <a href="{{ url_for('login') }}">'Login</a>
+         {% else %}
+        <form role="form" class="form-inline" action="#" method=get>
+        <ul class="nav navbar-nav"> &nbsp Mis vehículos &nbsp</ul>
+            <select class="form-control input" id="vehicle_select" name = time_interval onchange="this.form.submit();">
+              <option value="{{session.vehicle}}"> {{vehicle.marca}} {{vehicle.modelo}} {{vehicle.placa}}</option>
 
-            <div class="navbar-header">
-                <a class="navbar-brand" href="#">
-                    <img src="/static/tracking-icon.png" width="25" height="25" class="d-inline-block align-bottom" alt="">
-                 </a>
-                <a class="navbar-brand" href="{{ url_for('show_entries') }}">Home</a>
-            </div>
-                <ul class="nav navbar-nav navbar-right">
-                    {% if current_user.is_anonymous %}
-                    <li><a href="{{ url_for('login') }}">'Login</a></li>
-                     {% else %}
-                    <li><a href="{{ url_for('logout') }}">Logout</a></li>
-                    {% endif %}
-                </ul>
-        </div>
-    </nav>
+            </select>
+        </form>
+        <a href="{{ url_for('logout') }}">Logout</a>
+        {% endif %}
+     </nav>
 
     <div >
         {% with messages = get_flashed_messages() %}

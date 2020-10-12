@@ -34,6 +34,7 @@ def create_kwh_donut(df, x_name, y_name, out1_name, out2_name):
     y = df[y_name].to_numpy()
     y1 = np.where(y >= 0, y, 0)
     y2 = np.where(y <= 0, y, 0)
+    # x = df[x_name].to_numpy()
     labels = [out1_name, out2_name]
 
     try:

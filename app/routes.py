@@ -20,6 +20,7 @@ import numpy as np
 @app.route('/', methods=['GET', 'POST'])
 @login_required
 def show_entries():
+    vehicle = Vehicle.query.filter_by(placa='FSV110').first()
     try:
         session["graph_var_x"]
         session["graph_var_y"]
@@ -39,6 +40,7 @@ def show_entries():
         session['d2']
         session['h3']
         session['h4']
+        session['vehicle']
     except KeyError:
         now = datetime.now(pytz.timezone('America/Bogota'))
         session['form_d1'] = now.strftime("%d/%m/%Y")
@@ -88,6 +90,8 @@ def show_entries():
         if session["h4"] < session["h3"]:
             session["h3"], session["h4"] = session["h4"], session["h3"]  # Swap times
 
+
+
     query0 = "SELECT date(timestamp), MAX(" + session["calendar_var"] + \
              ") as 'max_value' FROM operation GROUP BY date(timestamp)"
 
@@ -126,7 +130,7 @@ def show_entries():
     session["x_pretty_graph2"] = open_dataframes.pretty_var_name(session["graph_var_x2"])
     session["y_pretty_graph2"] = open_dataframes.pretty_var_name(session["graph_var_y2"])
     return render_template('show_entries.html', plot=scatter, box=box, plot2=scatter2, box2=box2,
-                           calendar=df_calendar.to_json(orient='records'))
+                           calendar=df_calendar.to_json(orient='records'), vehicle=vehicle)
 
 
 @app.route('/updateplot')
@@ -157,6 +161,7 @@ def update_plot():
 @app.route('/energy', methods=['GET', 'POST'])
 @login_required
 def energy_monitor():
+    vehicle = Vehicle.query.filter_by(placa='GHW284').first()
     try:
         session["time_interval"]
     except KeyError:
@@ -184,12 +189,13 @@ def energy_monitor():
     donut = plot.create_kwh_donut(df_o, "timestamp", "power_kw", "cons", "regen")
     session["t_int_pretty"] = open_dataframes.pretty_var_name(session["time_interval"])
 
-    return render_template('energy_monitor.html', plot=scatter_cons, donut=donut)
+    return render_template('energy_monitor.html', plot=scatter_cons, donut=donut, vehicle=vehicle)
 
 
 @app.route('/tables', methods=['GET', 'POST'])
 @login_required
 def show_tables():
+    vehicle = Vehicle.query.filter_by(placa='FSV110').first()
     try:
         session["var1"]
         session["var2"]
@@ -263,12 +269,13 @@ def show_tables():
     session["calendar_pretty"] = open_dataframes.pretty_var_name(session["calendar_var"])
     return render_template('tables.html', tables=[df.to_html(classes='data')], titles=df.columns.values, plot=scatter,
                            plotint1=integral_jimenez, plotint2=integral_power, plotint3=integral_fiori,
-                           calendar=df_calendar.to_json(orient='records'))
+                           calendar=df_calendar.to_json(orient='records'), vehicle=vehicle)
 
 
 @app.route('/zones_map', methods=['GET', 'POST'])
 @login_required
 def show_zones_map():
+    vehicle = Vehicle.query.filter_by(placa='FSV110').first()
     try:
         session['form_d1']
         session['form_h1']
@@ -303,13 +310,13 @@ def show_zones_map():
     json_zones = Markup(zones.to_json(orient='records'))
 
     return render_template('zones_map.html', json_zones=json_zones, json_lines=json_lines,
-                           calendar=df_calendar.to_json(orient='records'))
+                           calendar=df_calendar.to_json(orient='records'), vehicle=vehicle)
 
 
 @app.route('/vehicle_map', methods=['GET', 'POST'])
 @login_required
 def show_vehicle_map():
-
+    vehicle = Vehicle.query.filter_by(placa='FSV110').first()
     try:
         session["map_var"]
         session['form_d1']
@@ -358,7 +365,7 @@ def show_vehicle_map():
     json_operation = Markup(alturas_df.to_json(orient='records'))
 
     return render_template('vehicle_map.html', json_lines=json_lines, json_operation=json_operation,
-                           json_stations=json_stations, calendar=df_calendar.to_json(orient='records'))
+                           json_stations=json_stations, calendar=df_calendar.to_json(orient='records'), vehicle=vehicle)
 
     # return Json para hacer el render en el cliente
 

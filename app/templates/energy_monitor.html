@@ -29,7 +29,7 @@
   <div class="box header">
       <form role="form" class="form-group form-inline" action="{{ url_for('energy_monitor') }}" method=post>
         <h3>&nbsp Ver actividad de &nbsp</h3>
-            <select class="form-control input-lg" id="time_interval_select" name = time_interval onchange="this.form.submit();">
+            <select class="form-control" id="time_interval_select" name = time_interval onchange="this.form.submit();">
               <option value="{{session.time_interval}}"> {{session.t_int_pretty}}</option>
               <option value="1 h">Última hora</option>
               <option value="2 h">Últimas 2 horas</option>
