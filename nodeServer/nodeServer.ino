@@ -185,6 +185,9 @@ void loop() {
               doc["temp"] = round(IMU.getTemperature_C() * 100.0) / 100.0;
               doc["pressure"] = round((float)s32PressureVal / 100.0);
               doc["elevation2"] = round((float)s32AltitudeVal / 100.0);
+              doc["AcX"] = round((float)AcX / 100.0);
+              doc["AcY"] = round((float)AcY / 100.0);
+              doc["AcZ"] = round((float)AcZ / 100.0);
               serializeJson(doc, client);
               
               Serial.print(round(mean_angle[0]/counter * 100.0) / 100.0);

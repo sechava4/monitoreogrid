@@ -176,12 +176,12 @@ def energy_monitor():
     elif 'd' in unit:
         session["energy_t2"] = now - timedelta(days=number)
 
-    query1 = 'SELECT timestamp, mec_power from operation WHERE timestamp BETWEEN "' + str(session["energy_t2"]) + \
+    query1 = 'SELECT timestamp, power_kw from operation WHERE speed > 0 AND timestamp BETWEEN "' + str(session["energy_t2"]) + \
              '" and "' + str(session["energy_t1"]) + '" ORDER BY timestamp'
 
     df_o = pd.read_sql_query(query1, db.engine)
-    scatter_cons = plot.create_double_plot(df_o, "timestamp", "mec_power")
-    donut = plot.create_kwh_donut(df_o, "timestamp", "mec_power", "cons", "regen")
+    scatter_cons = plot.create_double_plot(df_o, "timestamp", "power_kw")
+    donut = plot.create_kwh_donut(df_o, "timestamp", "power_kw", "cons", "regen")
     session["t_int_pretty"] = open_dataframes.pretty_var_name(session["time_interval"])
 
     return render_template('energy_monitor.html', plot=scatter_cons, donut=donut)
