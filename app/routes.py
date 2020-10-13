@@ -211,9 +211,9 @@ def show_tables():
     except KeyError:
 
         session["var1"] = "odometer"
-        session["var2"] = "mean_speed"
+        session["var2"] = "speed"
         session["var3"] = "mean_acc"
-        session["var4"] = "mec_power"
+        session["var4"] = "power_kw"
         session["var5"] = "slope"
         session["records"] = 20
 
@@ -256,10 +256,13 @@ def show_tables():
 
         consumption_models.add_consumption_cols(df, float(vehicle.weight), float(vehicle.frontal_area),
                                                 float(vehicle.cd),'speed')
-        scatter = plot.create_plot(df, "jimenez_estimation", "power_kw")
-        integral_jimenez = plot.create_plot(df, "timestamp", "jimenez_int")
-        integral_fiori = plot.create_plot(df, "timestamp", "fiori_int")
-        integral_power = plot.create_plot(df, "timestamp", "power_int")
+        try:
+            scatter = plot.create_plot(df, "jimenez_estimation", "power_kw")
+            integral_jimenez = plot.create_plot(df, "timestamp", "jimenez_int")
+            integral_fiori = plot.create_plot(df, "timestamp", "fiori_int")
+            integral_power = plot.create_plot(df, "timestamp", "power_int")
+        except KeyError:
+            pass
     else:
         integral_jimenez = 0
         integral_fiori = 0
