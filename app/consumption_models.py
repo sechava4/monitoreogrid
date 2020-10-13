@@ -39,9 +39,9 @@ def jimenez(mass, frontal_area, cd, slope, speed, acc):   # tpms
     cr = 0.001 * (1 + speed/(100*3.6))  # Rolling coefficient 1
     bar = 30/14.504
     cr2 = 0.005 + (1 / bar)*(0.01 + 0.0095*(speed / 100)**2)  # Rolling coefficient 2
-    n_drive = 0.94  # transmission efficiency
-    n_motor = 0.85  # Motor efficiency
-    n_batt = 0.97  # Battery efficiency
+    n_drive = 0.95  # transmission efficiency
+    n_motor = 0.95  # Motor efficiency
+    n_batt = 0.95  # Battery efficiency
     k = 0   # speed factor
     p_aux = 0.2  # kW aux components
 
@@ -63,9 +63,9 @@ def jimenez(mass, frontal_area, cd, slope, speed, acc):   # tpms
         k = 0.78+ 0.015 * (speed - 5)
 
     if mec_power < 0:
-        jimenez_consumption = k * n_drive * n_motor * mec_power
+        jimenez_consumption = k * n_drive * n_motor * n_batt * mec_power
     else:
-        jimenez_consumption = mec_power / (n_drive * n_motor)
+        jimenez_consumption = mec_power / (n_drive * n_batt * n_motor)
 
     return np.array([jimenez_consumption, mec_power, net_force, friction_force])
 
