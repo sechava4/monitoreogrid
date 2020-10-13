@@ -70,11 +70,11 @@ def jimenez(mass, frontal_area, cd, slope, speed, acc):   # tpms
     return np.array([jimenez_consumption, mec_power, net_force, friction_force])
 
 
-def add_consumption_cols(df, mass, frontal_area, cd, speed):
+def add_consumption_cols(df, mass, frontal_area, cd):
 
-    df['jimenez_estimation'] = df.apply(lambda row: jimenez(mass, frontal_area, cd, row['slope'], row[speed], row['mean_acc'])[0], axis=1)
+    df['jimenez_estimation'] = df.apply(lambda row: jimenez(mass, frontal_area, cd, row['slope'], row['speed'], row['mean_acc'])[0], axis=1)
 
-    df['fiori_estimation'] = df.apply(lambda row: fiori(mass, frontal_area, cd, row['slope'], row[speed], row['mean_acc'])[0], axis=1)
+    df['fiori_estimation'] = df.apply(lambda row: fiori(mass, frontal_area, cd, row['slope'], row['speed'], row['mean_acc'])[0], axis=1)
     '''
     df['friction_force_calc'] = df.apply(lambda row: jimenez(mass, frontal_area, cd,
                                                              row['slope'], row['mean_speed'], row['mean_acc'])[3], axis=1)
