@@ -82,7 +82,7 @@ def add_consumption_cols(df, mass, frontal_area, cd):
                                                         row['slope'], row['mean_speed'], row['mean_acc'])[2], axis=1)
     '''
     df['req_power'] = df.apply(lambda row: jimenez(mass, frontal_area, cd,
-                                                   row['slope'], row[speed], row['mean_acc'])[1], axis=1)
+                                                   row['slope'], row['speed'], row['mean_acc'])[1], axis=1)
 
     dates = pd.to_datetime(df['timestamp'], format="%Y-%m-%d %H:%M:%S.%f")
     x = np.array([time.mktime(t.timetuple()) for t in dates])  # total seconds since epoch
