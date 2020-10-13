@@ -135,6 +135,11 @@ def show_entries():
 
 @app.route('/updateplot')
 def update_plot():
+    try:
+
+        session["calendar_var"]
+    except KeyError:
+        session["calendar_var"] = "power_kw"
     "SELECT date(timestamp), MAX(" + session["calendar_var"] + ") as 'max_value' FROM operation GROUP BY date(timestamp)"
 
     query = "SELECT " + session["graph_var_x"] + " ," + session["graph_var_y"] + \
@@ -245,11 +250,12 @@ def show_tables():
     scatter = 0
     integral_jimenez = 0
     integral_power = 0
-    if all(elem in list(df) for elem in ['slope', 'mean_speed', 'mean_acc', 'power_kw']) and len(set(list(df))) == 6:
+    if all(elem in list(df) for elem in ['slope', 'speed', 'mean_acc', 'power_kw']) and len(set(list(df))) == 6:
         print(len(set(list(df)))) # != len(set(your_list))
         vehicle = Vehicle.query.filter_by(placa="FSV110").first()
 
-        consumption_models.add_consumption_cols(df, float(vehicle.weight), float(vehicle.frontal_area), float(vehicle.cd))
+        consumption_models.add_consumption_cols(df, float(vehicle.weight), float(vehicle.frontal_area),
+                                                float(vehicle.cd),'speed')
         scatter = plot.create_plot(df, "jimenez_estimation", "power_kw")
         integral_jimenez = plot.create_plot(df, "timestamp", "jimenez_int")
         integral_fiori = plot.create_plot(df, "timestamp", "fiori_int")

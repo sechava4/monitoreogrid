@@ -8,8 +8,8 @@ def fiori(mass, frontal_area, cd, slope, speed, acc):
     g = 9.8066
     p = 1.2256  # Air density kg/m3
     cr = 1.75  # Rolling coefficient
-    n_drive = 0.92  # driveline efficiency
-    n_motor = 0.91  # motor efficiency
+    n_drive = 0.95  # driveline efficiency
+    n_motor = 0.96  # motor efficiency
     n_regen = 0
     c2 = 4.575
     c1 = 0.0328
@@ -23,7 +23,7 @@ def fiori(mass, frontal_area, cd, slope, speed, acc):
     p_motor = p_wheels / n_drive * n_motor
 
     if acc < -0.06:
-        n_regen = (math.exp(0.0411 / acc))**-1
+        n_regen = (math.exp(0.11 / acc))**-1
 
     if p_motor < 0:
         fiori_consumption = p_motor * n_regen
@@ -70,15 +70,15 @@ def jimenez(mass, frontal_area, cd, slope, speed, acc):   # tpms
     return np.array([jimenez_consumption, mec_power, net_force, friction_force])
 
 
-def add_consumption_cols(df, mass, frontal_area, cd):
+def add_consumption_cols(df, mass, frontal_area, cd, speed):
 
 
 
     df['jimenez_estimation'] = df.apply(lambda row: jimenez(mass, frontal_area, cd, row['slope'],
-                                                            row['mean_speed'], row['mean_acc'])[0], axis=1)
+                                                            row[speed], row['mean_acc'])[0], axis=1)
 
     df['fiori_estimation'] = df.apply(lambda row: fiori(mass, frontal_area, cd,
-                                                        row['slope'], row['mean_speed'], row['mean_acc'])[0], axis=1)
+                                                        row['slope'], row[speed], row['mean_acc'])[0], axis=1)
     '''
     df['friction_force_calc'] = df.apply(lambda row: jimenez(mass, frontal_area, cd,
                                                              row['slope'], row['mean_speed'], row['mean_acc'])[3], axis=1)
@@ -86,7 +86,7 @@ def add_consumption_cols(df, mass, frontal_area, cd):
                                                         row['slope'], row['mean_speed'], row['mean_acc'])[2], axis=1)
     '''
     df['req_power'] = df.apply(lambda row: jimenez(mass, frontal_area, cd,
-                                                   row['slope'], row['mean_speed'], row['mean_acc'])[1], axis=1)
+                                                   row['slope'], row[speed], row['mean_acc'])[1], axis=1)
 
     dates = pd.to_datetime(df['timestamp'], format="%Y-%m-%d %H:%M:%S.%f")
     x = np.array([time.mktime(t.timetuple()) for t in dates])  # total seconds since epoch
