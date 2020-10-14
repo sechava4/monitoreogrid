@@ -563,8 +563,18 @@
 
                 req.done(function(res) {
                     $("#bargraph").fadeOut(100).fadeIn(100);
-                    var graphs = JSON.parse(res);
-                    Plotly.react('bargraph', graphs, {});
+                    var graphs_react = JSON.parse(res);
+
+                    var trace_react = {
+                          x: graphs_react[0]['x'],
+                          y: graphs_react[0]['y'],
+                          type: 'scatter',
+                          'mode': 'markers',
+                        };
+
+                        data_react=[trace_react]
+
+                    Plotly.react('bargraph', data_react, {});
                 });
             };
             setInterval(function(){
