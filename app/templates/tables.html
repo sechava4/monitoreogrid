@@ -67,7 +67,7 @@
        }
     </script>
 
-    Hint: select Pendiente, Velocidad instantánea, Aceleración promedio, y potencia eléctrica para evaluar diferentes modelos de consumo
+
     <div class="variables">
             <form role="form" class="form-inline" id="Mainform" action="{{ url_for('show_tables') }}" method=post>
                 <div style="width: 100%;margin: 10px;">
@@ -85,7 +85,10 @@
                         <option value="capacity">Capacidad (kWh)</option>
                     </select>
                 </div>
+
                 <div id="calendar_basic" style="width: 100%; height: 175px;margin: 20px;"></div>
+                <div style="width: 100%;margin: 20px;">Tip: a continuación seleccione: <li><b>Pendiente, Velocidad instantánea, Aceleración promedio y Potencia eléctrica</b> para evaluar diferentes modelos de consumo</li></div>
+
                 <div class="col-auto">
                     <label class="label label-default" for="exampleFormControlSelect1"> Variable 1 </label>
                     <select class="form-control" id="exampleFormControlSelect1" name = var1>
@@ -445,8 +448,40 @@
            }
 
 
+            var layout = {
+              title: {
+                text:'Jimenez estimation vs potencia eléctrica',
+                font: {
+                  family: 'Courier New, monospace',
+                  size: 23
+                },
+                xref: 'paper',
+                x: 0.05,
+              },
+              xaxis: {
+                title: {
+                  text: 'Jimenez estimation',
+                  font: {
+                    family: 'Courier New, monospace',
+                    size: 18,
+                    color: '#7f7f7f'
+                  }
+                },
+              },
+              yaxis: {
+                title: {
+                  text: 'Potencia eléctrica',
+                  font: {
+                    family: 'Courier New, monospace',
+                    size: 18,
+                    color: '#7f7f7f'
+                  }
+                }
+              }
+            };
+
             data1=[scatter_trace]
-            Plotly.newPlot('bargraph',data1, {});
+            Plotly.newPlot('bargraph',data1, layout);
         </script>
     </div>
     <div id = "bargraph2" style="width:50%;float: right">
@@ -485,9 +520,20 @@
                'line': {'shape': 'spline', 'smoothing': 0.2}
            }
 
+            var layout = {
+              title: {
+                text:'Performance de modelos de consumo',
+                font: {
+                  family: 'Courier New, monospace',
+                  size: 23
+                },
+                xref: 'paper',
+                x: 0.05,
+              }
+             }
 
             data_integrals = [smoothTrace1, smoothTrace2, smoothTrace3]
-            Plotly.newPlot('bargraph2', data_integrals, {});
+            Plotly.newPlot('bargraph2', data_integrals, layout);
         </script>
     </div>
 </div>
