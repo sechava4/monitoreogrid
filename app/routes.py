@@ -215,7 +215,7 @@ def show_tables():
         session["var3"] = "mean_acc"
         session["var4"] = "power_kw"
         session["var5"] = "slope"
-        session["records"] = 20
+        session["records"] = 200
 
     if request.method == 'POST':
         session["var1"] = (request.form['var1'])

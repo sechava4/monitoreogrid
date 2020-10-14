@@ -71,6 +71,7 @@ def jimenez(mass, frontal_area, cd, slope, speed, acc):   # tpms
 
 
 def add_consumption_cols(df, mass, frontal_area, cd):
+    print(df)
 
     df['jimenez_estimation'] = df.apply(lambda row: jimenez(mass, frontal_area, cd, row['slope'], row['speed'], row['mean_acc'])[0], axis=1)
 
@@ -101,9 +102,6 @@ def add_consumption_cols(df, mass, frontal_area, cd):
     df['fiori_int'] = (integrate.cumtrapz(df['fiori_estimation'], x, initial=0)) / 3600
     df['power_int'] = (integrate.cumtrapz(df['power_kw'], x.squeeze(), initial=0,))/3600
     # values = [np.around((np.trapz(y1, x) / 3600), 3), abs(np.around((np.trapz(y2, x) / 3600), 3))]  # j to kwh
-
-
-
 
 
 if __name__ == '__main__':
