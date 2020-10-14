@@ -122,6 +122,9 @@ function GetUrlABRP() {
     urljson += "angle_y=" + arr_from_json["angle_y"] + "&";
     //urljson += "ext_temp=" + arr_from_json["temp"] + "&";
     urljson += "elevation2=" + arr_from_json["elevation2"] + "&";
+    urljson += "AcX=" + arr_from_json["AcX"] + "&";
+    urljson += "AcY=" + arr_from_json["AcY"] + "&";
+    urljson += "AcZ=" + arr_from_json["AcZ"] + "&";
 
     print(urljson);
     i = 1.0;

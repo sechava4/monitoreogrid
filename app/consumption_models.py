@@ -20,7 +20,7 @@ def fiori(mass, frontal_area, cd, slope, speed, acc):
     p_wheels = (mass * acc + mass * g * math.cos(rad) * (cr/1000) * (c1 * speed + c2)
                 + 0.5 * p * frontal_area * cd * speed ** 2 + mass *g * math.sin(rad)) * speed/1000
 
-    p_motor = p_wheels / n_drive * n_motor
+    p_motor = p_wheels / (n_drive * n_motor)
 
     if acc < -0.06:
         n_regen = (math.exp(0.11 / acc))**-1
@@ -71,7 +71,6 @@ def jimenez(mass, frontal_area, cd, slope, speed, acc):   # tpms
 
 
 def add_consumption_cols(df, mass, frontal_area, cd):
-    print(df)
 
     df['jimenez_estimation'] = df.apply(lambda row: jimenez(mass, frontal_area, cd, row['slope'], row['speed'], row['mean_acc'])[0], axis=1)
 

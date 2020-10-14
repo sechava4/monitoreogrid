@@ -142,6 +142,10 @@ class Operation(db.Model):
     ilumination = db.Column(db.Float)
     station_id = db.Column(db.Integer)
     sensor_data = db.Column(db.String(128))
+    AcX = db.Column(db.Float)
+    AcY = db.Column(db.Float)
+    AcZ = db.Column(db.Float)
+
 
 
 class Task(db.Model):
