@@ -250,7 +250,7 @@ def show_tables():
     scatter = 0
     integral_jimenez = 0
     integral_power = 0
-    if all(elem in list(df) for elem in ['slope', 'speed', 'mean_acc', 'power_kw']) and len(set(list(df))) == 6:
+    if all(elem in list(df) for elem in ['slope', 'speed', 'mean_acc', 'power_kw']) and len(set(list(df))) == 6 and len(df) > 1:
         print(len(set(list(df)))) # != len(set(your_list))
         vehicle = Vehicle.query.filter_by(placa="FSV110").first()
 
