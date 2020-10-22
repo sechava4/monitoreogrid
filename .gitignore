@@ -17,15 +17,11 @@ __pycache__/
 >>>>>>> master
 
 /app/app.db
-/Nodeserver/j
+/Nodeserver/libraries
+/Nodeserver/.vscode/
 /app/db.sql
 /app/operation.csv
-/app/Develops/directions.csv
-/app/Develops/directions2.csv
 /app/Develops/arcgis_connection.py
-/Nodeserver/.vscode/
-/Nodeserver/.vscode/
-/Nodeserver/libraries/
 /app/Develops/arcgis.html
 /app/Develops/arcgis_short.html
 /app/Develops/arcgis_short_palmas.html
