@@ -22,6 +22,7 @@ __pycache__/
 /app/operation.csv
 /app/Develops/directions.csv
 /app/Develops/directions2.csv
+/app/Develops/arcgis_connection.py
 /Nodeserver/.vscode/
 /Nodeserver/.vscode/
 /Nodeserver/libraries/
