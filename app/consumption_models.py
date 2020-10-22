@@ -39,14 +39,14 @@ def fiori(mass, frontal_area, cd, slope, speed, acc):
 def jimenez(mass, frontal_area, cd, slope, speed, acc):   # tpms
 
     p = 1.2  # Air density kg/m3
-    cr = 0.001 * (1 + speed/(100*3.6))  # Rolling coefficient 1
+    cr = 0.01 * (1 + speed/(100*3.6))  # Rolling coefficient 1
     bar = 30/14.504
     cr2 = 0.005 + (1 / bar)*(0.01 + 0.0095*(speed / 100)**2)  # Rolling coefficient 2
     n_drive = 0.97  # transmission efficiency
     n_motor = 0.97  # Motor efficiency
     n_batt = 0.95  # Battery efficiency
     k = 0   # speed factor
-    p_aux = 0.2  # kW aux components
+    p_aux = 1  # kW aux components
 
     # cr = 0.005 + (1 / p) (0.01 + 0.0095 (v / 100)2)  pressure in Bar V in kmH
 
@@ -70,7 +70,7 @@ def jimenez(mass, frontal_area, cd, slope, speed, acc):   # tpms
     else:
         jimenez_consumption = mec_power / (n_drive * n_batt * n_motor)
 
-    return np.array([jimenez_consumption, mec_power, net_force, friction_force])
+    return np.array([(jimenez_consumption + p_aux), mec_power, net_force, friction_force])
 
 
 def add_consumption_cols(df, mass, frontal_area, cd):
@@ -89,7 +89,7 @@ def add_consumption_cols(df, mass, frontal_area, cd):
 
     dates = pd.to_datetime(df['timestamp'], format="%Y-%m-%d %H:%M:%S.%f")
     x = np.array([time.mktime(t.timetuple()) for t in dates])  # total seconds since epoch
-    x1=x
+    x1 = x
 
     '''
     y = df[y_name].to_numpy()

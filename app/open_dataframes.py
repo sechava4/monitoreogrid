@@ -99,20 +99,20 @@ def form_var(titles):
 
 def get_heights(var, d1, h1, h2):
 
-    query = "SELECT latitude, longitude, " + var + " from operation " + \
+    query = "SELECT latitude, longitude, timestamp, " + var + " from operation " + \
             'WHERE timestamp BETWEEN "' + str(d1) + ' ' + str(h1)[:8] + \
             '" and "' + str(d1) + ' ' + str(h2)[:8] + '"'
 
     df = pd.read_sql_query(query, db.engine)
     if var not in df.columns:
         var = "elevation"
-    df = df[["latitude", "longitude", var]]
+    df = df[["latitude", "longitude", "timestamp", var]]
     df["name"] = df[var]
     print(var)
     try:
         if df[var].iloc[0] is not None:
             if var in ("elevation", "elevation2"):
-                df['var'] = df[var].map(lambda x: x-1420)
+                df['var'] = df[var].map(lambda x: (x-1400)*0.5)
             elif var in ("mec_power_delta_e", "mec_power"):
                 df['var'] = df[var].map(lambda x: x*35)
             elif var in "mean_acc":
@@ -120,8 +120,8 @@ def get_heights(var, d1, h1, h2):
             elif var in "angle_x":
                 df['var'] = df[var].abs()
             else:
-                df['var'] = df[var].map(lambda x: x*5)
-            df = df[["latitude", "longitude", 'name', 'var']]
+                df['var'] = df[var].map(lambda x: x*4)
+            df = df[["latitude", "longitude", 'name', 'var', 'timestamp']]
     except IndexError:
         pass
     return df
