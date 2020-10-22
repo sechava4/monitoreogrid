@@ -7,6 +7,7 @@ SQLAlchemy
 pydeck
 pandas
 plotly
+scipy
 Flask-Migrate
 python-dotenv
 pymysql

@@ -1,4 +1,5 @@
 from app import app, open_dataframes, plot, db, consumption_models, degradation_models
+from app.Develops import google_dist_mat as google_query
 from app.closest_points import Trees
 from app.forms import LoginForm, RegistrationForm, TablesForm
 from flask import request, session, redirect, url_for, Markup, \
@@ -11,6 +12,8 @@ import os
 import geopy.distance
 from datetime import datetime, timedelta
 import pytz
+import ast
+import googlemaps
 import requests
 import math
 from scipy import stats
@@ -169,11 +172,33 @@ def energy_monitor():
     vehicle = Vehicle.query.filter_by(placa='GHW284').first()
     try:
         session["time_interval"]
+        session['est_cons']
+        session['est_time']
     except KeyError:
         session["time_interval"] = '2 d'
+        session['est_time'] = 0
+        session['est_cons'] = 0
 
     if request.method == 'POST':
         session["time_interval"] = (request.form['time_interval'])
+        try:
+            session["P_ini"] = ast.literal_eval(request.form['pos_o'])
+            session["P_fin"] = ast.literal_eval(request.form['pos_d'])
+            now = datetime.now(pytz.timezone('America/Bogota'))
+            print(session["P_fin"])
+            gmaps = googlemaps.Client(key='AIzaSyChV7Sy3km3Fi8hGKQ8K9t7n7J9f6yq9cI')
+            a = gmaps.directions(origin=session["P_ini"], destination=session["P_fin"],
+                                 mode='driving', alternatives=False, departure_time=now,
+                                 traffic_model='pessimistic')  # departure_time=now
+
+            # b = gmaps.directions(origin=(6.199303, -75.579519), destination=(6.153382, -75.541652),
+            #                      mode='driving', alternatives=False, departure_time=now, traffic_model='optimistic')
+
+            new_df, fig1, ele_df = google_query.calc(a)
+            session['est_cons'], session['est_time'] = consumption_models.smartcharging_consumption_query(new_df)
+        except SyntaxError:
+            session['est_cons'] = 0
+            session['est_time'] = 0
 
     # print(session["time_interval"])
     now = datetime.now(pytz.timezone('America/Bogota'))

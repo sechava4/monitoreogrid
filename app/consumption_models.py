@@ -3,13 +3,16 @@ import numpy as np
 import pandas as pd
 import time
 from scipy import integrate
+import requests
+import json
+
 
 def fiori(mass, frontal_area, cd, slope, speed, acc):
     g = 9.8066
     p = 1.2256  # Air density kg/m3
     cr = 1.75  # Rolling coefficient
     n_drive = 0.95  # driveline efficiency
-    n_motor = 0.96  # motor efficiency
+    n_motor = 0.90  # motor efficiency
     n_regen = 0
     c2 = 4.575
     c1 = 0.0328
@@ -58,9 +61,9 @@ def jimenez(mass, frontal_area, cd, slope, speed, acc):   # tpms
     speed = speed / 3.6
 
     if speed < 5:
-            k = 0.78 * speed
+        k = 0.79 * speed
     else:
-        k = 0.78+ 0.015 * (speed - 5)
+        k = 0.79 + 0.015 * (speed - 5)
 
     if mec_power < 0:
         jimenez_consumption = k * n_drive * n_motor * n_batt * mec_power
@@ -103,5 +106,29 @@ def add_consumption_cols(df, mass, frontal_area, cd):
     # values = [np.around((np.trapz(y1, x) / 3600), 3), abs(np.around((np.trapz(y2, x) / 3600), 3))]  # j to kwh
 
 
+def smartcharging_consumption_query(df):
+    # df = pd.read_csv('Develops/consumption_est1.csv')
+
+    to_ele = df["elevation"].iloc[1:]
+    to_ele = to_ele.append(pd.Series(df["elevation"].iloc[-1]), ignore_index=True)
+    df["toAltitude"] = to_ele
+    df["id"] = df.index
+    df = df.rename(columns={"id": "segmentNumber", "distance": "distanceInMeters",
+                            "time": "durationInSeconds", "elevation": "fromAltitude"})
+    print(df)
+    df = df[["segmentNumber", "distanceInMeters", "durationInSeconds", "fromAltitude", "toAltitude"]]
+    result = df.to_json(orient="records")
+    parsed = json.loads(result)
+    r = requests.post('http://192.168.10.138:9090/energy-consumption/get-consumption/9',
+                      json=parsed, timeout=10)
+    out_data = json.loads(r.content)
+    response_df = pd.DataFrame(out_data)
+    estimated_consumption = response_df['energyConsumption'].sum() / 1000
+    estimated_time = response_df['durationInSeconds'].sum() / 60
+    return estimated_consumption.round(3), estimated_time.round(3)
+
+
 if __name__ == '__main__':
+
+    # df['speed']=df['distance']/df['time']
     pass

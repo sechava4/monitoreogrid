@@ -3,6 +3,48 @@
 <div>
     <head>
       <link rel="stylesheet" type="text/css" href="/static/style.css" />
+        <title>Event Click LatLng</title>
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
+        <script
+          src="https://maps.googleapis.com/maps/api/js?key=AIzaSyChV7Sy3km3Fi8hGKQ8K9t7n7J9f6yq9cI&callback=initMap&libraries=&v=weekly"
+          defer
+        ></script>
+        <script>
+            function initMap() {
+              const myLatlng = { lat: 6.2, lng: -75.5 };
+              const map = new google.maps.Map(document.getElementById("map_google"), {
+                zoom: 13,
+                center: myLatlng,
+              });
+              // Create the initial InfoWindow.
+              let infoWindow = new google.maps.InfoWindow({
+                content: "Click the map to get Lat/Lng!",
+                position: myLatlng,
+              });
+              infoWindow.open(map);
+              // Configure the click listener.
+              map.addListener("click", (mapsMouseEvent) => {
+                // Close the current InfoWindow.
+                infoWindow.close();
+                // Create a new InfoWindow.
+                infoWindow = new google.maps.InfoWindow({
+                  position: mapsMouseEvent.latLng,
+                });
+                infoWindow.setContent(
+                  String(mapsMouseEvent.latLng)
+                );
+                if (document.getElementById('pos_origin').value == 'Click on the map'){
+
+                    document.getElementById('pos_origin').value = mapsMouseEvent.latLng;
+                }
+                else {
+                    document.getElementById('pos_dest').value = mapsMouseEvent.latLng;
+                }
+                console.log(infoWindow.getContent())
+                infoWindow.open(map);
+              });
+            }
+        </script>
     </head>
 
     <title>Panel de gestión energética</title>
@@ -43,10 +85,27 @@
               <option value="90 d">Ultimos 90 días</option>
               <option value="365 d">Ultimo año</option>
             </select>
-      </form>
+        </div>
+    </div>
+    <label for="pos_origin" style="margin: 20px;">Posición inicial:</label>
+    <input type="text" id="pos_origin" name="pos_o" style="margin: 20px;">
+    <label for="pos_dest" style="margin: 20px;">Posición final:</label>
+    <input type="text" id="pos_dest" name="pos_d" style="margin: 20px;">
+    <input type="reset" value="Reset">
+    <button class="btn btn-primary" type="submit" style="margin: 20px;" >Calcular consumo</button>
 
-     </div>
-  </div>
+  </form>
+    {% if session.est_cons != 0%}
+        <h4 style="width:100%;margin:20px"> Consumo esperado del trayecto: <b>{{session.est_cons}} kWh</b></h4>
+    {% endif %}
+<div style="width:80%;height:400" id="map_google"></div>
+<div>
+
+    <script type="text/javascript">
+        document.getElementById('pos_origin').defaultValue = 'Click on the map'
+        document.getElementById('pos_dest').defaultValue = 'Click on the map'
+    </script>
+    </div>
 
 </div>
 
@@ -144,5 +203,6 @@
         </div>
 
     </div>
+
 </div>
 {% endblock %}
