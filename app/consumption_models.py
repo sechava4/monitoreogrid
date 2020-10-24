@@ -119,7 +119,7 @@ def smartcharging_consumption_query(df):
     df = df[["segmentNumber", "distanceInMeters", "durationInSeconds", "fromAltitude", "toAltitude"]]
     result = df.to_json(orient="records")
     parsed = json.loads(result)
-    r = requests.post('http://192.168.10.138:9090/energy-consumption/get-consumption/9',
+    r = requests.post('http://192.168.10.138:9090/energy-consumption/get-consumption/1',
                       json=parsed, timeout=10)
     out_data = json.loads(r.content)
     response_df = pd.DataFrame(out_data)
