@@ -415,7 +415,7 @@ def add_entry():
                 (datetime.now(pytz.timezone('America/Bogota')).strftime('%Y-%m-%d %H:%M:%S')),
                 '%Y-%m-%d %H:%M:%S')
 
-            # insert into vehicle(placa, marca, modelo, year, odometer) values('AVM05C', 'HONDA', 'ECO100', 2011, 30000)
+            # insert into vehicle(placa, marca, modelo, year, odometer) values('BOTE01', 'ENERGETICA', 'ECO100', 2011, 10)
             #operation.angle_y = -float(request.args["angle_y"]) - 9.27
 
             last = Operation.query.order_by(Operation.id.desc()).first()
@@ -437,7 +437,10 @@ def add_entry():
             print(operation.vehicle_id)
             vehicle = Vehicle.query.filter_by(placa=operation.vehicle_id).first()
             print(vehicle.marca)
-            vehicle.odometer = float(request.args["odometer"])
+            try:
+                vehicle.odometer = float(request.args["odometer"])
+            except KeyError:
+                vehicle.odometer += run
 
             try:
                 slope = math.atan(rise/run)  # radians
@@ -461,14 +464,17 @@ def add_entry():
             operation.en_pot = rise * 9.81 * vehicle.weight
 
             # WANG MODEL IMPLEMANTATION
-            current = float(request.args["current"])
-            ah = current * delta_t / 3600
-            c_rate = current / 100  # 100 = Amperios hora totales bateria
-            if c_rate > 0:
-                b = 448.96 * c_rate ** 2 - 6301.1 * c_rate + 33840
-                operation.q_loss = b * math.exp((-31700 + (c_rate * 370.3)) / (8.314472 * (float(request.args["batt_temp"])))) * ah ** 0.552
-            else:
-                operation.q_loss = 0
+            try:
+                current = float(request.args["current"])
+                ah = current * delta_t / 3600
+                c_rate = current / 100  # 100 = Amperios hora totales bateria
+                if c_rate > 0:
+                    b = 448.96 * c_rate ** 2 - 6301.1 * c_rate + 33840
+                    operation.q_loss = b * math.exp((-31700 + (c_rate * 370.3)) / (8.314472 * (float(request.args["batt_temp"])))) * ah ** 0.552
+                else:
+                    operation.q_loss = 0
+            except Exception:
+                pass
 
             db.session.add(operation)
             db.session.commit()
