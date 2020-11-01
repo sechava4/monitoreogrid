@@ -145,6 +145,7 @@ class Operation(db.Model):
     AcX = db.Column(db.Float)
     AcY = db.Column(db.Float)
     AcZ = db.Column(db.Float)
+    humidity = db.Column(db.Float)
 
 
 

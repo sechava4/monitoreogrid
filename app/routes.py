@@ -106,7 +106,7 @@ def show_entries():
             ' from operation WHERE timestamp BETWEEN "' + session['d2'] + ' ' + str(session['h3'])[:8] + \
             '" and "' + str(session['d2']) + ' ' + str(session['h4'])[:8] + '"'
 
-    # df_exp = pd.read_csv('app/operation.csv', sep=',', index_col=0, decimal=".")
+    # df_exp = pd.read_csv('app/vehicle_operation.csv', sep=',', index_col=0, decimal=".")
     # df['timestamp'] = pd.to_datetime(df['timestamp'])"
     # df_exp.to_sql('DB',db.engine )
 
