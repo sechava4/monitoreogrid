@@ -62,11 +62,11 @@ def fiori(mass, frontal_area, cd, slope, speed, acc):
 def add_consumption_cols(df, mass, frontal_area, cd):
 
     # revisar apply completo
-    aux_j = jimenez(mass, frontal_area, cd, df['slope'], df['speed'], df['acc'])
+    aux_j = jimenez(mass, frontal_area, cd, df['slope'], df['speed'], df['mean_acc'])
     df['jimenez_estimation'] = aux_j[0]
     df['req_power'] = aux_j[1]
 
-    df['fiori_estimation'] = fiori(mass, frontal_area, cd, df['slope'], df['speed'], df['acc'])[0]
+    df['fiori_estimation'] = fiori(mass, frontal_area, cd, df['slope'], df['speed'], df['mean_acc'])[0]
 
     dates = pd.to_datetime(df['timestamp'], format="%Y-%m-%d %H:%M:%S.%f")
     x = np.array([time.mktime(t.timetuple()) for t in dates])  # total seconds since epoch
