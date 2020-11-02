@@ -451,20 +451,21 @@ def add_entry():
 
             # JIMENEZ MODEL IMPLEMANTATION
             vehicle.weight = float(request.args["mass"])
-            consumption_values = consumption_models.jimenez(vehicle.weight, float(vehicle.frontal_area),
-                                                            float(vehicle.cd), operation.slope,
-                                                            float(operation.mean_speed),
-                                                            float(operation.mean_acc))
+            if operation.vehicle_id != 'BOTE01':
+                consumption_values = consumption_models.jimenez(vehicle.weight, float(vehicle.frontal_area),
+                                                                float(vehicle.cd), operation.slope,
+                                                                float(operation.mean_speed),
+                                                                float(operation.mean_acc))
 
-            operation.consumption = float(consumption_values[0])
-            operation.mec_power = float(consumption_values[1])
-            operation.net_force = float(consumption_values[2])
-            operation.friction_force = float(consumption_values[3])
+                operation.consumption = float(consumption_values[0])
+                operation.mec_power = float(consumption_values[1])
+                operation.net_force = float(consumption_values[2])
+                operation.friction_force = float(consumption_values[3])
 
-            operation.en_pot = rise * 9.81 * vehicle.weight
+                operation.en_pot = rise * 9.81 * vehicle.weight
 
-            # WANG MODEL IMPLEMANTATION
-            try:
+                # WANG MODEL IMPLEMANTATION
+
                 current = float(request.args["current"])
                 ah = current * delta_t / 3600
                 c_rate = current / 100  # 100 = Amperios hora totales bateria
@@ -473,8 +474,6 @@ def add_entry():
                     operation.q_loss = b * math.exp((-31700 + (c_rate * 370.3)) / (8.314472 * (float(request.args["batt_temp"])))) * ah ** 0.552
                 else:
                     operation.q_loss = 0
-            except Exception:
-                pass
 
             db.session.add(operation)
             db.session.commit()

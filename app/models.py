@@ -148,7 +148,6 @@ class Operation(db.Model):
     humidity = db.Column(db.Float)
 
 
-
 class Task(db.Model):
     id = db.Column(db.String(36), primary_key=True)
     name = db.Column(db.String(128), index=True)
