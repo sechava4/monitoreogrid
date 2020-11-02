@@ -76,3 +76,7 @@ id,var,var_pretty
 74,60 d, Ultimos 60 días
 75,90 d, Ultimos 90 días
 76,365 d, Ultimo año
+77,AcX, Acelerómetro (X)
+78,AcY, Acelerómetro (Y)
+79,AcZ, Acelerómetro (Z)
+80,humidity, Humedad (%)
