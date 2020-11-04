@@ -215,8 +215,12 @@ def energy_monitor():
              '" and "' + str(session["energy_t1"]) + '" ORDER BY timestamp'
 
     df_o = pd.read_sql_query(query1, db.engine)
-    scatter_cons = plot.create_double_plot(df_o, "timestamp", "power_kw")
-    donut = plot.create_kwh_donut(df_o, "timestamp", "power_kw", "cons", "regen")
+    try:
+        scatter_cons = plot.create_double_plot(df_o, "timestamp", "power_kw")
+        donut = plot.create_kwh_donut(df_o, "timestamp", "power_kw", "cons", "regen")
+    except TypeError:
+        scatter_cons = 0
+        donut = 0
     session["t_int_pretty"] = open_dataframes.pretty_var_name(session["time_interval"])
 
     return render_template('energy_monitor.html', plot=scatter_cons, donut=donut, vehicle=vehicle)
