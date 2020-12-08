@@ -21,15 +21,6 @@ __pycache__/
 /Nodeserver/.vscode/
 /app/db.sql
 /app/operation.csv
-/app/Develops/arcgis_connection.py
-/app/Develops/arcgis.html
-/app/Develops/arcgis_short.html
-/app/Develops/arcgis_short_palmas.html
-/app/Develops/google_path1_alternative1.html
-/app/Develops/google_path1_alternative2.html
-/app/Develops/google_path_eafit_palmas.html
-/app/Develops/google_path_eafit_palmas_comparacion.html
-/app/Develops/google_path_eafit_palmas_comparacion2.html
-/app/Develops/name.html
-/app/Develops/path2.html
 /app/vehicle_operation.csv
+/app/Develops/
+/Backup_monitoreo_data/

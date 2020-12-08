@@ -14,6 +14,7 @@ var prev = p.getTime();
 var first = true;
 var time_to_os4 = new Date();
 var time_to_os4_millis = time_to_os4.getTime();
+var esp_flag = 0
 
 //Varibales de cálculo
 var speed = 0;
@@ -37,7 +38,9 @@ function OnRequestDoneJson(resp) {
     print("response="+JSON.stringify(resp)+'\n');
     var data = resp.body;
     arr_from_json = JSON.parse(data);
+    esp_flag=0
     HTTP.Request(GetURLcfg());
+
 }
 
 // http request callback if failed
@@ -48,14 +51,18 @@ function OnRequestFail(error) {
 function OnRequestFailJson(error) {
     print("error="+JSON.stringify(error)+'\n');
     print(JSON.stringify(error));
+
     if (JSON.stringify(error) == "timeout") {
         print('trying next url');
         espurl =espurl + 1;
     }
+
     espurl =espurl + 1;
     if (espurl>7) {
         espurl = 2
     }
+    esp_flag = 1
+    HTTP.Request(GetURLcfg());
 }
 
 //v.tp.fl.p                                231.952kPa
@@ -118,14 +125,17 @@ function GetUrlABRP() {
     urljson += "charge_time=" + OvmsMetrics.AsFloat("v.c.time") + "&";
     urljson += "charger_type=" + OvmsMetrics.AsFloat("v.c.type") + "&";
 
-    urljson += "angle_x=" + arr_from_json["angle_x"] + "&";
-    urljson += "angle_y=" + arr_from_json["angle_y"] + "&";
-    //urljson += "ext_temp=" + arr_from_json["temp"] + "&";
-    urljson += "elevation2=" + arr_from_json["elevation2"] + "&";
-    urljson += "AcX=" + arr_from_json["AcX"] + "&";
-    urljson += "AcY=" + arr_from_json["AcY"] + "&";
-    urljson += "AcZ=" + arr_from_json["AcZ"] + "&";
+    if (esp_flag==0) {
 
+        urljson += "angle_x=" + arr_from_json["angle_x"] + "&";
+        urljson += "angle_y=" + arr_from_json["angle_y"] + "&";
+        //urljson += "ext_temp=" + arr_from_json["temp"] + "&";
+        urljson += "elevation2=" + arr_from_json["elevation2"] + "&";
+        urljson += "AcX=" + arr_from_json["AcX"] + "&";
+        urljson += "AcY=" + arr_from_json["AcY"] + "&";
+        urljson += "AcZ=" + arr_from_json["AcZ"] + "&";
+
+    }
     print(urljson);
     i = 1.0;
     sum_acc = 0.0;

@@ -1,7 +1,10 @@
+
+#include <WiFi.h>
+
+
 //https://robologs.net/2014/10/15/tutorial-de-arduino-y-mpu-6050/
 //https://randomnerdtutorials.com/esp32-static-fixed-ip-address-arduino-ide/
 
-#include <WiFi.h>
 #include "MPU9250.h"
 #include "Waveshare_10Dof-D.h"
 #include <ArduinoJson.h>

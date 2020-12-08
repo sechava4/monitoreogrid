@@ -22,3 +22,6 @@ email_validator
 geopy
 requests
 googlemaps
+statsmodels
+seaborn
+
