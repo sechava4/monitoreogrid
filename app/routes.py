@@ -423,18 +423,29 @@ def add_entry():
             #operation.angle_y = -float(request.args["angle_y"]) - 9.27
 
             last = Operation.query.order_by(Operation.id.desc()).first()
-            delta_t = (operation.timestamp - last.timestamp).total_seconds()
-            coords_1 = (last.latitude, last.longitude)
             coords_2 = (float(request.args["latitude"]), float(request.args["longitude"]))
-            run = geopy.distance.distance(coords_1, coords_2).m  # meters
-
             google_url = 'https://maps.googleapis.com/maps/api/elevation/json?locations=' + \
                          request.args["latitude"] + ',' + request.args["longitude"] + \
                          '&key=AIzaSyChV7Sy3km3Fi8hGKQ8K9t7n7J9f6yq9cI'
 
             r = requests.get(google_url).json()
             elevation = r['results'][0]['elevation']
-            rise = elevation - last.elevation
+
+            # Si es el primer dato de la base de datos
+            try:
+                delta_t = (operation.timestamp - last.timestamp).total_seconds()
+                coords_1 = (last.latitude, last.longitude)
+                rise = elevation - last.elevation
+
+            except AttributeError:
+                coords_1 = coords_2
+                delta_t = 7
+                rise = 0
+
+            run = geopy.distance.distance(coords_1, coords_2).m  # meters
+
+
+
             distance = math.sqrt(run ** 2 + rise ** 2)
             operation.elevation = elevation
             operation.run = distance

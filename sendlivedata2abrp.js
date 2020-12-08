@@ -3,7 +3,7 @@ const CAR_MODEL = "nissan:leaf";
 const vehicle_id = "GHW284";
 //const vehicle_id = "AVM05C";
 //const vehicle_id = "OIO53";
-const URL = "http://vehiculoselectricos.dis.eafit.edu.co/addjson";
+const URL = "http://157.230.209.3/addjson";
 var URL_esp32 = "http://192.168.4.2/data";
 var espurl = 2;
 var objTLM;

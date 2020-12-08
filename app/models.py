@@ -35,6 +35,8 @@ class User(UserMixin, db.Model):
 
 # Crear un metodo para serializar
 
+# insert into vehicle(placa, marca, modelo, year, weight, cd, frontal_area, odometer) values('GHW284', 'RENAULT', 'ZOE', 2020, 1528, 0.31, 2.43);
+
 
 class Vehicle(db.Model):
     id = db.Column(db.Integer, primary_key=True)
