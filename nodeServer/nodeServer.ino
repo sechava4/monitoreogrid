@@ -27,6 +27,7 @@ float Gy[2];
 //float Gy_ant[2];
 float Angle[2];
 float mean_angle[2];
+float mean_acc[3];
 uint16_t counter = 1; 
 //float alpha[2];
 
@@ -152,6 +153,9 @@ void loop() {
     Serial.println(WiFi.localIP());
     mean_angle[0] += Angle[0];
     mean_angle[1] += Angle[1];
+    mean_acc[0] += AcX;
+    mean_acc[1] += AcY;
+    mean_acc[2] += AcZ;
     counter++;
   }
 
@@ -188,9 +192,10 @@ void loop() {
               doc["temp"] = round(IMU.getTemperature_C() * 100.0) / 100.0;
               doc["pressure"] = round((float)s32PressureVal / 100.0);
               doc["elevation2"] = round((float)s32AltitudeVal / 100.0);
-              doc["AcX"] = round((float)AcX / 100.0);
-              doc["AcY"] = round((float)AcY / 100.0);
-              doc["AcZ"] = round((float)AcZ / 100.0);
+              doc["AcX"] = round(mean_acc[0]/counter * 100.0) / 100.0;
+              doc["AcY"] = round(mean_acc[1]/counter * 100.0) / 100.0;
+              doc["AcZ"] = round(mean_acc[2]/counter * 100.0) / 100.0;
+              
               serializeJson(doc, client);
               
               Serial.print(round(mean_angle[0]/counter * 100.0) / 100.0);

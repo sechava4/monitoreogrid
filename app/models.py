@@ -116,6 +116,7 @@ class Operation(db.Model):
     angle_y = db.Column(db.Float)
     q_loss = db.Column(db.Float)
     charge_current = db.Column(db.Float)
+    kwh_km = db.Column(db.Float)
     throttle = db.Column(db.Integer)
     regen_brake = db.Column(db.Float)
     mass = db.Column(db.Integer)
