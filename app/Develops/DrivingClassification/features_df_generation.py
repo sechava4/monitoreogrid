@@ -77,6 +77,10 @@ def feature_extraction(trace):
 if __name__ == '__main__':
     complete_df = pd.read_csv('../updated_vehicle_operation.csv', index_col='id')
     classifier_df = complete_df[complete_df['trace_id'] > 0]
+
+    sns.catplot(x="highway", y="power_kw", kind="boxen", orient="h",
+                data=classifier_df.sort_values("power_kw"))
+
     traces = classifier_df.groupby(['trace_id'])
     cols = ['num_acc_min', 'num_acc_fr_min', 'prom_sobrepaso_acc', 'prom_sobrepaso_fren', 'prom_abs_acc',
             'std_acc', 'num_jerk_acc_min', 'num_jerk_freno_min', 'prom_sobrepaso_jerk_acc',
