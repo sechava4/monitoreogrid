@@ -24,3 +24,4 @@ __pycache__/
 /app/vehicle_operation.csv
 /app/Develops/
 /Backup_monitoreo_data/
+/NodeServer/.pio
