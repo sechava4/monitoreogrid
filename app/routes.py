@@ -45,7 +45,7 @@ def show_entries():
         session['h4']
         session['vehicle']
     except KeyError:
-        now = datetime.now(pytz.timezone('America/Bogota'))
+        now = datetime.now(pytz.timezone('America/Bogota')) + timedelta(hours=1)
         session['form_d1'] = now.strftime("%d/%m/%Y")
         session['form_h1'] = '0:01 AM'
         session['form_h2'] = now.strftime("%I:%M %p")  # 12H Format
@@ -443,8 +443,6 @@ def add_entry():
                 rise = 0
 
             run = geopy.distance.distance(coords_1, coords_2).m  # meters
-
-
 
             distance = math.sqrt(run ** 2 + rise ** 2)
             operation.elevation = elevation
