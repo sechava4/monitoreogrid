@@ -32,6 +32,7 @@ function OnRequestDone(resp) {
 
 function OnRequestFail(error) {
     print("error="+JSON.stringify(error)+'\n');
+    i = 1.0;
 }
 
 
@@ -46,7 +47,7 @@ function OnRequestDoneJson(resp) {
 function OnRequestFailJson(error) {
     print("error="+JSON.stringify(error)+'\n');
     print(JSON.stringify(error));
-    esp_flag=1;
+    esp_flag=0;
     if (JSON.stringify(error) === "timeout") {
 
         espurl =espurl + 1;
@@ -73,7 +74,7 @@ function GetUrlABRP() {
     urljson += "mean_speed=" + (sum_speed /i).toFixed(2) + "&";
     urljson += "speed=" + OvmsMetrics.AsFloat(["v.p.speed"])+ "&";
     urljson += "mean_acc=" + (sum_acc /i).toFixed(2) + "&";       //potencia promedio
-    urljson += "user_id=" + "Santiago_Echavarria" + "&";
+    urljson += "user_id=" + "Esteban_Betancur" + "&";
     urljson += "mass=" + 1528 + "&";
     urljson += "freeram=" + OvmsMetrics.Value("m.freeram") + "&";
     urljson += "odometer=" + OvmsMetrics.AsFloat("v.p.odometer") + "&";

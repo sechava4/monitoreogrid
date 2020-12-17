@@ -65,20 +65,24 @@ def feature_extraction(trace):
     median_speed = trace['speed'].median()
     std_speed = trace['speed'].std()
 
+    # ----------- Traffic features Pending [28] ----------
+    # Number of stops
+    # Idle time
+
     return [num_acc_min, num_acc_fr_min, prom_sobrepaso_acc, prom_sobrepaso_fren, prom_abs_acc, std_acc,
             num_jerk_acc_min, num_jerk_freno_min, prom_sobrepaso_jerk_acc,
             prom_sobrepaso_jerk_freno, prom_abs_jerk, std_jerk, std_pot, prom_abs_pot,  consumption,
             kms, consumption_per_km, num_current_min, num_current_fr_min, prom_sobrepaso_current,
             prom_sobrepaso_current_fr, prom_abs_current, std_current, std_current_std_jerk,
             trace['highway'].iloc[0], np.mean(trace['slope']), max_current, max_jerk, max_acc,
-            trace['power_kw'].max(), max_speed, mean_speed, std_speed, iqr_pot]
+            trace['power_kw'].max(), max_speed, mean_speed, std_speed, iqr_pot, trace['soc'].mean()]
 
 
 if __name__ == '__main__':
     complete_df = pd.read_csv('../updated_vehicle_operation.csv', index_col='id')
     classifier_df = complete_df[complete_df['trace_id'] > 0]
 
-    sns.catplot(x="highway", y="power_kw", kind="boxen", orient="h",
+    sns.catplot(x="highway", y="power_kw", kind="boxen",
                 data=classifier_df.sort_values("power_kw"))
 
     traces = classifier_df.groupby(['trace_id'])
@@ -88,7 +92,7 @@ if __name__ == '__main__':
             'consumption', 'kms', 'consumption_per_km', 'num_current_min', 'num_current_fr_min',
             'prom_sobrepaso_current', 'prom_sobrepaso_current_fr', 'prom_abs_current', 'std_current',
             'std_current_std_jerk', 'highway', 'slope', 'max_current', 'max_jerk', 'max_acc', 'max_pot',
-            'max_speed', 'mean_speed', 'std_speed', 'iqr_pot']
+            'max_speed', 'mean_speed', 'std_speed', 'iqr_pot', 'mean_soc']
 
     lst = []
     for index, trace in traces:
@@ -141,6 +145,6 @@ if __name__ == '__main__':
         plt.scatter(x=X_transformed[:, 0], y=X_transformed[:, 1], s=10)
 
     elif n_components == 3:
-        fig = plt.figure(figsize=[10,10])
+        fig = plt.figure(figsize=[10, 10])
         ax = Axes3D(fig)
         ax.scatter(X[:, 0], X[:, 1], X[:, 2], s=10)

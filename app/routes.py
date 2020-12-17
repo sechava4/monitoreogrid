@@ -453,7 +453,10 @@ def add_entry():
             try:
                 vehicle.odometer = float(request.args["odometer"])
             except KeyError:
-                vehicle.odometer += run
+                try:
+                    vehicle.odometer += run
+                except TypeError:
+                    vehicle.odometer = run
 
             try:
                 slope = math.atan(rise/run)  # radians
