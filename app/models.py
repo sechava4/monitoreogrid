@@ -34,8 +34,8 @@ class User(UserMixin, db.Model):
     tasks = db.relationship('Task', backref='user', lazy='dynamic')
 
 # Crear un metodo para serializar
-
-# insert into vehicle(placa, marca, modelo, year, weight, cd, frontal_area, odometer) values('GHW284', 'RENAULT', 'ZOE', 2020, 1528, 0.31, 2.43);
+# insert into vehicle(placa, marca, modelo, year, weight, cd, frontal_area, odometer) values('GHW284', 'RENAULT', 'ZOE', 2020, 1528, 0.31, 2.43, 0);
+# insert into vehicle(placa, marca, modelo, year, weight, cd, frontal_area, odometer) values('FRV020', 'NISSAN', 'LEAF', 2018, 1584, 0.29, 2.28, 730);
 
 
 class Vehicle(db.Model):
