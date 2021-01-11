@@ -25,4 +25,5 @@ requests
 googlemaps
 statsmodels
 seaborn
+networkx
 

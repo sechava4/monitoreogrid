@@ -55,15 +55,32 @@ def feature_extraction(trace):
 
     std_pot = np.std(trace['power_kw'])
     iqr_pot = iqr(trace['power_kw'])
-    prom_abs_pot = np.mean(np.absolute(trace['power_kw'] ))
+    prom_abs_pot = np.mean(np.absolute(trace['power_kw']))
     consumption = trace['capacity'].iloc[0] - trace['capacity'].iloc[-1]
-    kms = trace['cumulative_distance'].iloc[-1]/1000
+    kms = trace['cumulative_distance'].iloc[-1] / 1000
     consumption_per_km = consumption / kms
     std_current_std_jerk = std_current * std_jerk
     max_speed = trace['speed'].max()
     mean_speed = trace['speed'].mean()
     median_speed = trace['speed'].median()
     std_speed = trace['speed'].std()
+    time = trace['timestamp2'].iloc[-1] - trace['timestamp2'].iloc[0]
+
+    # This indicator detects traffic (including red lights)
+    stopped_time = 0
+    old_time = trace['timestamp2'].iloc[0]
+    prev = False
+    for index, row in trace[['timestamp2', 'mean_speed']].iterrows():
+        if row['mean_speed'] < 2:
+            if prev:
+                stopped_time += row['timestamp2'] - old_time
+
+            old_time = row['timestamp2']
+            prev = True
+        else:
+            prev = False
+
+    idle_time = stopped_time / time
 
     # ----------- Traffic features Pending [28] ----------
     # Number of stops
@@ -71,15 +88,16 @@ def feature_extraction(trace):
 
     return [num_acc_min, num_acc_fr_min, prom_sobrepaso_acc, prom_sobrepaso_fren, prom_abs_acc, std_acc,
             num_jerk_acc_min, num_jerk_freno_min, prom_sobrepaso_jerk_acc,
-            prom_sobrepaso_jerk_freno, prom_abs_jerk, std_jerk, std_pot, prom_abs_pot,  consumption,
+            prom_sobrepaso_jerk_freno, prom_abs_jerk, std_jerk, std_pot, prom_abs_pot, consumption,
             kms, consumption_per_km, num_current_min, num_current_fr_min, prom_sobrepaso_current,
             prom_sobrepaso_current_fr, prom_abs_current, std_current, std_current_std_jerk,
             trace['highway'].iloc[0], np.mean(trace['slope']), max_current, max_jerk, max_acc,
-            trace['power_kw'].max(), max_speed, mean_speed, std_speed, iqr_pot, trace['soc'].mean()]
+            trace['power_kw'].max(), max_speed, mean_speed, std_speed, iqr_pot, trace['soc'].mean(), time, idle_time,
+            trace['user_id'].iloc[0], trace['vehicle_id'].iloc[0]]
 
 
 if __name__ == '__main__':
-    complete_df = pd.read_csv('../updated_vehicle_operation.csv', index_col='id')
+    complete_df = pd.read_csv('../../DataBackup/updated_vehicle_operation.csv', index_col='id')
     classifier_df = complete_df[complete_df['trace_id'] > 0]
 
     sns.catplot(x="highway", y="power_kw", kind="boxen",
@@ -92,7 +110,8 @@ if __name__ == '__main__':
             'consumption', 'kms', 'consumption_per_km', 'num_current_min', 'num_current_fr_min',
             'prom_sobrepaso_current', 'prom_sobrepaso_current_fr', 'prom_abs_current', 'std_current',
             'std_current_std_jerk', 'highway', 'slope', 'max_current', 'max_jerk', 'max_acc', 'max_pot',
-            'max_speed', 'mean_speed', 'std_speed', 'iqr_pot', 'mean_soc']
+            'max_speed', 'mean_speed', 'std_speed', 'iqr_pot', 'mean_soc', 'travel_time', 'idle_time', 'user_id',
+            'vehicle_id']
 
     lst = []
     for index, trace in traces:
@@ -135,7 +154,7 @@ if __name__ == '__main__':
     print(pca.explained_variance_ratio_)
     pca_var = pca.explained_variance_ratio_
     print('The explained variances with 2 components is:', pca_var.sum())
-    n_components = 2
+    n_components = 3
 
     if n_components == 2:
         pca = PCA(n_components=2)

@@ -1,7 +1,7 @@
 from app import app, open_dataframes, plot, db, consumption_models, degradation_models
-from app.Develops import google_dist_mat as google_query
+from app.Develops.Google import google_dist_mat as google_query
 from app.closest_points import Trees
-from app.forms import LoginForm, RegistrationForm, TablesForm
+from app.forms import LoginForm, RegistrationForm
 from flask import request, session, redirect, url_for, Markup, \
     render_template, flash, send_from_directory
 import pandas as pd
@@ -17,7 +17,6 @@ import googlemaps
 import requests
 import math
 from scipy import stats
-import numpy as np
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -108,7 +107,7 @@ def show_entries():
 
     print(query1)
 
-    # df_exp = pd.read_csv('app/vehicle_operation.csv', sep=',', index_col=0, decimal=".")
+    # df_exp = pd.read_csv('app/old_vehicle_operation.csv', sep=',', index_col=0, decimal=".")
     # df['timestamp'] = pd.to_datetime(df['timestamp'])"
     # df_exp.to_sql('DB',db.engine )
 

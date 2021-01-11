@@ -88,7 +88,7 @@ def add_consumption_cols(df, mass, frontal_area, cd):
 
 
 def smartcharging_consumption_query(df):
-    # df = pd.read_csv('Develops/consumption_est1.csv')
+    # df = pd.read_csv('Develops/google_path_Eafit_Palmas.csv')
 
     to_ele = df["elevation"].iloc[1:]
     to_ele = to_ele.append(pd.Series(df["elevation"].iloc[-1]), ignore_index=True)

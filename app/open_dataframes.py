@@ -138,7 +138,6 @@ def point_in_zone(day):
     gdf.plot(ax=ax, color='blue')
     centroids_gdf.plot(ax=ax, color='black')
 
-    alturas = alturas_df_csv("elevation", day)
     alturas = alturas[["latitude", "longitude"]]
     points_df = alturas.iloc[-2:-1]
     points_gdf = gpd.GeoDataFrame(
