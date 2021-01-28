@@ -284,7 +284,7 @@ def show_tables():
     integral_power = 0
     if all(elem in list(df) for elem in ['slope', 'speed', 'mean_acc', 'power_kw']) and len(set(list(df))) == 6 and len(df) > 1:
         print(len(set(list(df)))) # != len(set(your_list))
-        vehicle = Vehicle.query.filter_by(placa="FSV110").first()
+        vehicle = Vehicle.query.filter_by(placa="FRV020").first()
 
         consumption_models.add_consumption_cols(df, float(vehicle.weight), float(vehicle.frontal_area),float(vehicle.cd))
 
@@ -494,7 +494,7 @@ def add_entry():
                 else:
                     operation.q_loss = 0
             else:
-                operation.mec_power, operation.net_force = consumption_models.zavitsky(float(operation.mean_speed),
+                operation.mec_power, operation.net_force = consumption_models.zavitsky(float(operation.mean_speed/3.6),
                                                                                        float(operation.mean_acc),
                                                                                        float(vehicle.weight))
             db.session.add(operation)
