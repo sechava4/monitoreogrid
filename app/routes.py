@@ -1,5 +1,5 @@
 from app import app, open_dataframes, plot, db, consumption_models, degradation_models
-from app.Develops.Google import google_dist_mat as google_query
+from app.Develops.Google import google_linear_model as google_query
 from app.closest_points import Trees
 from app.forms import LoginForm, RegistrationForm
 from flask import request, session, redirect, url_for, Markup, \
@@ -92,8 +92,6 @@ def show_entries():
         if session["h4"] < session["h3"]:
             session["h3"], session["h4"] = session["h4"], session["h3"]  # Swap times
 
-
-
     query0 = "SELECT date(timestamp), MAX(" + session["calendar_var"] + \
              ") as 'max_value' FROM operation GROUP BY date(timestamp)"
 
@@ -115,6 +113,7 @@ def show_entries():
     df_calendar = df_calendar.dropna()
     df_o = pd.read_sql_query(query1, db.engine)
     df_o2 = pd.read_sql_query(query2, db.engine)
+
 
     try:
         pearson_coef = stats.pearsonr(df_o[session["graph_var_x"]].to_numpy(), df_o[session["graph_var_y"]].to_numpy())
@@ -195,8 +194,11 @@ def energy_monitor():
             # b = gmaps.directions(origin=(6.199303, -75.579519), destination=(6.153382, -75.541652),
             #                      mode='driving', alternatives=False, departure_time=now, traffic_model='optimistic')
 
-            new_df, fig1, ele_df = google_query.calc(a)
-            session['est_cons'], session['est_time'] = consumption_models.smartcharging_consumption_query(new_df)
+            segments, fig1, ele_df = google_query.calc(a)
+
+            lm_path = os.path.join(app.root_path, 'Develops/Consumption_estimation_Journal')
+            # session['est_cons'], session['est_time'] = consumption_models.smartcharging_consumption_query(new_df)
+            session['est_cons'], session['est_time'] = google_query.calculate_consumption(segments, lm_path)
         except SyntaxError:
             session['est_cons'] = 0
             session['est_time'] = 0
@@ -491,7 +493,10 @@ def add_entry():
                     operation.q_loss = b * math.exp((-31700 + (c_rate * 370.3)) / (8.314472 * (float(request.args["batt_temp"])))) * ah ** 0.552
                 else:
                     operation.q_loss = 0
-
+            else:
+                operation.mec_power, operation.net_force = consumption_models.zavitsky(float(operation.mean_speed),
+                                                                                       float(operation.mean_acc),
+                                                                                       float(vehicle.weight))
             db.session.add(operation)
             db.session.commit()
             return "Data received"

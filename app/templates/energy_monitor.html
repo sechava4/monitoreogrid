@@ -3,7 +3,7 @@
 <div>
     <head>
       <link rel="stylesheet" type="text/css" href="/static/style.css" />
-        <title>Event Click LatLng</title>
+        <title>Energy monitor</title>
         <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
         <script
           src="https://maps.googleapis.com/maps/api/js?key=AIzaSyChV7Sy3km3Fi8hGKQ8K9t7n7J9f6yq9cI&callback=initMap&libraries=&v=weekly"
@@ -98,7 +98,10 @@
     {% if session.est_cons != 0%}
         <h4 style="width:100%;margin:20px"> Consumo esperado del trayecto: <b>{{session.est_cons}} kWh</b></h4>
     {% endif %}
-<div style="width:80%;height:400" id="map_google"></div>
+    {% if session.est_time != 0%}
+        <h4 style="width:100%;margin:20px"> Tiempo de viaje: <b>{{session.est_time}} min</b></h4>
+    {% endif %}
+<div style="width:80%;height:70%" id="map_google"></div>
 <div>
 
     <script type="text/javascript">

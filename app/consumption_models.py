@@ -109,6 +109,13 @@ def smartcharging_consumption_query(df):
     return estimated_consumption.round(3), estimated_time.round(3)
 
 
+def zavitsky(v, a, m):
+    drag = (-8.4e-06*v**3+0.0003*v**2+0.0029*v+0.2289)**1/3
+    thrust = m*a + drag
+    effective_power = thrust*v
+    return effective_power, thrust
+
+
 if __name__ == '__main__':
 
     # df['speed']=df['distance']/df['time']

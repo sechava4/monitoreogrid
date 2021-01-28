@@ -254,7 +254,7 @@ function SendLiveData() {
             operative_state = 1;
             Make_Request();
         }
-        else if (speed <= 1) {
+        else if ((speed <= 1) && (Boolean(OvmsMetrics.Value("v.e.on")) === false) ) {
             operative_state = 4;
             Make_Request();
         }
