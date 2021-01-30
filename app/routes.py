@@ -494,7 +494,7 @@ def add_entry():
                 else:
                     operation.q_loss = 0
             else:
-                operation.mec_power, operation.net_force = consumption_models.zavitsky(float(operation.mean_speed/3.6),
+                operation.mec_power, operation.net_force = consumption_models.zavitsky((float(operation.mean_speed)/3.6),
                                                                                        float(operation.mean_acc),
                                                                                        float(vehicle.weight))
             db.session.add(operation)
