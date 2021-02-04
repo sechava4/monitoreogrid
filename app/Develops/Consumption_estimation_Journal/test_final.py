@@ -138,7 +138,7 @@ features.loc[features['cumdist'] < 25, 'user_id'] = 'Santiago_Echavarria_measure
 features['slope_cat'] = pd.cut(features["slope"], np.arange(-8.5, 8.6, 3.4)).astype('string')
 
 # Load the mean power feature for all users
-mean_max_pot_by_slope = pd.read_csv(path + '/Develops/Consumption_estimation_Journal/mean_max_pot_by_slope.csv',
+mean_max_pot_by_slope = pd.read_csv(path + '/Develops/Consumption_estimation_Journal/mean_max_power_by_slope.csv',
                                     index_col=0)
 mean_max_pot_by_slope['slope_cat'] = mean_max_pot_by_slope['slope_cat'].astype('string')
 
