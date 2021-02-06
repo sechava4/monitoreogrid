@@ -196,9 +196,9 @@ def energy_monitor():
 
             segments, fig1, ele_df = google_query.calc(a)
 
-            lm_path = os.path.join(app.root_path, 'Develops/Consumption_estimation_Journal')
+            estimation_path = os.path.join(app.root_path, 'Develops/Consumption_estimation_Journal')
             # session['est_cons'], session['est_time'] = consumption_models.smartcharging_consumption_query(new_df)
-            session['est_cons'], session['est_time'] = google_query.calculate_consumption(segments, lm_path)
+            session['est_cons'], session['est_time'] = google_query.calculate_consumption(segments, estimation_path)
         except SyntaxError:
             session['est_cons'] = 0
             session['est_time'] = 0
