@@ -44,7 +44,7 @@ id,var,var_pretty
 42,coulomb,Energía acomulada (Ah)
 43,energy,Energía acomulada (J)
 44,mean_acc, Acelereración promedio (m/s^2)
-45,mec_power, Potencia efectiva (server) (Hp)
+45,mec_power, Potencia efectiva (server) (Kw)
 46,mec_power_delta_e, Potencia efectiva (OVMS) (Hp)
 47,run, Recorrido desde ultimo registro (m)
 48,net_force, Fuerza neta (N)

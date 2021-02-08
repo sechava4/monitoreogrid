@@ -140,11 +140,9 @@
                 <div class="col-auto">
                     <label class="label label-default" for="exampleFormControlSelect2"> Eje Y </label>
                     <select class="form-control" id="exampleFormControlSelect2" name = variable_y onchange="this.form.submit();">
-                        <option value="{{session.graph_var_y}}"> {{session.y_pretty_graph}}</option>
+                        <option value="{{session.graph_var_y2}}"> {{session.y_pretty_graph2}}</option>
                         <option value="elevation">Altitud (google api)</option>
-                        <option value="elevation2">Altitud (Barómetro)</option>
                         <option value="slope">Pendiente (°)</option>
-                        <option value="mean_speed">Velocidad promedio (Km/h)</option>
                         <option value="speed">Velocidad instantánea (Km/h)</option>
                         <option value="user_id">Usuario</option>
                         <option value="operative_state">Estado Operativo</option>
@@ -155,14 +153,17 @@
                         <option value="eff">Eficiencia (%) </option>
                         <option value="angle_x">Angulo X </option>
                         <option value="angle_y">Angulo Y </option>
+
+                        <option value="energy">Energía acomulada (J) </option>
+                        <option value="energy_rec">Energia recuperada (Kwh) </option>
+
                         <option value="AcX">Acelerómetro (X) </option>
                         <option value="AcY">Acelerómetro (Y) </option>
                         <option value="AcZ">Acelerómetro (Z) </option>
                         <option value="humidity">Humedad (%) </option>
                         <option value="q_loss">Perdida de Capacidad </option>
-                        <option value="en_pot">Delta Energía potenical (J) </option>
                         <option value="net_force">Fuerza neta (N) </option>
-                        <option value="friction_force">Fuerza de fricción (N) </option>
+
                         <option value="run">Recorrido desde ultimo registro (m) </option>
                         <option value="net_signal">network quality </option>
                         <option value="soc">SOC</option>
@@ -176,14 +177,11 @@
                         <option value="voltage">Voltage (V)</option>
                         <option value="current">Corriente (A)</option>
                         <option value="mean_acc">Aceleración promedio (m/s^2)</option>
-                        <option value="acceleration">Aceleración motor </option>
                         <option value="consumption">Consumo</option>
                         <option value="range_est">Rango estimado</option>
                         <option value="range_ideal">Rango ideal</option>
                         <option value="drivetime">Tiempo de manejo</option>
                         <option value="is_charging">Esta cargando</option>
-                        <option value="tpms">presion llantas (psi)</option>
-                        <option value="footbrake">Freno de pedal</option>
                         <option value="engine_temp">Temperatura de motor (°C)</option>
                     </select>
                 </div>
@@ -332,9 +330,7 @@
                     <select class="form-control" id="FormControlSelect2" name = variable_y2 onchange="this.form.submit();">
                         <option value="{{session.graph_var_y2}}"> {{session.y_pretty_graph2}}</option>
                         <option value="elevation">Altitud (google api)</option>
-                        <option value="elevation2">Altitud (Barómetro)</option>
                         <option value="slope">Pendiente (°)</option>
-                        <option value="mean_speed">Velocidad promedio (Km/h)</option>
                         <option value="speed">Velocidad instantánea (Km/h)</option>
                         <option value="user_id">Usuario</option>
                         <option value="operative_state">Estado Operativo</option>
@@ -345,14 +341,17 @@
                         <option value="eff">Eficiencia (%) </option>
                         <option value="angle_x">Angulo X </option>
                         <option value="angle_y">Angulo Y </option>
+
+                        <option value="energy">Energía acomulada (J) </option>
+                        <option value="energy_rec">Energia recuperada (Kwh) </option>
+
                         <option value="AcX">Acelerómetro (X) </option>
                         <option value="AcY">Acelerómetro (Y) </option>
                         <option value="AcZ">Acelerómetro (Z) </option>
                         <option value="humidity">Humedad (%) </option>
                         <option value="q_loss">Perdida de Capacidad </option>
-                        <option value="en_pot">Delta Energía potenical (J) </option>
                         <option value="net_force">Fuerza neta (N) </option>
-                        <option value="friction_force">Fuerza de fricción (N) </option>
+
                         <option value="run">Recorrido desde ultimo registro (m) </option>
                         <option value="net_signal">network quality </option>
                         <option value="soc">SOC</option>
@@ -366,14 +365,11 @@
                         <option value="voltage">Voltage (V)</option>
                         <option value="current">Corriente (A)</option>
                         <option value="mean_acc">Aceleración promedio (m/s^2)</option>
-                        <option value="acceleration">Aceleración motor </option>
                         <option value="consumption">Consumo</option>
                         <option value="range_est">Rango estimado</option>
                         <option value="range_ideal">Rango ideal</option>
                         <option value="drivetime">Tiempo de manejo</option>
                         <option value="is_charging">Esta cargando</option>
-                        <option value="tpms">presion llantas (psi)</option>
-                        <option value="footbrake">Freno de pedal</option>
                         <option value="engine_temp">Temperatura de motor (°C)</option>
                     </select>
                 </div>
