@@ -460,7 +460,7 @@ def add_entry():
 
             coords_2 = (float(args["latitude"]), float(args["longitude"]))
             google_url = 'https://maps.googleapis.com/maps/api/elevation/json?locations=' + \
-                         args["latitude"] + ',' + args["longitude"] + \
+                         str(args["latitude"]) + ',' + str(args["longitude"]) + \
                          '&key=AIzaSyChV7Sy3km3Fi8hGKQ8K9t7n7J9f6yq9cI'
 
             r = requests.get(google_url).json()
