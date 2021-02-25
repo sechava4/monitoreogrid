@@ -428,7 +428,6 @@ def add_entry():
     # If its coming in json format:
     if request.method == 'POST':
         args = request.get_json()
-        print(args)
 
     # If its coming by url
     else:
@@ -472,7 +471,8 @@ def add_entry():
                 coords_1 = (last["latitude"], last['longitude'])
                 rise = elevation - last['elevation']
 
-            except AttributeError:
+            except Exception as e:
+                print(e)
                 coords_1 = coords_2
                 delta_t = 7
                 rise = 0
