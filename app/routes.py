@@ -467,7 +467,7 @@ def add_entry():
 
             # Si es el primer dato de la base de datos
             try:
-                delta_t = (operation.timestamp - datetime.strptime(last['timestamp'], '%Y-%m-%d %H:%M:%S.%f')).total_seconds()
+                delta_t = (operation.timestamp - last['timestamp']).total_seconds()
                 coords_1 = (last["latitude"], last['longitude'])
                 rise = elevation - last['elevation']
 
