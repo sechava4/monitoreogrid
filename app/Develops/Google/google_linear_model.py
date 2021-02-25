@@ -87,25 +87,27 @@ def calculate_consumption(segments, path):
 
     segments['slope'] = np.arctan((segments['toAltitude'] - segments['fromAltitude']) / segments['distanceInMeters'])
     segments['nominal_speed'] = 3.6 * segments['distanceInMeters'] / segments['durationInSeconds']
+    segments['travel_time'] = segments['durationInSeconds']
+    segments['mass'] = 1580
     # segments['user_id'] = 'Santiago_Echavarria'
     #df['user_id'] = 'Santiago_Echavarria'
     segments['user_id'] = 'Jose_Alejandro_Montoya'
-    segments['slope_cat'] = pd.cut(segments["slope"], np.arange(-8.5, 8.6, 3.4))
+    segments['slope_cat'] = pd.cut(segments["slope"], np.arange(-10,10.1,4))
 
-    mean_max_power_by_slope = pd.read_csv(path+'/mean_max_power_by_slope.csv', index_col=0)
-    mean_max_power_per_user_and_slope = pd.read_csv(path+'/mean_max_power_per_user_and_slope.csv', index_col=0)
+    mean_features_by_slope = pd.read_csv(path+'/mean_features_by_slope.csv', index_col=0)
+    mean_features_by_user_and_slope = pd.read_csv(path+'/mean_features_by_user_and_slope.csv', index_col=0)
 
     # Convert to string data type for the inner join
-    mean_max_power_per_user_and_slope['slope_cat'] = mean_max_power_per_user_and_slope['slope_cat'].astype('string')
-    mean_max_power_by_slope['slope_cat'] = mean_max_power_by_slope['slope_cat'].astype('string')
+    mean_features_by_user_and_slope['slope_cat'] = mean_features_by_user_and_slope['slope_cat'].astype('string')
+    mean_features_by_slope['slope_cat'] = mean_features_by_slope['slope_cat'].astype('string')
     segments['slope_cat'] = segments['slope_cat'].astype('string')
 
     print('no of segments', len(segments))
 
-    segments_consolidated = pd.merge(left=segments, right=mean_max_power_by_slope,
+    segments_consolidated = pd.merge(left=segments, right=mean_features_by_slope,
                             left_on=['slope_cat'], right_on=['slope_cat'])
 
-    segments_consolidated = pd.merge(left=segments_consolidated, right=mean_max_power_per_user_and_slope,
+    segments_consolidated = pd.merge(left=segments_consolidated, right=mean_features_by_user_and_slope,
                             left_on=['slope_cat', 'user_id'], right_on=['slope_cat', 'user_id'])
 
     segments_consolidated['mean_max_power_usr'] = segments_consolidated.apply(
@@ -125,7 +127,7 @@ def calculate_consumption(segments, path):
     scaler_inv = load(open(path + '/scaler.pkl', 'rb'))
 
     # load random forest regressor
-    r_forest_reg = load(open(path + '/randomForest_0_04maxerr_model.pkl', 'rb'))
+    r_forest_reg = load(open(path + '/randomForest_0_18maxerr_model.pkl', 'rb'))
 
     # Para cada tramo de la ruta a estimar
     lst_kWh_per_km = []
@@ -184,27 +186,28 @@ if __name__ == '__main__':
 
     df['slope'] = np.arctan((df['toAltitude'] - df['fromAltitude']) / df['distanceInMeters'])
     df['nominal_speed'] = 3.6 * df['distanceInMeters'] / df['durationInSeconds']
+    df['travel_time'] = df['durationInSeconds']
     df['user_id'] = 'Santiago_Echavarria'
     #df['user_id'] = 'Jose_Alejandro_Montoya'
     #df['user_id'] = 'Ana_Cristina_G'
     #df['user_id'] = 'Juan_David_Mira'
 
-    df['slope_cat'] = pd.cut(df["slope"], np.arange(-8.5, 8.6, 3.4))
+    df['slope_cat'] = pd.cut(df["slope"], np.arange(-10, 10.1, 4))
+    df['slope_cat'] = df['slope_cat'].astype('string')
 
-    mean_max_power_by_slope = pd.read_csv('../Consumption_estimation_Journal/mean_max_power_by_slope.csv', index_col=0)
-    mean_max_power_per_user_and_slope = pd.read_csv(
-        '../Consumption_estimation_Journal/mean_max_power_per_user_and_slope.csv',
+    mean_features_by_slope = pd.read_csv('../Consumption_estimation_Journal/mean_features_by_slope.csv', index_col=0)
+    mean_features_by_user_and_slope = pd.read_csv(
+        '../Consumption_estimation_Journal/mean_features_by_user_and_slope.csv',
         index_col=0)
 
     # Convert to string data type for the inner join
-    mean_max_power_per_user_and_slope['slope_cat'] = mean_max_power_per_user_and_slope['slope_cat'].astype('string')
-    mean_max_power_by_slope['slope_cat'] = mean_max_power_by_slope['slope_cat'].astype('string')
-    df['slope_cat'] = df['slope_cat'].astype('string')
+    mean_features_by_user_and_slope['slope_cat'] = mean_features_by_user_and_slope['slope_cat'].astype('string')
+    mean_features_by_slope['slope_cat'] = mean_features_by_slope['slope_cat'].astype('string')
 
-    df_consolidated = pd.merge(left=df, right=mean_max_power_by_slope,
-                                 left_on=['slope_cat'], right_on=['slope_cat'])
+    df_consolidated = pd.merge(left=df, right=mean_features_by_slope,
+                               left_on=['slope_cat'], right_on=['slope_cat'])
 
-    df_consolidated = pd.merge(left=df_consolidated, right=mean_max_power_per_user_and_slope,
+    df_consolidated = pd.merge(left=df_consolidated, right=mean_features_by_user_and_slope,
                                  left_on=['slope_cat', 'user_id'], right_on=['slope_cat', 'user_id'])
 
     df_consolidated['mean_max_power_usr'] = df_consolidated.apply(
@@ -221,7 +224,7 @@ if __name__ == '__main__':
     scaler_inv = load(open('../Consumption_estimation_Journal/scaler.pkl', 'rb'))
 
     # load random forest regressor
-    r_forest_reg = load(open(path + '/Develops/Consumption_estimation_Journal/randomForest_0_04maxerr_model.pkl', 'rb'))
+    r_forest_reg = load(open(path + '/Develops/Consumption_estimation_Journal/randomForest_0_05maxerr_model.pkl', 'rb'))
 
     columns = ['mean_max_power_usr', 'mean_soc', 'nominal_speed', 'slope']
     df_scaled = pd.DataFrame(scaler.transform(df_consolidated[columns]), columns=columns)

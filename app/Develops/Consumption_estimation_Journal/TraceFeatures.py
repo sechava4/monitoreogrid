@@ -1,23 +1,24 @@
 from scipy.signal import find_peaks
 from scipy.stats import iqr
+from scipy import integrate
 import pandas as pd
 import numpy as np
 
 
 def peak_features(trace, var, limit_u, limit_l, name):
-    peaks, peak_values = find_peaks(var, height=limit_u) # mas de nedio acelerador
+    peaks, peak_values = find_peaks(var, height=limit_u)  # mas de nedio acelerador
     valleys, valleys_values = find_peaks(-var, height=limit_l)
-    num_peaks_minuto = 60 * len(peaks)/ (trace['timestamp2'].iloc[-1] - trace['timestamp2'].iloc[0])
-    num_valleys_minuto = 60 * len(valleys)/ (trace['timestamp2'].iloc[-1] - trace['timestamp2'].iloc[0])
+    num_peaks_minuto = 60 * len(peaks) / (trace['timestamp2'].iloc[-1] - trace['timestamp2'].iloc[0])
+    num_valleys_minuto = 60 * len(valleys) / (trace['timestamp2'].iloc[-1] - trace['timestamp2'].iloc[0])
 
-    prom_sobrepaso_peak = np.mean(peak_values['peak_heights'])/limit_u
+    prom_sobrepaso_peak = np.mean(peak_values['peak_heights']) / limit_u
     if np.isnan(prom_sobrepaso_peak):
-      prom_sobrepaso_peak = 1
+        prom_sobrepaso_peak = 1
 
     # Promedio de sobrepaso de la referencia máxima de frenado
-    prom_sobrepaso_valley = np.mean(valleys_values['peak_heights'])/limit_l
+    prom_sobrepaso_valley = np.mean(valleys_values['peak_heights']) / limit_l
     if np.isnan(prom_sobrepaso_valley):
-      prom_sobrepaso_valley = 1
+        prom_sobrepaso_valley = 1
 
     # Promedio de valor absoluto de la aceleración
     prom_abs = np.mean(np.absolute(var))
@@ -45,6 +46,8 @@ def feature_extraction(trace):
     num_current_min, num_current_fr_min, prom_sobrepaso_current, prom_sobrepaso_current_fr, prom_abs_current, std_current, max_current = peak_features(
         trace, current, 60, 100, 'current')  # mas de nedio acelerador
 
+    slope = np.mean(trace['slope'])
+
     power_nominal_zoe = 65.6216
     power_nominal_leaf = 81.2813
     if trace['vehicle_id'].iloc[0] == 'FRV020':
@@ -52,11 +55,29 @@ def feature_extraction(trace):
     else:
         power_nominal = power_nominal_zoe
 
-    std_power = np.std(trace['power_kw']) / power_nominal
-    iqr_power = iqr(trace['power_kw']) / power_nominal
-    prom_abs_power = np.mean(np.absolute(trace['power_kw'])) / power_nominal
-    max_power = np.max(trace['power_kw']) / power_nominal
-    consumption = trace['capacity'].iloc[0] - trace['capacity'].iloc[-1]
+    std_power = np.std(trace['power_kw']) / 1
+    iqr_power = iqr(trace['power_kw']) / 1
+    prom_abs_power = np.mean(np.absolute(trace['power_kw'])) / 1
+    max_power = np.max(trace['power_kw']) / 1
+    min_power = np.min(trace['power_kw']) / 1
+
+
+    # With trip energy used
+    consumption1 = trace['energy'].iloc[-1] - trace['energy'].iloc[0]
+
+    # With battery capacity
+    consumption2 = trace['capacity'].iloc[0] - trace['capacity'].iloc[-1]
+
+    # With power integration
+    consumption3 = integrate.cumtrapz(trace['power_kw'], trace['timestamp2'])
+    consumption3 = (consumption3[-1] - consumption3[0]) / 3600
+
+    # porque no se estan midiendo regeneracion en esta variable
+    if slope < 0:
+        consumption1 = consumption3
+
+    # Average consumption
+    consumption = 0.23* consumption1 + 0.3*consumption2 + 0.47*consumption3
     kms = trace['cumulative_distance'].iloc[-1] / 1000
     consumption_per_km = consumption / kms
     std_current_std_jerk = std_current * std_jerk
@@ -98,11 +119,12 @@ def feature_extraction(trace):
             prom_sobrepaso_jerk_freno, prom_abs_jerk, std_jerk, std_power, prom_abs_power, consumption,
             kms, consumption_per_km, num_current_min, num_current_fr_min, prom_sobrepaso_current,
             prom_sobrepaso_current_fr, prom_abs_current, std_current, std_current_std_jerk,
-            trace['highway'].iloc[0], np.mean(trace['slope']), nominal_speed, max_current, max_jerk, max_acc,
-            max_power, max_speed, mean_speed, std_speed, iqr_power, trace['soc'].mean(),
+            trace['highway'].iloc[0], slope, nominal_speed, max_current, max_jerk, max_acc,
+            max_power, min_power, max_speed, mean_speed, std_speed, iqr_power, trace['soc'].mean(),
             mean_temp, time, idle_time,
             traffic_factor, trace['user_id'].iloc[0], trace['vehicle_id'].iloc[0], speed_ind, test_id,
-            trace['timestamp'].iloc[-1]]
+            trace['timestamp'].iloc[-1], trace['latitude'].iloc[-1], trace['longitude'].iloc[-1],
+            trace['mass'].iloc[-1]]
 
 
 def generate_features_df(lst):
@@ -112,8 +134,9 @@ def generate_features_df(lst):
             'consumption', 'kms', 'consumption_per_km', 'num_current_min', 'num_current_fr_min',
             'prom_sobrepaso_current', 'prom_sobrepaso_current_fr', 'prom_abs_current', 'std_current',
             'std_current_std_jerk', 'highway', 'slope', 'nominal_speed', 'max_current', 'max_jerk', 'max_acc',
-            'max_power', 'max_speed', 'mean_speed', 'std_speed', 'iqr_power', 'mean_soc', 'mean_temp', 'travel_time',
-            'idle_time', 'traffic_factor', 'user_id', 'vehicle_id', 'speed_ind', 'test_id', 'end_time']
+            'max_power', 'min_power', 'max_speed', 'mean_speed', 'std_speed', 'iqr_power', 'mean_soc', 'mean_temp', 'travel_time',
+            'idle_time', 'traffic_factor', 'user_id', 'vehicle_id', 'speed_ind', 'test_id', 'end_time',
+            'end_lat', 'end_lon', 'mass']
 
     return pd.DataFrame(lst, columns=cols)
 

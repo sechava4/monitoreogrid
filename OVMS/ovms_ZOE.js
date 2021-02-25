@@ -107,7 +107,7 @@ function GetUrlABRP() {
     urljson += "charger_type=" + OvmsMetrics.Value("v.c.type") + "&";
     urljson += "charge_current=" + OvmsMetrics.AsFloat("v.b.12v.current") + "&";
     urljson += "charge_time=" + OvmsMetrics.AsFloat("v.c.time") + "&";
-    urljson += "energy_rec=" + OvmsMetrics.AsFloat("v.c.kwh") + "&";
+    urljson += "energy_rec=" + OvmsMetrics.AsFloat("v.b.energy.recd") + "&";
 
     urljson += "footbrake=" + OvmsMetrics.AsFloat("v.e.footbrake") + "&";
     urljson += "engine_temp=" + OvmsMetrics.AsFloat("v.m.temp") + "&";

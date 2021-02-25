@@ -22,7 +22,7 @@ id,var,var_pretty
 20,current,Corriente (A)
 21,throttle,(%) De aceleración
 22,regen_brake,Freno regenerativo
-23,consumption,Consumo
+23,consumption,Consumo (kWh/km)
 24,range_est,Rango estimado (Km)
 25,range_ideal,Rango ideal (Km)
 26,drivetime,Tiempo de manejo

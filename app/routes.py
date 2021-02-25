@@ -19,6 +19,18 @@ import math
 from scipy import stats
 
 
+# ------------------------------------------User routes ----------------------------------------------#
+@app.route('/user/<username>')
+@login_required
+def user(username):
+    user = User.query.filter_by(username=username).first_or_404()
+    posts = [
+        {'author': user, 'body': 'Test post #1'},
+        {'author': user, 'body': 'Test post #2'}
+    ]
+    return render_template('user.html', user=user, posts=posts)
+
+
 @app.route('/', methods=['GET', 'POST'])
 @login_required
 def show_entries():
@@ -408,7 +420,34 @@ def show_vehicle_map():
 
     # return Json para hacer el render en el cliente
 
+# --------------------------------- IoT routes ---------------------------------------------------#
 
+
+@app.route('/json/<vehicle_id>', methods=['POST'])
+def json_vehicle(vehicle_id):
+
+    request_data = request.get_json()
+
+    language = request_data['language']
+    framework = request_data['framework']
+
+    # two keys are needed because of the nested object
+    #python_version = request_data['version_info']['python']
+
+    # an index is needed because of the array
+    # example = request_data['examples'][0]
+    if 'framework' in request_data:
+        print(request_data['framework'])
+
+    #boolean_test = request_data['boolean_test']
+
+    return '''
+           The language value is: {}
+           The framework value is: {}
+           '''.format(language, framework)
+
+
+# Cuando se manda por la url
 @app.route('/addjson', methods=['POST', 'GET'])
 def add_entry():
     if not bool(request.args):
