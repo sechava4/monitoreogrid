@@ -423,39 +423,23 @@ def show_vehicle_map():
 # --------------------------------- IoT routes ---------------------------------------------------#
 
 
-@app.route('/json/<vehicle_id>', methods=['POST'])
-def json_vehicle(vehicle_id):
-
-    request_data = request.get_json()
-
-    language = request_data['language']
-    framework = request_data['framework']
-
-    # two keys are needed because of the nested object
-    #python_version = request_data['version_info']['python']
-
-    # an index is needed because of the array
-    # example = request_data['examples'][0]
-    if 'framework' in request_data:
-        print(request_data['framework'])
-
-    #boolean_test = request_data['boolean_test']
-
-    return '''
-           The language value is: {}
-           The framework value is: {}
-           '''.format(language, framework)
-
-
-# Cuando se manda por la url
 @app.route('/addjson', methods=['POST', 'GET'])
 def add_entry():
-    if not bool(request.args):
+    # If its coming in json format:
+    if request.method == 'POST':
+        args = request.get_json()
+        print(args)
+
+    # If its coming by url
+    else:
+        args = request.args
+
+    if not bool(args):
         return "Null data"
     else:
-        if float(request.args["latitude"]) > 0:
+        if float(args["latitude"]) > 0:
             operation = Operation(
-                **request.args)  # ** pasa un numero variable de argumentos a la funcion/crea instancia
+                **args)  # ** pasa un numero variable de argumentos a la funcion/crea instancia
 
             operation.timestamp = datetime.strptime(
                 (datetime.now(pytz.timezone('America/Bogota')).strftime('%Y-%m-%d %H:%M:%S')),
@@ -464,10 +448,19 @@ def add_entry():
             # insert into vehicle(placa, marca, modelo, year, odometer) values('BOTE01', 'ENERGETICA', 'ECO100', 2011, 10)
             #operation.angle_y = -float(request.args["angle_y"]) - 9.27
 
-            last = Operation.query.order_by(Operation.id.desc()).first()
-            coords_2 = (float(request.args["latitude"]), float(request.args["longitude"]))
+            # Si es el primer dato de ese vehículo
+            last = args
+            query = 'SELECT * FROM operation where vehicle_id = "' + args['vehicle_id'] + '" ORDER  BY id DESC LIMIT 1'
+
+            # Select the last from the same vehicle that is incoming
+            with db.engine.connect() as con:
+                rs = con.execute(query)
+                for row in rs:
+                    last = row
+
+            coords_2 = (float(args["latitude"]), float(args["longitude"]))
             google_url = 'https://maps.googleapis.com/maps/api/elevation/json?locations=' + \
-                         request.args["latitude"] + ',' + request.args["longitude"] + \
+                         args["latitude"] + ',' + args["longitude"] + \
                          '&key=AIzaSyChV7Sy3km3Fi8hGKQ8K9t7n7J9f6yq9cI'
 
             r = requests.get(google_url).json()
@@ -475,9 +468,9 @@ def add_entry():
 
             # Si es el primer dato de la base de datos
             try:
-                delta_t = (operation.timestamp - last.timestamp).total_seconds()
-                coords_1 = (last.latitude, last.longitude)
-                rise = elevation - last.elevation
+                delta_t = (operation.timestamp - datetime.strptime(last['timestamp'], '%Y-%m-%d %H:%M:%S.%f')).total_seconds()
+                coords_1 = (last["latitude"], last['longitude'])
+                rise = elevation - last['elevation']
 
             except AttributeError:
                 coords_1 = coords_2
@@ -493,7 +486,7 @@ def add_entry():
             vehicle = Vehicle.query.filter_by(placa=operation.vehicle_id).first()
             print(vehicle.marca)
             try:
-                vehicle.odometer = float(request.args["odometer"])
+                vehicle.odometer = float(args["odometer"])
             except KeyError:
                 try:
                     vehicle.odometer += run
@@ -508,8 +501,13 @@ def add_entry():
             operation.slope = degree
 
             # JIMENEZ MODEL IMPLEMANTATION
-            vehicle.weight = float(request.args["mass"])
-            if operation.vehicle_id != 'BOTE01':
+            vehicle.weight = float(args["mass"])
+            if 'BOTE' in operation.vehicle_id:
+                operation.mec_power, operation.net_force = consumption_models.zavitsky(
+                    (float(operation.mean_speed) / 3.6),
+                    float(operation.mean_acc),
+                    float(vehicle.weight))
+            else:
                 consumption_values = consumption_models.jimenez(vehicle.weight, float(vehicle.frontal_area),
                                                                 float(vehicle.cd), operation.slope,
                                                                 float(operation.mean_speed),
@@ -524,18 +522,16 @@ def add_entry():
 
                 # WANG MODEL IMPLEMANTATION
 
-                current = float(request.args["current"])
+                current = float(args["current"])
                 ah = current * delta_t / 3600
                 c_rate = current / 100  # 100 = Amperios hora totales bateria
                 if c_rate > 0:
                     b = 448.96 * c_rate ** 2 - 6301.1 * c_rate + 33840
-                    operation.q_loss = b * math.exp((-31700 + (c_rate * 370.3)) / (8.314472 * (float(request.args["batt_temp"])))) * ah ** 0.552
+                    operation.q_loss = b * math.exp(
+                        (-31700 + (c_rate * 370.3)) / (8.314472 * (float(args["batt_temp"])))) * ah ** 0.552
                 else:
                     operation.q_loss = 0
-            else:
-                operation.mec_power, operation.net_force = consumption_models.zavitsky((float(operation.mean_speed)/3.6),
-                                                                                       float(operation.mean_acc),
-                                                                                       float(vehicle.weight))
+
             db.session.add(operation)
             db.session.commit()
             return "Data received"
