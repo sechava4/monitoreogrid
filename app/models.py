@@ -38,6 +38,7 @@ class User(UserMixin, db.Model):
 # insert into vehicle(placa, marca, modelo, year, weight, cd, frontal_area, odometer) values('FRV020', 'NISSAN', 'LEAF', 2018, 1584, 0.29, 2.28, 730);
 # insert into vehicle(placa, marca, modelo, year, weight, odometer) values('BOTE02', 'ENERGETICA', 'ERICK', 2021, 9, 0);
 
+
 class Vehicle(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     placa = db.Column(db.String(64), index=True, unique=True)
@@ -53,6 +54,7 @@ class Vehicle(db.Model):
     soh = db.Column(db.Float)
     rul = db.Column(db.Integer)
     belongs_to = db.Column(db.Integer)  # db.ForeignKey('user.id')) ?
+    activo = db.Column(db.Boolean)
 
     # For debuging purposes, we type the instance name and it prints self,username
     def __repr__(self):

@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, SubmitField, TextAreaField, IntegerField, SelectField
+from wtforms import StringField, PasswordField, BooleanField, SubmitField, TextAreaField, IntegerField, SelectField, DateField
 from wtforms.validators import ValidationError, DataRequired, Email, EqualTo
-from app.models import User
+from app.models import User, Vehicle
 from app import open_dataframes
 
 
@@ -46,3 +46,15 @@ class RegistrationForm(FlaskForm):
         user = User.query.filter_by(email=email.data).first()
         if user is not None:
             raise ValidationError('Por favor ingrese un email diferente.')
+
+
+class VehicleRegistrationForm(FlaskForm):
+    placa = StringField('Placa', validators=[DataRequired()])
+    marca = StringField('Marca', validators=[DataRequired()])
+    year = IntegerField('Modelo', validators=[DataRequired()])
+    submit = SubmitField('Register')
+
+    def validate_placa(self, placa):
+        vehicle = Vehicle.query.filter_by(placa=placa.data).first()
+        if vehicle is not None:
+            raise ValidationError('Por favor ingrese una placa diferente.')

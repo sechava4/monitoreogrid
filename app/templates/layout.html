@@ -34,16 +34,17 @@
         {% if current_user.is_anonymous %}
         <a href="{{ url_for('login') }}">'Login</a>
          {% else %}
-        <form role="form" class="form-inline" action="#" method=get>
-        <ul class="nav navbar-nav"> &nbsp Mis vehículos &nbsp</ul>
-            <!--
+        <!--<form role="form" class="form-inline" action="#" method=get>
+        <ul class="nav navbar-nav"> &nbsp  &nbsp</ul>
+
             <select class="form-control input" id="vehicle_select" name = time_interval onchange="this.form.submit();">
-              <option value="{{session.vehicle}}"> {{vehicle.marca}} {{vehicle.modelo}} {{vehicle.placa}}</option>
+              <option value= </option>
 
             </select>
-            -->
-        </form>
-        <a href="{{ url_for('user', username=current_user.username) }}">Profile</a>
+
+        </form>-->
+
+        <a href="{{ url_for('my_vehicles', username=current_user.username) }}">Mis vehículos</a>
         <a href="{{ url_for('logout') }}">Logout</a>
         {% endif %}
      </nav>
@@ -60,7 +61,7 @@
         {% block body %}
         {% endblock %}
 
-        <p class="mt-5 mb-3 text-muted text-center">&copy;GRID 2020</p>
+        <p class="mt-5 mb-3 text-muted text-center">&copy;GRID 2021</p>
     </div>
 
 

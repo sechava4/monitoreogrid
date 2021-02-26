@@ -1,7 +1,7 @@
 from app import app, open_dataframes, plot, db, consumption_models, degradation_models
 from app.Develops.Google import google_linear_model as google_query
 from app.closest_points import Trees
-from app.forms import LoginForm, RegistrationForm
+from app.forms import LoginForm, RegistrationForm, VehicleRegistrationForm
 from flask import request, session, redirect, url_for, Markup, \
     render_template, flash, send_from_directory
 import pandas as pd
@@ -19,22 +19,59 @@ import math
 from scipy import stats
 
 
-# ------------------------------------------User routes ----------------------------------------------#
-@app.route('/user/<username>')
+# ------------------------------------------Vehicle routes ----------------------------------------------#
+@app.route('/my_vehicles/<username>')
 @login_required
-def user(username):
+def my_vehicles(username):
     user = User.query.filter_by(username=username).first_or_404()
-    posts = [
-        {'author': user, 'body': 'Test post #1'},
-        {'author': user, 'body': 'Test post #2'}
-    ]
-    return render_template('user.html', user=user, posts=posts)
+
+    query = 'SELECT * FROM vehicle where belongs_to = "' + str(user.id) + '"'
+
+    df_vehicles = pd.read_sql_query(query, db.engine)
+    print(df_vehicles.to_json(orient='records', indent=True))
+    return render_template('vehicle.html', user=user, vehicles=df_vehicles.to_json(orient='records'))
+
+
+@app.route('/update_vehicle/<placa>')
+@login_required
+def update_vehicle(placa):
+    vehicles = Vehicle.query.filter_by(belongs_to=current_user.id)
+    for vehicle in vehicles:
+        if vehicle.placa == placa:
+            vehicle.activo = True
+            print('Activando vehiculo:', placa)
+        else:
+            vehicle.activo = False
+    db.session.commit()
+    return redirect(url_for('show_entries'))
+
+
+@app.route('/register_vehicle', methods=['GET', 'POST'])
+@login_required
+def register_vehicle():
+    form = VehicleRegistrationForm()
+    if form.validate_on_submit():
+        print(current_user.id)
+        vehicle = Vehicle(placa=form.placa.data, marca=form.marca.data,
+                          year=int(form.year.data), belongs_to=current_user.id,
+                          odometer=0)
+        db.session.add(vehicle)
+        db.session.commit()
+        flash('Has registrado un nuevo vehículo!')
+        return redirect(url_for('my_vehicles', username=current_user.username))
+    return render_template('register_vehicle.html', title='Register', form=form)
+
+
+# ----------------------------------- Dashboards --------------------------------------------------#
 
 
 @app.route('/', methods=['GET', 'POST'])
 @login_required
 def show_entries():
-    vehicle = Vehicle.query.filter_by(placa='FSV110').first()
+    query = 'SELECT * FROM vehicle where belongs_to = "' + str(current_user.id) + '"'
+    df_vehicles = pd.read_sql_query(query, db.engine)
+
+    vehicle = Vehicle.query.filter_by(belongs_to=current_user.id, activo=True).first()
     try:
         session["graph_var_x"]
         session["graph_var_y"]
@@ -54,7 +91,6 @@ def show_entries():
         session['d2']
         session['h3']
         session['h4']
-        session['vehicle']
     except KeyError:
         now = datetime.now(pytz.timezone('America/Bogota')) + timedelta(hours=1)
         session['form_d1'] = now.strftime("%d/%m/%Y")
@@ -104,65 +140,81 @@ def show_entries():
         if session["h4"] < session["h3"]:
             session["h3"], session["h4"] = session["h4"], session["h3"]  # Swap times
 
-    query0 = "SELECT date(timestamp), MAX(" + session["calendar_var"] + \
-             ") as 'max_value' FROM operation GROUP BY date(timestamp)"
+    if vehicle is not None:
 
-    query1 = "SELECT " + session["graph_var_x"] + " ," + session["graph_var_y"] + \
-            ' from operation WHERE timestamp BETWEEN "' + session['d1'] + ' ' + str(session['h1'])[:8] + \
-            '" and "' + str(session['d1']) + ' ' + str(session['h2'])[:8] + '"'
+        query0 = "SELECT date(timestamp), MAX(" + session["calendar_var"] + \
+                 ") as 'max_value' FROM operation WHERE vehicle_id = '" + str(
+            vehicle.placa) + "' GROUP BY date(timestamp)"
 
-    query2 = "SELECT " + session["graph_var_x2"] + " ," + session["graph_var_y2"] + \
-            ' from operation WHERE timestamp BETWEEN "' + session['d2'] + ' ' + str(session['h3'])[:8] + \
-            '" and "' + str(session['d2']) + ' ' + str(session['h4'])[:8] + '"'
+        query1 = "SELECT " + session["graph_var_x"] + " ," + session["graph_var_y"] + \
+                 ' from operation WHERE vehicle_id = "' + str(vehicle.placa) + '" AND timestamp BETWEEN "' + \
+                 session['d1'] + ' ' + str(session['h1'])[:8] + \
+                 '" and "' + str(session['d1']) + ' ' + str(session['h2'])[:8] + '"'
 
-    print(query1)
+        query2 = "SELECT " + session["graph_var_x2"] + " ," + session["graph_var_y2"] + \
+                 ' from operation WHERE vehicle_id = "' + str(vehicle.placa) + '" AND timestamp BETWEEN "' + \
+                 session['d2'] + ' ' + str(session['h3'])[:8] + \
+                 '" and "' + str(session['d2']) + ' ' + str(session['h4'])[:8] + '"'
 
-    # df_exp = pd.read_csv('app/old_vehicle_operation.csv', sep=',', index_col=0, decimal=".")
-    # df['timestamp'] = pd.to_datetime(df['timestamp'])"
-    # df_exp.to_sql('DB',db.engine )
+        print(query1)
 
-    df_calendar = pd.read_sql_query(query0, db.engine)
-    df_calendar = df_calendar.dropna()
-    df_o = pd.read_sql_query(query1, db.engine)
-    df_o2 = pd.read_sql_query(query2, db.engine)
+        # df_exp = pd.read_csv('app/old_vehicle_operation.csv', sep=',', index_col=0, decimal=".")
+        # df['timestamp'] = pd.to_datetime(df['timestamp'])"
+        # df_exp.to_sql('DB',db.engine )
 
+        df_calendar = pd.read_sql_query(query0, db.engine)
+        df_calendar = df_calendar.dropna()
+        df_o = pd.read_sql_query(query1, db.engine)
+        df_o2 = pd.read_sql_query(query2, db.engine)
 
-    try:
-        pearson_coef = stats.pearsonr(df_o[session["graph_var_x"]].to_numpy(), df_o[session["graph_var_y"]].to_numpy())
-    except (ValueError, TypeError):
-        pearson_coef = 0
-        pass
-    print(pearson_coef)
+        try:
+            pearson_coef = stats.pearsonr(df_o[session["graph_var_x"]].to_numpy(),
+                                          df_o[session["graph_var_y"]].to_numpy())
+        except (ValueError, TypeError):
+            pearson_coef = 0
+            pass
+        print(pearson_coef)
 
-    scatter = plot.create_plot(df_o, session["graph_var_x"], session["graph_var_y"])
-    scatter2 = plot.create_plot(df_o2, session["graph_var_x2"], session["graph_var_y2"])
-    box = df_o[session["graph_var_y"]].tolist()
-    box2 = df_o2[session["graph_var_y2"]].tolist()
-    session["calendar_pretty"] = open_dataframes.pretty_var_name(session["calendar_var"])
-    session["x_pretty_graph"] = open_dataframes.pretty_var_name(session["graph_var_x"])
-    session["y_pretty_graph"] = open_dataframes.pretty_var_name(session["graph_var_y"])
+        scatter = plot.create_plot(df_o, session["graph_var_x"], session["graph_var_y"])
+        scatter2 = plot.create_plot(df_o2, session["graph_var_x2"], session["graph_var_y2"])
+        box = df_o[session["graph_var_y"]].tolist()
+        box2 = df_o2[session["graph_var_y2"]].tolist()
+        session["calendar_pretty"] = open_dataframes.pretty_var_name(session["calendar_var"])
+        session["x_pretty_graph"] = open_dataframes.pretty_var_name(session["graph_var_x"])
+        session["y_pretty_graph"] = open_dataframes.pretty_var_name(session["graph_var_y"])
 
-    session["x_pretty_graph2"] = open_dataframes.pretty_var_name(session["graph_var_x2"])
-    session["y_pretty_graph2"] = open_dataframes.pretty_var_name(session["graph_var_y2"])
+        session["x_pretty_graph2"] = open_dataframes.pretty_var_name(session["graph_var_x2"])
+        session["y_pretty_graph2"] = open_dataframes.pretty_var_name(session["graph_var_y2"])
+    else:
+        scatter = 0
+        scatter2 = 0
+        box = 0
+        box2 = 0
+        df_calendar = pd.DataFrame()
     return render_template('show_entries.html', plot=scatter, box=box, plot2=scatter2, box2=box2,
-                           calendar=df_calendar.to_json(orient='records'), vehicle=vehicle)
+                           calendar=df_calendar.to_json(orient='records'),
+                           vehicles=df_vehicles.to_json(orient='records'))
 
 
 @app.route('/updateplot')
 def update_plot():
+    vehicle = Vehicle.query.filter_by(belongs_to=current_user.id, activo=True).first()
     try:
 
         session["calendar_var"]
     except KeyError:
         session["calendar_var"] = "power_kw"
-    "SELECT date(timestamp), MAX(" + session["calendar_var"] + ") as 'max_value' FROM operation GROUP BY date(timestamp)"
+
+    "SELECT date(timestamp), MAX(" + session[
+        "calendar_var"] + ") as 'max_value' FROM operation WHERE vehicle_id = '" + str(
+        vehicle.placa) + "' GROUP BY date(timestamp)"
 
     query = "SELECT " + session["graph_var_x"] + " ," + session["graph_var_y"] + \
-            ' from operation WHERE timestamp BETWEEN "' + session['d1'] + ' ' + str(session['h1'])[:8] + \
+            ' from operation WHERE vehicle_id = "' + str(vehicle.placa) + '" AND timestamp BETWEEN "' + session['d1'] + ' ' + str(session['h1'])[:8] + \
             '" and "' + str(session['d1']) + ' ' + str(session['h2'])[:8] + '"'
 
     query2 = "SELECT " + session["graph_var_x2"] + " ," + session["graph_var_y2"] + \
-             ' from operation WHERE timestamp BETWEEN "' + session['d2'] + ' ' + str(session['h3'])[:8] + \
+             ' from operation WHERE vehicle_id = "' + str(vehicle.placa) + '" AND timestamp BETWEEN "' + session['d2'] + ' ' + str(session['h3'])[:8] + \
              '" and "' + str(session['d2']) + ' ' + str(session['h4'])[:8] + '"'
 
     df_o = pd.read_sql_query(query, db.engine)
@@ -181,7 +233,7 @@ def update_plot():
 @app.route('/energy', methods=['GET', 'POST'])
 @login_required
 def energy_monitor():
-    vehicle = Vehicle.query.filter_by(placa='GHW284').first()
+    vehicle = Vehicle.query.filter_by(belongs_to=current_user.id, activo=True).first()
     try:
         session["time_interval"]
         session['est_cons']
@@ -219,14 +271,15 @@ def energy_monitor():
     now = datetime.now(pytz.timezone('America/Bogota'))
     session["energy_t1"] = now
 
-    number = int(session["time_interval"].split()[0])   # example 10 h selects 20
-    unit = session["time_interval"].split()[1]          # example 10 h selects h
+    number = int(session["time_interval"].split()[0])  # example 10 h selects 20
+    unit = session["time_interval"].split()[1]  # example 10 h selects h
     if 'h' in unit:
         session["energy_t2"] = now - timedelta(hours=number)
     elif 'd' in unit:
         session["energy_t2"] = now - timedelta(days=number)
 
-    query1 = 'SELECT timestamp, power_kw from operation WHERE speed > 0 AND timestamp BETWEEN "' + str(session["energy_t2"]) + \
+    query1 = 'SELECT timestamp, power_kw from operation WHERE speed > 0 AND timestamp BETWEEN "' + str(
+        session["energy_t2"]) + \
              '" and "' + str(session["energy_t1"]) + '" ORDER BY timestamp'
 
     df_o = pd.read_sql_query(query1, db.engine)
@@ -244,7 +297,10 @@ def energy_monitor():
 @app.route('/tables', methods=['GET', 'POST'])
 @login_required
 def show_tables():
-    vehicle = Vehicle.query.filter_by(placa='FSV110').first()
+    query = 'SELECT * FROM vehicle where belongs_to = "' + str(current_user.id) + '"'
+    df_vehicles = pd.read_sql_query(query, db.engine)
+
+    vehicle = Vehicle.query.filter_by(belongs_to=current_user.id, activo=True).first()
     try:
         session["var1"]
         session["var2"]
@@ -281,10 +337,12 @@ def show_tables():
             session["h1"], session["h2"] = session["h2"], session["h1"]  # Swap times
 
     query0 = "SELECT date(timestamp), MAX(" + session["calendar_var"] + \
-             ") as 'max_value' FROM operation GROUP BY date(timestamp)"
+             ") as 'max_value' FROM operation WHERE vehicle_id = '" + str(
+             vehicle.placa) + "' GROUP BY date(timestamp)"
 
-    query = "SELECT timestamp, " + session["var1"] + " ," + session["var2"] + " ," + session["var3"] + " ," + session["var4"] + \
-            " ," + session["var5"] + ' from operation WHERE timestamp BETWEEN "' + session['d1'] + ' ' + \
+    query = "SELECT timestamp, " + session["var1"] + " ," + session["var2"] + " ," + session["var3"] + " ," + session[
+        "var4"] + \
+            " ," + session["var5"] + ' from operation WHERE vehicle_id = "' + str(vehicle.placa) + '" AND timestamp BETWEEN "' + session['d1'] + ' ' + \
             str(session['h1'])[:8] + '" and "' + str(session['d1']) + ' ' + str(session['h2'])[:8] + '" limit ' + \
             str(session["records"])
 
@@ -294,16 +352,20 @@ def show_tables():
     scatter = 0
     integral_jimenez = 0
     integral_power = 0
-    if all(elem in list(df) for elem in ['slope', 'speed', 'mean_acc', 'power_kw']) and len(set(list(df))) == 6 and len(df) > 1:
-        print(len(set(list(df)))) # != len(set(your_list))
-        vehicle = Vehicle.query.filter_by(placa="FRV020").first()
+    if all(elem in list(df) for elem in ['slope', 'speed', 'mean_acc', 'power_kw']) and len(set(list(df))) == 6 and len(
+            df) > 1:
+        print(len(set(list(df))))  # != len(set(your_list))
 
-        consumption_models.add_consumption_cols(df, float(vehicle.weight), float(vehicle.frontal_area),float(vehicle.cd))
+        try:
+            consumption_models.add_consumption_cols(df, float(vehicle.weight), float(vehicle.frontal_area),
+                                                    float(vehicle.cd))
 
-        scatter = plot.create_plot(df, "jimenez_estimation", "power_kw")
-        integral_jimenez = plot.create_plot(df, "timestamp", "jimenez_int")
-        integral_fiori = plot.create_plot(df, "timestamp", "fiori_int")
-        integral_power = plot.create_plot(df, "timestamp", "power_int")
+            scatter = plot.create_plot(df, "jimenez_estimation", "power_kw")
+            integral_jimenez = plot.create_plot(df, "timestamp", "jimenez_int")
+            integral_fiori = plot.create_plot(df, "timestamp", "fiori_int")
+            integral_power = plot.create_plot(df, "timestamp", "power_int")
+        except Exception as e:
+            print(e)
 
     else:
         integral_jimenez = 0
@@ -320,13 +382,17 @@ def show_tables():
     session["calendar_pretty"] = open_dataframes.pretty_var_name(session["calendar_var"])
     return render_template('tables.html', tables=[df.to_html(classes='data')], titles=df.columns.values, plot=scatter,
                            plotint1=integral_jimenez, plotint2=integral_power, plotint3=integral_fiori,
-                           calendar=df_calendar.to_json(orient='records'), vehicle=vehicle)
+                           calendar=df_calendar.to_json(orient='records'),
+                           vehicles=df_vehicles.to_json(orient='records'))
 
 
 @app.route('/zones_map', methods=['GET', 'POST'])
 @login_required
 def show_zones_map():
-    vehicle = Vehicle.query.filter_by(placa='FSV110').first()
+    query = 'SELECT * FROM vehicle where belongs_to = "' + str(current_user.id) + '"'
+    df_vehicles = pd.read_sql_query(query, db.engine)
+
+    vehicle = Vehicle.query.filter_by(belongs_to=current_user.id, activo=True).first()
     try:
         session['form_d1']
         session['form_h1']
@@ -347,7 +413,9 @@ def show_zones_map():
         session["calendar_var"] = "power_kw"
 
     query0 = "SELECT date(timestamp), MAX(" + session[
-        "calendar_var"] + ") as 'max_value' FROM operation GROUP BY date(timestamp)"
+        "calendar_var"] + ") as 'max_value' FROM operation WHERE vehicle_id = '" + str(
+         vehicle.placa) + "' GROUP BY date(timestamp)"
+
     df_calendar = pd.read_sql_query(query0, db.engine)
     session["calendar_pretty"] = open_dataframes.pretty_var_name(session["calendar_var"])
 
@@ -367,7 +435,7 @@ def show_zones_map():
 @app.route('/vehicle_map', methods=['GET', 'POST'])
 @login_required
 def show_vehicle_map():
-    vehicle = Vehicle.query.filter_by(placa='FSV110').first()
+    vehicle = Vehicle.query.filter_by(belongs_to=current_user.id).first()
     try:
         session["map_var"]
         session['form_d1']
@@ -407,11 +475,14 @@ def show_vehicle_map():
     session["map_var_pretty"] = open_dataframes.pretty_var_name(session["map_var"])
 
     if len(lines_df) > 0:
-        _, a = Trees.station_tree.query(alturas_df[['latitude', 'longitude']].values, k=2)    # Select neares 2 stations (Knearest)
+        _, a = Trees.station_tree.query(alturas_df[['latitude', 'longitude']].values,
+                                        k=2)  # Select neares 2 stations (Knearest)
         alturas_df["closest_st_id1"] = a[:, 0]
         alturas_df["closest_st_id2"] = a[:, 1]
-        alturas_df["closest_station1"] = stations_df["name"].reindex(index=alturas_df['closest_st_id1']).tolist()  # map station id with station name (vector)
-        alturas_df["closest_station2"] = stations_df["name"].reindex(index=alturas_df['closest_st_id2']).tolist()  # map station2  id with station name (vector)
+        alturas_df["closest_station1"] = stations_df["name"].reindex(
+            index=alturas_df['closest_st_id1']).tolist()  # map station id with station name (vector)
+        alturas_df["closest_station2"] = stations_df["name"].reindex(
+            index=alturas_df['closest_st_id2']).tolist()  # map station2  id with station name (vector)
         # session["closest_station"] = stations_df["name"].iloc[current_pos['id_nearest']].item()    # map station id with station name (current)
     json_operation = Markup(alturas_df.to_json(orient='records'))
 
@@ -419,6 +490,7 @@ def show_vehicle_map():
                            json_stations=json_stations, calendar=df_calendar.to_json(orient='records'), vehicle=vehicle)
 
     # return Json para hacer el render en el cliente
+
 
 # --------------------------------- IoT routes ---------------------------------------------------#
 
@@ -445,7 +517,7 @@ def add_entry():
                 '%Y-%m-%d %H:%M:%S')
 
             # insert into vehicle(placa, marca, modelo, year, odometer) values('BOTE01', 'ENERGETICA', 'ECO100', 2011, 10)
-            #operation.angle_y = -float(request.args["angle_y"]) - 9.27
+            # operation.angle_y = -float(request.args["angle_y"]) - 9.27
 
             # Si es el primer dato de ese vehículo
             last = args
@@ -494,7 +566,7 @@ def add_entry():
                     vehicle.odometer = run
 
             try:
-                slope = math.atan(rise/run)  # radians
+                slope = math.atan(rise / run)  # radians
             except ZeroDivisionError:
                 slope = 0
             degree = (slope * 180) / math.pi
