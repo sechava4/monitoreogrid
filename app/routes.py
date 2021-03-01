@@ -22,7 +22,9 @@ from scipy import stats
 
 class OSM:
     graphpath = app.root_path + '/Develops/data/medellin.graphml'
+    print('Empezando a cargar ')
     G = ox.load_graphml(graphpath)
+    print('termina de cargar ')
 
 # ------------------------------------------Vehicle routes ----------------------------------------------#
 @app.route('/my_vehicles/<username>')
