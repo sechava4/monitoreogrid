@@ -91,18 +91,22 @@ def calc_shortest_path(G, lat_o, lon_o, lat_d, lon_d):
     point_d = (lat_d, lon_d)
     nearest_node_o = ox.distance.get_nearest_node(G, point_o, method='haversine', return_dist=True)
     nearest_node_d = ox.distance.get_nearest_node(G, point_d, method='haversine', return_dist=True)
-    shortest_path = nw.algorithms.shortest_paths.weighted.dijkstra_path(G=G, source=nearest_node_o[0],
-                                                                        target=nearest_node_d[0],
-                                                                        weight='travel_time')
-    traffic_lights = 0
-    for node in shortest_path:
-        try:
-            G.nodes[node]['highway']
-            traffic_lights += 1
-        except Exception:
-            pass
+    try:
+        shortest_path = nw.algorithms.shortest_paths.weighted.dijkstra_path(G=G, source=nearest_node_o[0],
+                                                                            target=nearest_node_d[0],
+                                                                            weight='travel_time')
+        traffic_lights = 0
+        for node in shortest_path:
+            try:
+                G.nodes[node]['highway']
+                traffic_lights += 1
+            except Exception:
+                pass
 
-    return shortest_path, traffic_lights
+        return shortest_path, traffic_lights
+    except Exception:
+        return 0, 0
+
 
 
 def calculate_consumption(segments, path):

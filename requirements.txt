@@ -18,6 +18,7 @@ scikit-learn
 matplotlib
 redis
 rq
+xgboost
 pytz
 email_validator
 geopy
