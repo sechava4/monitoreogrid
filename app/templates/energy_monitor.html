@@ -134,6 +134,9 @@
     {% if session.est_time != 0%}
         <h4 style="width:100%;margin:20px"> Tiempo de viaje: <b>{{session.est_time}} min</b></h4>
     {% endif %}
+    {% if session.lights != 0%}
+        <h4 style="width:100%;margin:20px"> Cantidad de semáforos: <b>{{session.lights}}</b></h4>
+    {% endif %}
 
 <div id="floating-panel">
   <input onclick="removeLine();" type="button" value="Remove line" />

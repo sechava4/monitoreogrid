@@ -31,27 +31,6 @@ def get_lines_csv(day):
     return df
 
 
-def get_lines(d1, h1, h2):
-    query = "SELECT latitude, longitude from operation " + \
-            'WHERE timestamp BETWEEN "' + str(d1) + ' ' + str(h1)[:8] + \
-            '" and "' + str(d1) + ' ' + str(h2)[:8] + '"'
-
-    df = pd.read_sql_query(query, db.engine)
-    lat2 = df["latitude"].iloc[1:]
-    if len(lat2) == 0:
-        return df
-    else:
-        aux1 = lat2.append(pd.Series(df["latitude"].iloc[-1]), ignore_index=True)
-        df["latitude2"] = aux1
-
-        lon2 = df["longitude"].iloc[1:]
-        aux2 = lon2.append(pd.Series(df["longitude"].iloc[-1]), ignore_index=True)
-        df["longitude2"] = aux2
-        df = df.drop(df.tail(1).index)
-        df = df.drop(df.head(1).index)
-        return df
-
-
 def get_stations():
     file = os.path.join(app.root_path, "stations.json")
     df = pd.read_json(file)
@@ -97,33 +76,56 @@ def form_var(titles):
     return groups_list
 
 
-def get_heights(var, d1, h1, h2):
+def get_lines(vehicle, d1, h1, h2):
+    query = 'SELECT latitude, longitude from operation WHERE vehicle_id = "' \
+            + str(vehicle.placa) + '" AND timestamp BETWEEN "' + str(d1) + ' ' + str(h1)[:8] + \
+            '" and "' + str(d1) + ' ' + str(h2)[:8] + '"'
 
-    query = "SELECT latitude, longitude, timestamp, " + var + " from operation " + \
-            'WHERE timestamp BETWEEN "' + str(d1) + ' ' + str(h1)[:8] + \
+    df = pd.read_sql_query(query, db.engine)
+    lat2 = df["latitude"].iloc[1:]
+    if len(lat2) == 0:
+        return df
+    else:
+        aux1 = lat2.append(pd.Series(df["latitude"].iloc[-1]), ignore_index=True)
+        df["latitude2"] = aux1
+
+        lon2 = df["longitude"].iloc[1:]
+        aux2 = lon2.append(pd.Series(df["longitude"].iloc[-1]), ignore_index=True)
+        df["longitude2"] = aux2
+        df = df.drop(df.tail(1).index)
+        df = df.drop(df.head(1).index)
+        return df
+
+
+def get_heights(vehicle, var, d1, h1, h2):
+
+    query = 'SELECT timestamp, ' + var + ', latitude, longitude from operation WHERE vehicle_id = "' \
+            + str(vehicle.placa) + '" AND timestamp BETWEEN "' + str(d1) + ' ' + str(h1)[:8] + \
             '" and "' + str(d1) + ' ' + str(h2)[:8] + '"'
 
     df = pd.read_sql_query(query, db.engine)
     if var not in df.columns:
         var = "elevation"
-    df = df[["latitude", "longitude", "timestamp", var]]
-    df["name"] = df[var]
-    print(var)
-    try:
-        if df[var].iloc[0] is not None:
-            if var in ("elevation", "elevation2"):
-                df['var'] = df[var].map(lambda x: (x-1400)*0.5)
-            elif var in ("mec_power_delta_e", "mec_power"):
-                df['var'] = df[var].map(lambda x: x*35)
-            elif var in "mean_acc":
-                df['var'] = df[var].map(lambda x: x*45)
-            elif var in "angle_x":
-                df['var'] = df[var].abs()
-            else:
-                df['var'] = df[var].map(lambda x: x*4)
-            df = df[["latitude", "longitude", 'name', 'var', 'timestamp']]
-    except IndexError:
-        pass
+
+    if all(elem in df.columns for elem in ["latitude", "longitude", "timestamp", var]):
+
+        df = df[["latitude", "longitude", "timestamp", var]]
+        df["name"] = df[var]
+        try:
+            if df[var].iloc[0] is not None:
+                if var in ("elevation", "elevation2"):
+                    df['var'] = df[var].map(lambda x: (x-1400)*0.5)
+                elif var in ("mec_power_delta_e", "mec_power"):
+                    df['var'] = df[var].map(lambda x: x*35)
+                elif var in "mean_acc":
+                    df['var'] = df[var].map(lambda x: x*45)
+                elif var in "angle_x":
+                    df['var'] = df[var].abs()
+                else:
+                    df['var'] = df[var].map(lambda x: x*4)
+                df = df[["latitude", "longitude", 'name', 'var', 'timestamp']]
+        except IndexError:
+            pass
     return df
 
 

@@ -2,7 +2,7 @@
 import requests
 import json
 import itertools
-import json
+import osmnx as ox
 import pandas as pd
 import googlemaps
 import datetime
@@ -14,6 +14,8 @@ from pickle import load
 import statsmodels.api as sm
 import os
 from app import app
+import networkx as nw
+
 
 
 gmaps = googlemaps.Client(key='AIzaSyChV7Sy3km3Fi8hGKQ8K9t7n7J9f6yq9cI')
@@ -36,21 +38,29 @@ def calc(json):
     distances = pd.DataFrame(df['distance'].to_list())
     duration = pd.DataFrame(df['duration'].to_list())
     end_location = pd.DataFrame(df['end_location'].to_list())
+    start_location = pd.DataFrame(df['start_location'].to_list())
 
     frame = {'distance': distances['value'], 'time': duration['value'],
-              'end_lat': end_location['lat'], 'end_lng': end_location['lng']}
+             'end_lat': end_location['lat'], 'end_lng': end_location['lng'],
+             'start_lat': start_location['lat'], 'start_lng': start_location['lng']}
 
     newdf = pd.DataFrame(frame)
     # ele = gmaps.elevation_along_path(json[0]['overview_polyline']['points'], len(df))  # Equally distanced (m) samples
-    subset = newdf[['end_lat', 'end_lng']]
-    tuples = [tuple(x) for x in subset.to_numpy()]
-    ele = gmaps.elevation(tuples)
-    
-    df_ele = pd.DataFrame(ele)
-    path2 = df_ele['location'].to_list()
+    end_subset = newdf[['end_lat', 'end_lng']]
+    end_tuples = [tuple(x) for x in end_subset.to_numpy()]
+    end_ele = gmaps.elevation(end_tuples)
+
+    start_subset = newdf[['start_lat', 'start_lng']]
+    start_tuples = [tuple(x) for x in start_subset.to_numpy()]
+    start_ele = gmaps.elevation(start_tuples)
+
+    df_start_ele = pd.DataFrame(start_ele)
+    df_end_ele = pd.DataFrame(end_ele)
+    path2 = df_end_ele['location'].to_list()
     path2_df = pd.DataFrame(path2)
 
-    newdf['elevation'] = df_ele['elevation']
+    newdf['end_elevation'] = df_end_ele['elevation']
+    newdf['start_elevation'] = df_start_ele['elevation']
 
     fig = go.Figure(go.Scattermapbox(
         mode = "markers+lines",
@@ -76,26 +86,43 @@ def calc(json):
     return newdf, fig, path2_df
 
 
-def calculate_consumption(segments, path):
-    #path = os.path.join(app.root_path)
+def calc_shortest_path(G, lat_o, lon_o, lat_d, lon_d):
+    point_o = (lat_o, lon_o)
+    point_d = (lat_d, lon_d)
+    nearest_node_o = ox.distance.get_nearest_node(G, point_o, method='haversine', return_dist=True)
+    nearest_node_d = ox.distance.get_nearest_node(G, point_d, method='haversine', return_dist=True)
+    shortest_path = nw.algorithms.shortest_paths.weighted.dijkstra_path(G=G, source=nearest_node_o[0],
+                                                                        target=nearest_node_d[0],
+                                                                        weight='travel_time')
+    traffic_lights = 0
+    for node in shortest_path:
+        try:
+            G.nodes[node]['highway']
+            traffic_lights += 1
+        except Exception:
+            pass
 
-    to_ele = segments["elevation"].iloc[1:]
-    segments["toAltitude"] = to_ele.append(pd.Series(segments["elevation"].iloc[-1]), ignore_index=True)
+    return shortest_path, traffic_lights
+
+
+def calculate_consumption(segments, path):
+
     segments["id"] = segments.index
     segments = segments.rename(columns={"id": "segmentNumber", "distance": "distanceInMeters",
-                               "time": "durationInSeconds", "elevation": "fromAltitude"})
+                                        "time": "travel_time", "start_elevation": "fromAltitude",
+                                        "end_elevation": "toAltitude"})
 
-    segments['slope'] = np.arctan((segments['toAltitude'] - segments['fromAltitude']) / segments['distanceInMeters'])
-    segments['nominal_speed'] = 3.6 * segments['distanceInMeters'] / segments['durationInSeconds']
-    segments['travel_time'] = segments['durationInSeconds']
+    segments['slope'] = 180 * np.arctan(
+        (segments['toAltitude'] - segments['fromAltitude']) / segments['distanceInMeters']) / np.pi
+    segments['mean_speed'] = 3.6 * segments['distanceInMeters'] / segments['travel_time']
     segments['mass'] = 1580
     # segments['user_id'] = 'Santiago_Echavarria'
     #df['user_id'] = 'Santiago_Echavarria'
     segments['user_id'] = 'Jose_Alejandro_Montoya'
     segments['slope_cat'] = pd.cut(segments["slope"], np.arange(-10,10.1,4))
 
-    mean_features_by_slope = pd.read_csv(path+'/mean_features_by_slope.csv', index_col=0)
-    mean_features_by_user_and_slope = pd.read_csv(path+'/mean_features_by_user_and_slope.csv', index_col=0)
+    mean_features_by_slope = pd.read_csv(path+'/mean_features_by_slope.csv')
+    mean_features_by_user_and_slope = pd.read_csv(path+'/mean_features_by_user_and_slope.csv')
 
     # Convert to string data type for the inner join
     mean_features_by_user_and_slope['slope_cat'] = mean_features_by_user_and_slope['slope_cat'].astype('string')
@@ -105,10 +132,10 @@ def calculate_consumption(segments, path):
     print('no of segments', len(segments))
 
     segments_consolidated = pd.merge(left=segments, right=mean_features_by_slope,
-                            left_on=['slope_cat'], right_on=['slope_cat'])
+                                     left_on=['slope_cat'], right_on=['slope_cat'])
 
     segments_consolidated = pd.merge(left=segments_consolidated, right=mean_features_by_user_and_slope,
-                            left_on=['slope_cat', 'user_id'], right_on=['slope_cat', 'user_id'])
+                                     left_on=['slope_cat', 'user_id'], right_on=['slope_cat', 'user_id'])
 
     segments_consolidated['mean_max_power_usr'] = segments_consolidated.apply(
         lambda row: row['mean_max_power'] if np.isnan(row['mean_max_power_usr']) else row['mean_max_power_usr'],
@@ -120,14 +147,17 @@ def calculate_consumption(segments, path):
     # Apply scaling
     scaler = load(open(path + '/scaler_lm.pkl', 'rb'))
 
-    columns = ['mean_max_power_usr', 'mean_soc', 'nominal_speed', 'slope']
+    columns = ['mean_max_power_usr', 'mean_soc', 'mean_speed', 'slope']
     segments_scaled = pd.DataFrame(scaler.transform(segments_consolidated[columns]), columns=columns)
 
     # Load inverse scaler
     scaler_inv = load(open(path + '/scaler.pkl', 'rb'))
 
     # load random forest regressor
-    r_forest_reg = load(open(path + '/randomForest_0_18maxerr_model.pkl', 'rb'))
+    r_forest_reg = load(open(path + '/randomForest_0_12_mean_consumption_maxerr_model.pkl', 'rb'))
+
+    # Load XGBoost model
+    xgb_reg = load(open(path + '/xg_reg_model.pickle.dat', "rb"))
 
     # Para cada tramo de la ruta a estimar
     lst_kWh_per_km = []
@@ -136,7 +166,7 @@ def calculate_consumption(segments, path):
     for i in range(len(segments_consolidated)):
 
         # Se calcula el consumo para el segmento en unidades escaladas
-        c_scaled = r_forest_reg.predict(segments_scaled.iloc[i].values.reshape(1, -1))[0]
+        c_scaled = xgb_reg.predict(segments_scaled.iloc[i].values.reshape(1, -1))[0]
 
         # Se transforma el consumo escalado a unidades de kWh/km
         kWh_per_km = scaler_inv.data_min_[4] + (c_scaled / scaler_inv.scale_[4])
@@ -160,12 +190,12 @@ def calculate_consumption(segments, path):
     segments_consolidated['consumptionkWh'] = lst_kWh
     segments_consolidated['consumption_per_km'] = lst_kWh_per_km
 
-    estimated_time = segments_consolidated['durationInSeconds'].sum() / 60
+    estimated_time = segments_consolidated['travel_time'].sum() / 60
     return segments_consolidated['consumptionkWh'].sum().round(3), estimated_time.round(3)
 
 
 if __name__ == '__main__':
-    path = os.path.join(app.root_path)
+    path = os.path.join(app.root_path) + '/Develops/Consumption_estimation_Journal'
     now = datetime.datetime.now(pytz.timezone('America/Bogota'))
     test_date = datetime.datetime.strptime('2020-08-12 10:26:45', '%Y-%m-%d %H:%M:%S')
     # Eafit to palmas
@@ -176,87 +206,16 @@ if __name__ == '__main__':
     #                      mode='driving', alternatives=False, departure_time=now, traffic_model='optimistic')
 
     df, fig1, ele_df = calc(a)
+    filepath = '../data/medellin.graphml'
+    G = ox.load_graphml(filepath)
 
-    to_ele = df["elevation"].iloc[1:]
-    to_ele = to_ele.append(pd.Series(df["elevation"].iloc[-1]), ignore_index=True)
-    df["toAltitude"] = to_ele
-    df["id"] = df.index
-    df = df.rename(columns={"id": "segmentNumber", "distance": "distanceInMeters",
-                            "time": "durationInSeconds", "elevation": "fromAltitude"})
+    # Calculate number of traffic lights per segment
+    lights = []
+    for index, row in df.iterrows():
+        a, b = calc_shortest_path(G, row['start_lat'], row['start_lng'], row['end_lat'], row['end_lng'])
+        lights.append(b)
+    df['lights'] = pd.Series(lights)
 
-    df['slope'] = np.arctan((df['toAltitude'] - df['fromAltitude']) / df['distanceInMeters'])
-    df['nominal_speed'] = 3.6 * df['distanceInMeters'] / df['durationInSeconds']
-    df['travel_time'] = df['durationInSeconds']
-    df['user_id'] = 'Santiago_Echavarria'
-    #df['user_id'] = 'Jose_Alejandro_Montoya'
-    #df['user_id'] = 'Ana_Cristina_G'
-    #df['user_id'] = 'Juan_David_Mira'
+    consumption, time = calculate_consumption(df, path)
 
-    df['slope_cat'] = pd.cut(df["slope"], np.arange(-10, 10.1, 4))
-    df['slope_cat'] = df['slope_cat'].astype('string')
-
-    mean_features_by_slope = pd.read_csv('../Consumption_estimation_Journal/mean_features_by_slope.csv', index_col=0)
-    mean_features_by_user_and_slope = pd.read_csv(
-        '../Consumption_estimation_Journal/mean_features_by_user_and_slope.csv',
-        index_col=0)
-
-    # Convert to string data type for the inner join
-    mean_features_by_user_and_slope['slope_cat'] = mean_features_by_user_and_slope['slope_cat'].astype('string')
-    mean_features_by_slope['slope_cat'] = mean_features_by_slope['slope_cat'].astype('string')
-
-    df_consolidated = pd.merge(left=df, right=mean_features_by_slope,
-                               left_on=['slope_cat'], right_on=['slope_cat'])
-
-    df_consolidated = pd.merge(left=df_consolidated, right=mean_features_by_user_and_slope,
-                                 left_on=['slope_cat', 'user_id'], right_on=['slope_cat', 'user_id'])
-
-    df_consolidated['mean_max_power_usr'] = df_consolidated.apply(
-        lambda row: row['mean_max_power'] if np.isnan(row['mean_max_power_usr']) else row['mean_max_power_usr'],
-        axis=1
-    )
-
-    df_consolidated['mean_soc'] = 70.0
-
-    # Apply scaling
-    scaler = load(open('../Consumption_estimation_Journal/scaler_lm.pkl', 'rb'))
-
-    # Load inverse scaler
-    scaler_inv = load(open('../Consumption_estimation_Journal/scaler.pkl', 'rb'))
-
-    # load random forest regressor
-    r_forest_reg = load(open(path + '/Develops/Consumption_estimation_Journal/randomForest_0_05maxerr_model.pkl', 'rb'))
-
-    columns = ['mean_max_power_usr', 'mean_soc', 'nominal_speed', 'slope']
-    df_scaled = pd.DataFrame(scaler.transform(df_consolidated[columns]), columns=columns)
-
-    # Para cada tramo de la ruta a estimar
-    lst_kWh_per_km = []
-    lst_kWh = []
-    for i in range(len(df_consolidated)):
-
-        print(df_consolidated.iloc[i])
-
-        # Se calcula el consumo para el segmento en unidades escaladas
-        c_scaled = r_forest_reg.predict(df_scaled.iloc[i].values.reshape(1, -1))[0]
-
-        # Se transforma el consumo escalado a unidades de kWh/km
-        kWh_per_km = scaler_inv.data_min_[4] + (c_scaled / scaler_inv.scale_[4])
-        lst_kWh_per_km.append(kWh_per_km)
-
-        # Se calcula el consumo completo del segmento
-        kWh = kWh_per_km * df_consolidated['distanceInMeters'].iloc[i] / 1000
-        lst_kWh.append(kWh)
-
-        try:
-            # Se estima el estado de carga inicial del próximo segmento
-            df_consolidated.mean_soc.iloc[i + 1] = df_consolidated.mean_soc.iloc[i] - kWh * 2.5
-
-            # Se escala el soc de la proxima iteración
-            df_scaled.mean_soc[i+1] = (df_consolidated.mean_soc.iloc[i + 1] - scaler.data_min_[1]) * scaler.scale_[1]
-
-        except:
-            break
-
-    df_consolidated['consumptionkWh'] = lst_kWh
-    df_consolidated['consumption_per_km'] = lst_kWh_per_km
-    print('Consumo estimado', df_consolidated['consumptionkWh'].sum(), 'kWh')
+    print('Consumo estimado', consumption, 'kWh')

@@ -1,4 +1,4 @@
-from flask import Flask, session
+from flask import Flask, session, g
 from app.config import DevConfig, Config
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
@@ -10,6 +10,7 @@ import rq
 app = Flask(__name__)
 app.config.from_object(DevConfig)
 #app.config.from_object(Config)
+
 app.redis = Redis.from_url(app.config['REDIS_URL'])
 app.task_queue = rq.Queue('app-tasks', connection=app.redis)
 db = SQLAlchemy(app)

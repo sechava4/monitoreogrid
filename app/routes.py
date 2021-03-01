@@ -3,7 +3,7 @@ from app.Develops.Google import google_linear_model as google_query
 from app.closest_points import Trees
 from app.forms import LoginForm, RegistrationForm, VehicleRegistrationForm
 from flask import request, session, redirect, url_for, Markup, \
-    render_template, flash, send_from_directory
+    render_template, flash, send_from_directory, g
 import pandas as pd
 from flask_login import current_user, login_user, logout_user, login_required
 from werkzeug.urls import url_parse
@@ -16,8 +16,13 @@ import ast
 import googlemaps
 import requests
 import math
+import osmnx as ox
 from scipy import stats
 
+
+class OSM:
+    graphpath = app.root_path + '/Develops/data/medellin.graphml'
+    G = ox.load_graphml(graphpath)
 
 # ------------------------------------------Vehicle routes ----------------------------------------------#
 @app.route('/my_vehicles/<username>')
@@ -83,14 +88,7 @@ def show_entries():
         session['h2']
         session["calendar_var"]
 
-        session["graph_var_x2"]
-        session["graph_var_y2"]
-        session['form_d2']
-        session['form_h3']
-        session['form_h4']
-        session['d2']
-        session['h3']
-        session['h4']
+
     except KeyError:
         now = datetime.now(pytz.timezone('America/Bogota')) + timedelta(hours=1)
         session['form_d1'] = now.strftime("%d/%m/%Y")
@@ -102,7 +100,17 @@ def show_entries():
         session["graph_var_x"] = "timestamp"
         session["graph_var_y"] = "power_kw"
         session["calendar_var"] = "power_kw"
+    try:
+        session["graph_var_x2"]
+        session["graph_var_y2"]
+        session['form_d2']
+        session['form_h3']
+        session['form_h4']
+        session['d2']
+        session['h3']
+        session['h4']
 
+    except KeyError:
         session['form_d2'] = now.strftime("%d/%m/%Y")
         session['form_h3'] = '0:01 AM'
         session['form_h4'] = now.strftime("%I:%M %p")  # 12H Format
@@ -111,6 +119,7 @@ def show_entries():
         session['h4'] = now.strftime("%H:%M:%S")
         session["graph_var_x2"] = "timestamp"
         session["graph_var_y2"] = "power_kw"
+
 
     if request.method == 'POST':
 
@@ -156,8 +165,6 @@ def show_entries():
                  session['d2'] + ' ' + str(session['h3'])[:8] + \
                  '" and "' + str(session['d2']) + ' ' + str(session['h4'])[:8] + '"'
 
-        print(query1)
-
         # df_exp = pd.read_csv('app/old_vehicle_operation.csv', sep=',', index_col=0, decimal=".")
         # df['timestamp'] = pd.to_datetime(df['timestamp'])"
         # df_exp.to_sql('DB',db.engine )
@@ -173,7 +180,6 @@ def show_entries():
         except (ValueError, TypeError):
             pearson_coef = 0
             pass
-        print(pearson_coef)
 
         scatter = plot.create_plot(df_o, session["graph_var_x"], session["graph_var_y"])
         scatter2 = plot.create_plot(df_o2, session["graph_var_x2"], session["graph_var_y2"])
@@ -198,6 +204,7 @@ def show_entries():
 
 @app.route('/updateplot')
 def update_plot():
+
     vehicle = Vehicle.query.filter_by(belongs_to=current_user.id, activo=True).first()
     try:
 
@@ -238,10 +245,12 @@ def energy_monitor():
         session["time_interval"]
         session['est_cons']
         session['est_time']
+        session['lights']
     except KeyError:
         session["time_interval"] = '2 d'
         session['est_time'] = 0
         session['est_cons'] = 0
+        session['lights'] = 0
 
     if request.method == 'POST':
         session["time_interval"] = (request.form['time_interval'])
@@ -259,6 +268,15 @@ def energy_monitor():
             #                      mode='driving', alternatives=False, departure_time=now, traffic_model='optimistic')
 
             segments, fig1, ele_df = google_query.calc(a)
+            # Calculate number of traffic lights per segment
+            lights = []
+            for index, row in segments.iterrows():
+                a, b = google_query.calc_shortest_path(OSM.G,
+                                                       row['start_lat'], row['start_lng'],
+                                                       row['end_lat'], row['end_lng'])
+                lights.append(b)
+            segments['lights'] = pd.Series(lights)
+            session['lights'] = int(segments['lights'].sum())
 
             estimation_path = os.path.join(app.root_path, 'Develops/Consumption_estimation_Journal')
             # session['est_cons'], session['est_time'] = consumption_models.smartcharging_consumption_query(new_df)
@@ -278,8 +296,8 @@ def energy_monitor():
     elif 'd' in unit:
         session["energy_t2"] = now - timedelta(days=number)
 
-    query1 = 'SELECT timestamp, power_kw from operation WHERE speed > 0 AND timestamp BETWEEN "' + str(
-        session["energy_t2"]) + \
+    query1 = 'SELECT timestamp, power_kw from operation WHERE speed > 0 AND timestamp BETWEEN "' +\
+             str(session["energy_t2"]) + \
              '" and "' + str(session["energy_t1"]) + '" ORDER BY timestamp'
 
     df_o = pd.read_sql_query(query1, db.engine)
@@ -336,50 +354,61 @@ def show_tables():
         if session["h2"] < session["h1"]:
             session["h1"], session["h2"] = session["h2"], session["h1"]  # Swap times
 
-    query0 = "SELECT date(timestamp), MAX(" + session["calendar_var"] + \
-             ") as 'max_value' FROM operation WHERE vehicle_id = '" + str(
-             vehicle.placa) + "' GROUP BY date(timestamp)"
+    if vehicle is not None:
 
-    query = "SELECT timestamp, " + session["var1"] + " ," + session["var2"] + " ," + session["var3"] + " ," + session[
-        "var4"] + \
-            " ," + session["var5"] + ' from operation WHERE vehicle_id = "' + str(vehicle.placa) + '" AND timestamp BETWEEN "' + session['d1'] + ' ' + \
-            str(session['h1'])[:8] + '" and "' + str(session['d1']) + ' ' + str(session['h2'])[:8] + '" limit ' + \
-            str(session["records"])
+            query0 = "SELECT date(timestamp), MAX(" + session["calendar_var"] + \
+                     ") as 'max_value' FROM operation WHERE vehicle_id = '" + str(
+                     vehicle.placa) + "' GROUP BY date(timestamp)"
 
-    df_calendar = pd.read_sql_query(query0, db.engine)
-    df_calendar = df_calendar.dropna()
-    df = pd.read_sql_query(query, db.engine)
-    scatter = 0
-    integral_jimenez = 0
-    integral_power = 0
-    if all(elem in list(df) for elem in ['slope', 'speed', 'mean_acc', 'power_kw']) and len(set(list(df))) == 6 and len(
-            df) > 1:
-        print(len(set(list(df))))  # != len(set(your_list))
+            query = "SELECT timestamp, " + session["var1"] + " ," + session["var2"] + " ," + session["var3"] + " ," + session[
+                "var4"] + \
+                    " ," + session["var5"] + ' from operation WHERE vehicle_id = "' + str(vehicle.placa) + '" AND timestamp BETWEEN "' + session['d1'] + ' ' + \
+                    str(session['h1'])[:8] + '" and "' + str(session['d1']) + ' ' + str(session['h2'])[:8] + '" limit ' + \
+                    str(session["records"])
 
-        try:
-            consumption_models.add_consumption_cols(df, float(vehicle.weight), float(vehicle.frontal_area),
-                                                    float(vehicle.cd))
+            df_calendar = pd.read_sql_query(query0, db.engine)
+            df_calendar = df_calendar.dropna()
+            df = pd.read_sql_query(query, db.engine)
+            scatter = 0
+            integral_jimenez = 0
+            integral_power = 0
+            if all(elem in list(df) for elem in ['slope', 'speed', 'mean_acc', 'power_kw']) and len(set(list(df))) == 6 and len(
+                    df) > 1:
+                #print(len(set(list(df))))  # != len(set(your_list))
 
-            scatter = plot.create_plot(df, "jimenez_estimation", "power_kw")
-            integral_jimenez = plot.create_plot(df, "timestamp", "jimenez_int")
-            integral_fiori = plot.create_plot(df, "timestamp", "fiori_int")
-            integral_power = plot.create_plot(df, "timestamp", "power_int")
-        except Exception as e:
-            print(e)
+                try:
+                    consumption_models.add_consumption_cols(df, float(vehicle.weight), float(vehicle.frontal_area),
+                                                            float(vehicle.cd))
 
+                    scatter = plot.create_plot(df, "jimenez_estimation", "power_kw")
+                    integral_jimenez = plot.create_plot(df, "timestamp", "jimenez_int")
+                    integral_fiori = plot.create_plot(df, "timestamp", "fiori_int")
+                    integral_power = plot.create_plot(df, "timestamp", "power_int")
+                except Exception as e:
+                    print(e)
+
+            else:
+                integral_jimenez = 0
+                integral_fiori = 0
+                integral_power = 0
+
+            if all(elem in list(df) for elem in ['current', 'batt_temp']):
+                degradation_models.add_wang_row(df)
     else:
         integral_jimenez = 0
         integral_fiori = 0
         integral_power = 0
+        df = pd.DataFrame([])
+        df_calendar = pd.DataFrame([])
+        scatter = 0
 
-    if all(elem in list(df) for elem in ['current', 'batt_temp']):
-        degradation_models.add_wang_row(df)
     session["var1_pretty"] = open_dataframes.pretty_var_name(session["var1"])
     session["var2_pretty"] = open_dataframes.pretty_var_name(session["var2"])
     session["var3_pretty"] = open_dataframes.pretty_var_name(session["var3"])
     session["var4_pretty"] = open_dataframes.pretty_var_name(session["var4"])
     session["var5_pretty"] = open_dataframes.pretty_var_name(session["var5"])
     session["calendar_pretty"] = open_dataframes.pretty_var_name(session["calendar_var"])
+
     return render_template('tables.html', tables=[df.to_html(classes='data')], titles=df.columns.values, plot=scatter,
                            plotint1=integral_jimenez, plotint2=integral_power, plotint3=integral_fiori,
                            calendar=df_calendar.to_json(orient='records'),
@@ -412,30 +441,40 @@ def show_zones_map():
         session['h2'] = now.strftime("%H:%M:%S")
         session["calendar_var"] = "power_kw"
 
+    #if vehicle is not None:
+
     query0 = "SELECT date(timestamp), MAX(" + session[
         "calendar_var"] + ") as 'max_value' FROM operation WHERE vehicle_id = '" + str(
          vehicle.placa) + "' GROUP BY date(timestamp)"
 
     df_calendar = pd.read_sql_query(query0, db.engine)
     session["calendar_pretty"] = open_dataframes.pretty_var_name(session["calendar_var"])
-
-    lines_df = open_dataframes.get_lines(session['d1'], session['h1'], session['h2'])
     zones = open_dataframes.get_zones()
-    if len(lines_df) > 0:
-        _, lines_df['id_nearest_zone'] = Trees.zones_tree.query(lines_df[['latitude', 'longitude']].values, k=1)
-        lines_df["name"] = zones["name"].reindex(index=lines_df['id_nearest_zone']).tolist()
-
-    json_lines = Markup(lines_df.to_json(orient='records'))
     json_zones = Markup(zones.to_json(orient='records'))
 
+    if vehicle is not None:
+
+        lines_df = open_dataframes.get_lines(vehicle, session['d1'], session['h1'], session['h2'])
+        if len(lines_df) > 0:
+            _, lines_df['id_nearest_zone'] = Trees.zones_tree.query(lines_df[['latitude', 'longitude']].values, k=1)
+            lines_df["name"] = zones["name"].reindex(index=lines_df['id_nearest_zone']).tolist()
+
+        json_lines = Markup(lines_df.to_json(orient='records'))
+    else:
+        json_lines=0
+
     return render_template('zones_map.html', json_zones=json_zones, json_lines=json_lines,
-                           calendar=df_calendar.to_json(orient='records'), vehicle=vehicle)
+                           calendar=df_calendar.to_json(orient='records'),
+                           vehicles=df_vehicles.to_json(orient='records'))
 
 
 @app.route('/vehicle_map', methods=['GET', 'POST'])
 @login_required
 def show_vehicle_map():
-    vehicle = Vehicle.query.filter_by(belongs_to=current_user.id).first()
+    query = 'SELECT * FROM vehicle where belongs_to = "' + str(current_user.id) + '"'
+    df_vehicles = pd.read_sql_query(query, db.engine)
+
+    vehicle = Vehicle.query.filter_by(belongs_to=current_user.id, activo=True).first()
     try:
         session["map_var"]
         session['form_d1']
@@ -457,8 +496,9 @@ def show_vehicle_map():
         session['h2'] = now.strftime("%H:%M:%S ")
         session["calendar_var"] = "power_kw"
 
-    query0 = "SELECT date(timestamp), MAX(" + session[
-        "calendar_var"] + ") as 'max_value' FROM operation GROUP BY date(timestamp)"
+    query0 = "SELECT date(timestamp), MAX(" + session["calendar_var"] + \
+             ") as 'max_value' FROM operation WHERE vehicle_id = '" + str(
+             vehicle.placa) + "' GROUP BY date(timestamp)"
 
     df_calendar = pd.read_sql_query(query0, db.engine)
     session["calendar_pretty"] = open_dataframes.pretty_var_name(session["calendar_var"])
@@ -466,28 +506,35 @@ def show_vehicle_map():
     stations_df = open_dataframes.get_stations()
     json_stations = Markup(stations_df.to_json(orient='records'))
 
-    lines_df = open_dataframes.get_lines(session['d1'], session['h1'], session['h2'])
-    json_lines = Markup(lines_df.to_json(orient='records'))
+    if vehicle is not None:
 
-    alturas_df = open_dataframes.get_heights(session["map_var"], session['d1'], session['h1'], session['h2'])
-    # current_pos = alturas_df.iloc[1:2]
+        lines_df = open_dataframes.get_lines(vehicle, session['d1'], session['h1'], session['h2'])
+        json_lines = Markup(lines_df.to_json(orient='records'))
 
-    session["map_var_pretty"] = open_dataframes.pretty_var_name(session["map_var"])
+        alturas_df = open_dataframes.get_heights(vehicle, session["map_var"], session['d1'], session['h1'], session['h2'])
+        # current_pos = alturas_df.iloc[1:2]
 
-    if len(lines_df) > 0:
-        _, a = Trees.station_tree.query(alturas_df[['latitude', 'longitude']].values,
-                                        k=2)  # Select neares 2 stations (Knearest)
-        alturas_df["closest_st_id1"] = a[:, 0]
-        alturas_df["closest_st_id2"] = a[:, 1]
-        alturas_df["closest_station1"] = stations_df["name"].reindex(
-            index=alturas_df['closest_st_id1']).tolist()  # map station id with station name (vector)
-        alturas_df["closest_station2"] = stations_df["name"].reindex(
-            index=alturas_df['closest_st_id2']).tolist()  # map station2  id with station name (vector)
-        # session["closest_station"] = stations_df["name"].iloc[current_pos['id_nearest']].item()    # map station id with station name (current)
-    json_operation = Markup(alturas_df.to_json(orient='records'))
+        session["map_var_pretty"] = open_dataframes.pretty_var_name(session["map_var"])
+
+        if len(lines_df) > 0:
+
+            # Select nearest 2 stations (K-nearest)
+            _, a = Trees.station_tree.query(alturas_df[['latitude', 'longitude']].values, k=2)
+            alturas_df["closest_st_id1"] = a[:, 0]
+            alturas_df["closest_st_id2"] = a[:, 1]
+            alturas_df["closest_station1"] = stations_df["name"].reindex(
+                index=alturas_df['closest_st_id1']).tolist()  # map station id with station name (vector)
+            alturas_df["closest_station2"] = stations_df["name"].reindex(
+                index=alturas_df['closest_st_id2']).tolist()  # map station2  id with station name (vector)
+            # session["closest_station"] = stations_df["name"].iloc[current_pos['id_nearest']].item()    # map station id with station name (current)
+        json_operation = Markup(alturas_df.to_json(orient='records'))
+    else:
+        json_lines = 0
+        json_operation = 0
 
     return render_template('vehicle_map.html', json_lines=json_lines, json_operation=json_operation,
-                           json_stations=json_stations, calendar=df_calendar.to_json(orient='records'), vehicle=vehicle)
+                           json_stations=json_stations, calendar=df_calendar.to_json(orient='records'),
+                           vehicles=df_vehicles.to_json(orient='records'))
 
     # return Json para hacer el render en el cliente
 

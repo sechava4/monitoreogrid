@@ -175,8 +175,7 @@ def test(p, m):
     # Apply scaling
 
     scaler = load(open(path + '/Develops/Consumption_estimation_Journal/scaler_lm.pkl', 'rb'))
-    columns = ['mean_max_power_usr', 'mean_min_power_usr', 'mean_consumption_per_km_usr',
-              'mean_soc', 'travel_time', 'mass', 'nominal_speed', 'slope']
+    columns = ['mean_max_power_usr', 'mean_soc', 'mean_speed', 'slope']
     p_scaled = pd.DataFrame(scaler.transform(p[columns]), columns=columns)
     p_scaled = p_scaled.dropna()
 
@@ -197,8 +196,8 @@ def test(p, m):
     # p_scaled['consumption_per_km'] = 0.873 * p_scaled['slope'] + 0.1295 * p_scaled['mean_max_power_usr'] - 0.0721 * \
     #                                  p_scaled['mean_speed']
 
-    p_scaled['consumption_per_km'] = r_forest_reg.predict(
-        p_scaled[['mean_max_power_usr', 'mean_soc', 'travel_time', 'nominal_speed', 'slope']].values)
+    p_scaled['consumption_per_km'] = xgb_reg.predict(
+        p_scaled[['mean_max_power_usr', 'mean_soc', 'mean_speed', 'slope']].values)
 
     # Load inverse scaler
     scaler_inv = load(open(path + '/Develops/Consumption_estimation_Journal/scaler.pkl', 'rb'))
@@ -275,26 +274,25 @@ print('rmse_kWh', rmse_kWh)
 print('rmse_kWh_km', rmse_kWh_km)
 
 
-
-# Some useful figures
-# To compare the mean_max_power with max power
-# To compare the mean_min_power with min power
-
-slope_user_groups = test_measure1.groupby(by=['slope_cat', 'user_id'])
-mean_features_by_user_and_slope = slope_user_groups[['max_power', 'min_power', 'consumption_per_km']].mean().reset_index()
-mean_features_by_user_and_slope.rename(columns={"max_power": "mean_max_power_usr", "min_power": "mean_min_power_usr",
-                                                'consumption_per_km': 'mean_consumption_per_km_usr'}, inplace=True)
-
-test_measure = pd.merge(how='left', left=test_measure1, right=mean_features_by_user_and_slope,
-             left_on=['user_id', 'slope_cat'], right_on=['user_id', 'slope_cat'])
-
-fig3 = go.Figure([go.Scatter(x=test_measure['kms'].cumsum(), y=test_measure['max_power'], name='Measured max')])
-fig3.add_trace(go.Scatter(x=test_measure['kms'].cumsum(), y=test_measure['min_power'], name='Measured min'))
-fig3.add_trace(go.Scatter(x=test_measure['kms'].cumsum(), y=test_measure['mean_max_power_usr'], name='Mean_max'))
-
-fig3.add_trace(go.Scatter(x=test_measure['kms'].cumsum(), y=test_measure['mean_min_power_usr'], name='Mean_min'))
-fig3.update_layout(
-    title="max_power",
-    xaxis_title="km",
-    yaxis_title="kW")
-plotly.offline.plot(fig3)
+# # Some useful figures
+# # To compare the mean_max_power with max power
+# # To compare the mean_min_power with min power
+#
+# slope_user_groups = test_measure1.groupby(by=['slope_cat', 'user_id'])
+# mean_features_by_user_and_slope = slope_user_groups[['max_power', 'min_power', 'consumption_per_km']].mean().reset_index()
+# mean_features_by_user_and_slope.rename(columns={"max_power": "mean_max_power_usr", "min_power": "mean_min_power_usr",
+#                                                 'consumption_per_km': 'mean_consumption_per_km_usr'}, inplace=True)
+#
+# test_measure = pd.merge(how='left', left=test_measure1, right=mean_features_by_user_and_slope,
+#              left_on=['user_id', 'slope_cat'], right_on=['user_id', 'slope_cat'])
+#
+# fig3 = go.Figure([go.Scatter(x=test_measure['kms'].cumsum(), y=test_measure['max_power'], name='Measured max')])
+# fig3.add_trace(go.Scatter(x=test_measure['kms'].cumsum(), y=test_measure['min_power'], name='Measured min'))
+# fig3.add_trace(go.Scatter(x=test_measure['kms'].cumsum(), y=test_measure['mean_max_power_usr'], name='Mean_max'))
+#
+# fig3.add_trace(go.Scatter(x=test_measure['kms'].cumsum(), y=test_measure['mean_min_power_usr'], name='Mean_min'))
+# fig3.update_layout(
+#     title="max_power",
+#     xaxis_title="km",
+#     yaxis_title="kW")
+# plotly.offline.plot(fig3)
