@@ -5,6 +5,7 @@ venv/
 
 =======
 app/DataBackup/monitoreogrid.sql
+app/DataBackup/operation_FVQ731.csv
 nearest.py
 nearestneighbor.py
 monitoreogrid.pub
