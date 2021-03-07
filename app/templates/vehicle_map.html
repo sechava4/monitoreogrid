@@ -142,7 +142,7 @@
         <form role="form" class="form-inline" id="Mainform1" action="{{ url_for('map_var') }}" method=post>
 
              <div style="width: 100%;margin: 10px;">
-                <select class="form-control" id="CalendarVarSelect" name = calendar_var>
+                <select class="form-control" id="CalendarVarSelect" name = calendar_var onchange="this.form.submit();">
                     <option value="{{session.calendar_var}}"> {{session.calendar_pretty}}</option>
                     <option value="drivetime">Tiempo de manejo</option>
                     <option value="mec_power">Potencia efectiva (server) (kW) </option>
@@ -159,7 +159,7 @@
 
             <div class="col-auto">
                 <label class="label label-default" for="exampleFormControlSelect3"> Variable de monitoreo </label>
-                <select class="form-control" id="exampleFormControlSelect3" name = map_var>
+                <select class="form-control" id="exampleFormControlSelect3" name = map_var onchange="this.form.submit();">
                     <option value="{{session.map_var}}"> {{session.map_var_pretty}}</option>
                     <option value="elevation">Altitud (google api)</option>
                     <option value="elevation2">Altitud (Barómetro)</option>

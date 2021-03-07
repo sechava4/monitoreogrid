@@ -120,9 +120,9 @@ def calculate_consumption(segments, path):
         (segments['toAltitude'] - segments['fromAltitude']) / segments['distanceInMeters']) / np.pi
     segments['mean_speed'] = 3.6 * segments['distanceInMeters'] / segments['travel_time']
     segments['mass'] = 1604
-    segments['user_id'] = 'Santiago_Echavarria_01'
+    segments['user_id'] = 'Esterban_Betancur'
     # segments['user_id'] = 'Jose_Alejandro_Montoya'
-    segments['slope_cat'] = pd.cut(segments["slope"], np.arange(-10,10.1,4))
+    segments['slope_cat'] = pd.cut(segments["slope"], np.arange(-10, 10.1, 5))
 
     mean_features_by_slope = pd.read_csv(path+'/mean_features_by_slope.csv')
     mean_features_by_user_and_slope = pd.read_csv(path+'/mean_features_by_user_and_slope.csv')
@@ -145,7 +145,7 @@ def calculate_consumption(segments, path):
         axis=1
     )
 
-    segments_consolidated['mean_soc'] = 70.0
+    segments_consolidated['mean_soc'] = 100.0
 
     # Apply scaling
     scaler = load(open(path + '/scaler_lm.pkl', 'rb'))
@@ -167,52 +167,57 @@ def calculate_consumption(segments, path):
 
     # load ANN regressor
     ann_reg = load(open(path + '/ann_regr.pkl', 'rb'))
-
-    # Para cada tramo de la ruta a estimar
-    lst_kWh_per_km = []
-    lst_kWh = []
-
-    for i in range(len(segments_consolidated)):
-
-        # Se calcula el consumo para el segmento en unidades escaladas sklearn
-        c_scaled = ann_reg.predict(segments_scaled.iloc[i].values.reshape(1, -1))[0]
-
-        # Se calcula el consumo para el segmento en unidades escaladas lineal
-        # c_scaled = lm_cons.predict(segments_scaled.iloc[i])
-
-        # Se transforma el consumo escalado a unidades de kWh/km
-        kWh_per_km = scaler_inv.data_min_[4] + (c_scaled / scaler_inv.scale_[4])
-        lst_kWh_per_km.append(kWh_per_km)
-
-        # Se calcula el consumo completo del segmento
-        kWh = kWh_per_km * segments_consolidated['distanceInMeters'].iloc[i] / 1000
-        lst_kWh.append(kWh)
-
-        try:
-            # Se estima el estado de carga inicial del próximo segmento
-            segments_consolidated.mean_soc.iloc[i + 1] = segments_consolidated.mean_soc.iloc[i] - kWh * 2.5
-
-            # Se escala el soc de la proxima iteración
-            segments_scaled.mean_soc[i + 1] = (segments_consolidated.mean_soc.iloc[i + 1] -
-                                               scaler.data_min_[1]) * scaler.scale_[1]
-
-        except:
-            break
-
-    # segments_scaled['consumption_per_km'] = ann_reg.predict(
-    #     segments_scaled[['mean_max_power_usr', 'mean_soc', 'mean_speed', 'slope']].values)
     #
-    # # Apply inverse scaling
+    # # Para cada tramo de la ruta a estimar
+    # lst_kWh_per_km = []
+    # lst_kWh = []
+    #
+    # for i in range(len(segments_consolidated)):
+    #
+    #     # Se calcula el consumo para el segmento en unidades escaladas sklearn
+    #     c_scaled = ann_reg.predict(segments_scaled.iloc[i].values.reshape(1, -1))[0]
+    #
+    #     # Se calcula el consumo para el segmento en unidades escaladas lineal
+    #     # c_scaled = lm_cons.predict(segments_scaled.iloc[i])
+    #
+    #     # Se transforma el consumo escalado a unidades de kWh/km
+    #     kWh_per_km = scaler_inv.data_min_[4] + (c_scaled / scaler_inv.scale_[4])
+    #     lst_kWh_per_km.append(kWh_per_km)
+    #
+    #     # Se calcula el consumo completo del segmento
+    #     kWh = kWh_per_km * segments_consolidated['distanceInMeters'].iloc[i] / 1000
+    #     lst_kWh.append(kWh)
+    #
+    #     try:
+    #         # Se estima el estado de carga inicial del próximo segmento
+    #         segments_consolidated.mean_soc.iloc[i + 1] = segments_consolidated.mean_soc.iloc[i] - kWh * 2.5
+    #
+    #         # Se escala el soc de la proxima iteración
+    #         segments_scaled.mean_soc[i + 1] = (segments_consolidated.mean_soc.iloc[i + 1] -
+    #                                            scaler.data_min_[1]) * scaler.scale_[1]
+    #
+    #     except:
+    #         break
+
+    segments_consolidated['consumption_per_km'] = 60.478 * segments_consolidated['slope'] + \
+                                                  2.274 * segments_consolidated['mean_max_power_usr'] + \
+                                                  0.186 + segments_consolidated['mean_soc'] + \
+                                                  1.102 * segments_consolidated['mean_speed']
+
+    # segments_consolidated['consumption_per_km'] = lm_cons.predict(segments_consolidated[columns])
+
+    # Apply inverse scaling
     # p_pred = pd.DataFrame(scaler_inv.inverse_transform(segments_scaled), columns=segments_scaled.columns)
     # segments_consolidated['consumption_per_km'] = p_pred['consumption_per_km']
+    segments_consolidated['consumptionWh'] = segments_consolidated['consumption_per_km'] * \
+                                             segments_consolidated['distanceInMeters']/1000
 
-    segments_consolidated['consumptionkWh'] = lst_kWh
-    segments_consolidated['consumption_per_km'] = lst_kWh_per_km
-    # segments_consolidated['consumptionkWh'] = segments_consolidated['consumption_per_km'] * \
-    #                                           segments_consolidated['distanceInMeters']/1000
+    # segments_consolidated['consumptionkWh'] = lst_kWh
+    # segments_consolidated['consumption_per_km'] = lst_kWh_per_km
+
 
     estimated_time = segments_consolidated['travel_time'].sum() / 60
-    return segments_consolidated['consumptionkWh'].sum().round(3), estimated_time.round(3), segments_consolidated
+    return (segments_consolidated['consumptionWh'].sum()/1000).round(3), estimated_time.round(3), segments_consolidated
 
 
 if __name__ == '__main__':
@@ -220,7 +225,8 @@ if __name__ == '__main__':
     now = datetime.datetime.now(pytz.timezone('America/Bogota'))
     test_date = datetime.datetime.strptime('2020-08-12 10:26:45', '%Y-%m-%d %H:%M:%S')
     # Eafit to palmas
-    a = gmaps.directions(origin=(6.198336770488742, -75.57982484909458), destination=(6.265042923684814, -75.59945570942074),
+    a = gmaps.directions(origin=(6.265026248948636, -75.59942226813949),
+                         destination=(6.242406836561683, -75.56033849716187),
                          mode='driving', alternatives=False, departure_time=now, traffic_model='pessimistic')
 
     # b = gmaps.directions(origin=(6.199303, -75.579519), destination=(6.153382, -75.541652),
