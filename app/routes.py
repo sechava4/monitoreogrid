@@ -7,7 +7,7 @@ from flask import request, session, redirect, url_for, Markup, \
 import pandas as pd
 from flask_login import current_user, login_user, logout_user, login_required
 from werkzeug.urls import url_parse
-from app.models import User, Operation, Vehicle
+from app.models import User, Operation, Vehicle, OSM
 import os
 import geopy.distance
 from datetime import datetime, timedelta
@@ -16,15 +16,8 @@ import ast
 import googlemaps
 import requests
 import math
-import osmnx as ox
 from scipy import stats
 
-
-class OSM:
-    graphpath = app.root_path + '/Develops/data/medellin.graphml'
-    print('Empezando a cargar ')
-    G = ox.load_graphml(graphpath)
-    print('termina de cargar ')
 
 # ------------------------------------------Vehicle routes ----------------------------------------------#
 @app.route('/my_vehicles/<username>')
@@ -282,7 +275,7 @@ def energy_monitor():
 
             estimation_path = os.path.join(app.root_path, 'Develops/Consumption_estimation_Journal')
             # session['est_cons'], session['est_time'] = consumption_models.smartcharging_consumption_query(new_df)
-            session['est_cons'], session['est_time'] = google_query.calculate_consumption(segments, estimation_path)
+            session['est_cons'], session['est_time'], _ = google_query.calculate_consumption(segments, estimation_path)
         except SyntaxError:
             session['est_cons'] = 0
             session['est_time'] = 0

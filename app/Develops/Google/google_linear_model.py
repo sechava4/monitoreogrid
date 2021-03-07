@@ -15,6 +15,7 @@ import statsmodels.api as sm
 import os
 from app import app
 import networkx as nw
+import time
 
 
 
@@ -108,7 +109,6 @@ def calc_shortest_path(G, lat_o, lon_o, lat_d, lon_d):
         return 0, 0
 
 
-
 def calculate_consumption(segments, path):
 
     segments["id"] = segments.index
@@ -119,10 +119,9 @@ def calculate_consumption(segments, path):
     segments['slope'] = 180 * np.arctan(
         (segments['toAltitude'] - segments['fromAltitude']) / segments['distanceInMeters']) / np.pi
     segments['mean_speed'] = 3.6 * segments['distanceInMeters'] / segments['travel_time']
-    segments['mass'] = 1580
-    # segments['user_id'] = 'Santiago_Echavarria'
-    #df['user_id'] = 'Santiago_Echavarria'
-    segments['user_id'] = 'Jose_Alejandro_Montoya'
+    segments['mass'] = 1604
+    segments['user_id'] = 'Santiago_Echavarria_01'
+    # segments['user_id'] = 'Jose_Alejandro_Montoya'
     segments['slope_cat'] = pd.cut(segments["slope"], np.arange(-10,10.1,4))
 
     mean_features_by_slope = pd.read_csv(path+'/mean_features_by_slope.csv')
@@ -158,10 +157,16 @@ def calculate_consumption(segments, path):
     scaler_inv = load(open(path + '/scaler.pkl', 'rb'))
 
     # load random forest regressor
-    r_forest_reg = load(open(path + '/randomForest_0_12_mean_consumption_maxerr_model.pkl', 'rb'))
+    r_forest_reg = load(open(path + '/randomForest_0_14_mean_consumption_maxerr_model.pkl', 'rb'))
 
     # Load XGBoost model
     xgb_reg = load(open(path + '/xg_reg_model.pickle.dat', "rb"))
+
+    # Load linear model
+    lm_cons = load(open(path + '/linear_model.pkl', 'rb'))
+
+    # load ANN regressor
+    ann_reg = load(open(path + '/ann_regr.pkl', 'rb'))
 
     # Para cada tramo de la ruta a estimar
     lst_kWh_per_km = []
@@ -169,8 +174,11 @@ def calculate_consumption(segments, path):
 
     for i in range(len(segments_consolidated)):
 
-        # Se calcula el consumo para el segmento en unidades escaladas
-        c_scaled = xgb_reg.predict(segments_scaled.iloc[i].values.reshape(1, -1))[0]
+        # Se calcula el consumo para el segmento en unidades escaladas sklearn
+        c_scaled = ann_reg.predict(segments_scaled.iloc[i].values.reshape(1, -1))[0]
+
+        # Se calcula el consumo para el segmento en unidades escaladas lineal
+        # c_scaled = lm_cons.predict(segments_scaled.iloc[i])
 
         # Se transforma el consumo escalado a unidades de kWh/km
         kWh_per_km = scaler_inv.data_min_[4] + (c_scaled / scaler_inv.scale_[4])
@@ -191,11 +199,20 @@ def calculate_consumption(segments, path):
         except:
             break
 
+    # segments_scaled['consumption_per_km'] = ann_reg.predict(
+    #     segments_scaled[['mean_max_power_usr', 'mean_soc', 'mean_speed', 'slope']].values)
+    #
+    # # Apply inverse scaling
+    # p_pred = pd.DataFrame(scaler_inv.inverse_transform(segments_scaled), columns=segments_scaled.columns)
+    # segments_consolidated['consumption_per_km'] = p_pred['consumption_per_km']
+
     segments_consolidated['consumptionkWh'] = lst_kWh
     segments_consolidated['consumption_per_km'] = lst_kWh_per_km
+    # segments_consolidated['consumptionkWh'] = segments_consolidated['consumption_per_km'] * \
+    #                                           segments_consolidated['distanceInMeters']/1000
 
     estimated_time = segments_consolidated['travel_time'].sum() / 60
-    return segments_consolidated['consumptionkWh'].sum().round(3), estimated_time.round(3)
+    return segments_consolidated['consumptionkWh'].sum().round(3), estimated_time.round(3), segments_consolidated
 
 
 if __name__ == '__main__':
@@ -203,23 +220,26 @@ if __name__ == '__main__':
     now = datetime.datetime.now(pytz.timezone('America/Bogota'))
     test_date = datetime.datetime.strptime('2020-08-12 10:26:45', '%Y-%m-%d %H:%M:%S')
     # Eafit to palmas
-    a = gmaps.directions(origin=(6.202736, -75.577407), destination=(6.152245, -75.624450),
+    a = gmaps.directions(origin=(6.198336770488742, -75.57982484909458), destination=(6.265042923684814, -75.59945570942074),
                          mode='driving', alternatives=False, departure_time=now, traffic_model='pessimistic')
 
     # b = gmaps.directions(origin=(6.199303, -75.579519), destination=(6.153382, -75.541652),
     #                      mode='driving', alternatives=False, departure_time=now, traffic_model='optimistic')
 
     df, fig1, ele_df = calc(a)
-    filepath = '../data/medellin.graphml'
-    G = ox.load_graphml(filepath)
 
-    # Calculate number of traffic lights per segment
-    lights = []
-    for index, row in df.iterrows():
-        a, b = calc_shortest_path(G, row['start_lat'], row['start_lng'], row['end_lat'], row['end_lng'])
-        lights.append(b)
-    df['lights'] = pd.Series(lights)
+    # Load OSM info ----------------------------------------
 
-    consumption, time = calculate_consumption(df, path)
+    # filepath = '../data/medellin.graphml'
+    # G = ox.load_graphml(filepath)
+    #
+    # # Calculate number of traffic lights per segment
+    # lights = []
+    # for index, row in df.iterrows():
+    #     a, b = calc_shortest_path(G, row['start_lat'], row['start_lng'], row['end_lat'], row['end_lng'])
+    #     lights.append(b)
+    # df['lights'] = pd.Series(lights)
+
+    consumption, time, df = calculate_consumption(df, path)
 
     print('Consumo estimado', consumption, 'kWh')

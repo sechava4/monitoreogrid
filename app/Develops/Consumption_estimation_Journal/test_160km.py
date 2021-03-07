@@ -27,90 +27,13 @@ op = op[(op['odometer'] > 1)]
 op = op[(op['power_kw'] != 0)]
 op = op[op['operative_state'] < 3]
 
-
-def gen_test_traces(df):
-    try:
-        df.drop(columns='Unnamed: 0', inplace=True)
-        df.drop(columns='id', inplace=True)
-    except KeyError:
-        pass
-    trace_id = 1
-    aux_trace_id = -1
-
-    consolidar_id = 1
-    testear_id = -1
-    test_array = np.array([])
-
-    trace_array = np.array([])
-    suma = 0
-    suma_testing = 0
-    old_name = ''
-    old_date = df['timestamp2'].iloc[0]
-
-    for index, row in df.iterrows():
-        # for index, row in test.iterrows():
-        suma = suma + row['run']
-        suma_testing = suma_testing + row['run']
-        # row['slope']
-        trace_array = np.append(trace_array, aux_trace_id)
-
-        nan = (row['name'] != row['name'])
-
-        # feature traces of more than 50m
-        if suma > 50:
-            trace_array = np.where(trace_array == aux_trace_id, trace_id, trace_array)
-
-        # Si cambia de vía - empiece un nuevo tramo se escoge 1200 para ver cambios en consumo
-        if suma >= 1150 or (old_name != row['name'] and not nan):  # pendiente
-            suma = 0
-            trace_id += 1
-            aux_trace_id -= 1
-
-        old_name = row['name']
-
-    print(trace_array)
-    try:
-        df.drop(["trace_id"], axis=1, inplace=True)
-    except KeyError:
-        pass
-    df.insert(2, "trace_id", trace_array, True)
-
-    return df
-
-
-
-op_trace_test_index = gen_test_traces(op)
+op_trace_test_index = TraceFeatures.gen_test_traces(op)
 
 classifier_df = op_trace_test_index[op_trace_test_index['trace_id'] > 0]
 segments = classifier_df.groupby(['trace_id'])
 
 #df_to_consolidate = op_trace_test_index[op_trace_test_index['test_id'] > 0]
 #df_to_test = op_trace_test_index[op_trace_test_index['test_id'] < 0]
-
-
-def map_plot(df_to_m, df_to_t,i):
-    fig = go.Figure(go.Scattermapbox(
-        mode="markers+lines",
-        lon=df_to_t['end_lon'],
-        lat=df_to_t['end_lat'],
-        marker={'size': 10}))
-
-    '''
-    fig.add_trace(go.Scattermapbox(
-        mode="markers",
-        lon=df_to_t['end_lon'],
-        lat=df_to_t['end_lat'],
-        marker={'size': 10}))
-    '''
-    fig.update_layout(
-        margin={'l': 0, 't': 0, 'b': 0, 'r': 0},
-        mapbox={
-            'center': {'lon': -75.58, 'lat': 6.151},
-            'style': "stamen-terrain",
-            'zoom': 10}, title='test '+str(i))
-
-    plotly.offline.plot(fig)
-    time.sleep(2)
 
 
 # ------------------------- Measuring and testing groups generation ---------------------------------------#
@@ -181,9 +104,11 @@ def test(p, m):
 
     # Load linear model
     lm_cons = sm.load(path + '/Develops/Consumption_estimation_Journal/lm_consumo.pickle')
+    lm_cons = load(open(path + '/Develops/Consumption_estimation_Journal/linear_model.pkl', 'rb'))
+
 
     # load random forest regressor
-    r_forest_reg = load(open(path + '/Develops/Consumption_estimation_Journal/randomForest_0_12_mean_consumption_maxerr_model.pkl', 'rb'))
+    r_forest_reg = load(open(path + '/Develops/Consumption_estimation_Journal/randomForest_0_16_mean_consumption_maxerr_model.pkl', 'rb'))
 
     # Load XGBoost model
     xgb_reg = load(open(path + '/Develops/Consumption_estimation_Journal/xg_reg_model.pickle.dat', "rb"))
@@ -196,8 +121,12 @@ def test(p, m):
     # p_scaled['consumption_per_km'] = 0.873 * p_scaled['slope'] + 0.1295 * p_scaled['mean_max_power_usr'] - 0.0721 * \
     #                                  p_scaled['mean_speed']
 
-    p_scaled['consumption_per_km'] = xgb_reg.predict(
+    p_scaled['consumption_per_km'] = r_forest_reg.predict(
         p_scaled[['mean_max_power_usr', 'mean_soc', 'mean_speed', 'slope']].values)
+
+    # For linear model
+    # p_scaled['consumption_per_km'] = lm_cons.predict(
+    #     p_scaled[['mean_max_power_usr', 'mean_soc', 'mean_speed', 'slope']])
 
     # Load inverse scaler
     scaler_inv = load(open(path + '/Develops/Consumption_estimation_Journal/scaler.pkl', 'rb'))
@@ -224,8 +153,6 @@ def test(p, m):
             yaxis_title="kWh/km")
     plotly.offline.plot(fig)
 
-    time.sleep(2)
-
     fig2 = go.Figure([go.Scatter(x=p['kms'].cumsum(), y=p['consumption_pred'].cumsum(), name='Predicted')])
     fig2.add_trace(go.Scatter(x=p['kms'].cumsum(), y=p['consumption'].cumsum(), name='Measured'))
     fig2.update_layout(
@@ -234,7 +161,6 @@ def test(p, m):
         yaxis_title="kWh")
     plotly.offline.plot(fig2)
 
-    time.sleep(2)
     error = 100 * (p['consumption'].cumsum().iloc[-1] - p['consumption_pred'].cumsum().iloc[-1]) / \
             p['consumption'].cumsum().iloc[-1]
 
@@ -249,7 +175,7 @@ test_measure1 = features[features['user_id'] == 'Santiago_Echavarria_measure1']
 
 e1 = test(test_test1, test_measure1)
 e1.dropna(subset=['consumption_pred'], inplace=True)
-map_plot(test_measure1, test_test1,1)
+TraceFeatures.map_plot(test_measure1, test_test1,1)
 rmse_kWh = np.sqrt(mean_squared_error(e1['consumption'].cumsum(), e1['consumption_pred'].cumsum()))
 rmse_kWh_km = np.sqrt(mean_squared_error(e1['consumption_per_km'], e1['consumption_per_km_pred']))
 
@@ -265,7 +191,7 @@ test_measure2 = features[features['user_id'] == 'Santiago_Echavarria_measure2']
 e2 = test(test_test2, test_measure2)
 e2.dropna(subset=['consumption_pred'], inplace=True)
 e2['cumdist_km'] = e2.kms.cumsum()
-map_plot(test_measure1, test_test2, 2)
+TraceFeatures.map_plot(test_measure1, test_test2, 2)
 
 rmse_kWh = np.sqrt(mean_squared_error(e2['consumption'].cumsum(), e2['consumption_pred'].cumsum()))
 rmse_kWh_km = np.sqrt(mean_squared_error(e2['consumption_per_km'], e2['consumption_per_km_pred']))

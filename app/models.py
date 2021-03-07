@@ -5,6 +5,7 @@ from flask_login import UserMixin
 import redis
 import rq
 import pytz
+import osmnx as ox
 
 
 class User(UserMixin, db.Model):
@@ -185,3 +186,10 @@ class Task(db.Model):
     def get_task_in_progress(self, name):
         return Task.query.filter_by(name=name, user=self,
                                     complete=False).first()
+
+
+class OSM:
+    graphpath = app.root_path + '/Develops/data/medellin.graphml'
+    print('Empezando a cargar ')
+    G = ox.load_graphml(graphpath)
+    print('termina de cargar ')

@@ -50,9 +50,15 @@
                var chart = new google.visualization.Calendar(document.getElementById('calendar_basic'));
 
                var options = {
-                 title: "Valores máximos por día",
-                 height: 400,
+
                };
+               var options = {
+                    title: "Valores máximos por día",
+                    allowHtml: true,
+                    showRowNumber: true,
+                    width: '100%',
+
+              };
 
                chart.draw(dataTable, options);
                google.visualization.events.addListener(chart, 'select', selectHandler);
@@ -140,7 +146,7 @@
 
 
         </script>
-        <div id="table_div" style="width: 98%"></div>
+        <div id="table_div" style="width: 96%; margin: 20px;"></div>
 
         <div class="variables">
             <form role="form" class="form-inline" id="Mainform" action="{{ url_for('show_entries') }}" method=post>
