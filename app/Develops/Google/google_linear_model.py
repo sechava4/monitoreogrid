@@ -3,9 +3,11 @@ import requests
 import json
 import itertools
 import osmnx as ox
+import geopy
 import pandas as pd
 import googlemaps
 import datetime
+import math
 import pytz
 import plotly.graph_objects as go
 import plotly
@@ -32,51 +34,80 @@ polyline_average = r['routes'][0]['overview_polyline']['points']
 '''
 
 
-def calc(json):
-    steps= json[0]['legs'][0]['steps']
+def get_segments(json):
+    steps = json[0]['legs'][0]['steps']
     # steps=r['routes'][0]['legs'][0]['steps']
     df = pd.DataFrame(steps)
-    distances = pd.DataFrame(df['distance'].to_list())
-    duration = pd.DataFrame(df['duration'].to_list())
-    end_location = pd.DataFrame(df['end_location'].to_list())
-    start_location = pd.DataFrame(df['start_location'].to_list())
 
-    frame = {'distance': distances['value'], 'time': duration['value'],
-             'end_lat': end_location['lat'], 'end_lng': end_location['lng'],
-             'start_lat': start_location['lat'], 'start_lng': start_location['lng']}
+    final_df = pd.DataFrame()
+    for index, row in df.iterrows():
+        m = row['distance']['value']
+        s = row['duration']['value']
 
-    newdf = pd.DataFrame(frame)
-    # ele = gmaps.elevation_along_path(json[0]['overview_polyline']['points'], len(df))  # Equally distanced (m) samples
-    end_subset = newdf[['end_lat', 'end_lng']]
-    end_tuples = [tuple(x) for x in end_subset.to_numpy()]
-    end_ele = gmaps.elevation(end_tuples)
+        # kmh
+        speed = (m / s) * 3.6
 
-    start_subset = newdf[['start_lat', 'start_lng']]
-    start_tuples = [tuple(x) for x in start_subset.to_numpy()]
-    start_ele = gmaps.elevation(start_tuples)
+        a = gmaps.elevation_along_path(row['polyline']['points'], 5)
+        line_df = pd.DataFrame(a)
 
-    df_start_ele = pd.DataFrame(start_ele)
-    df_end_ele = pd.DataFrame(end_ele)
-    path2 = df_end_ele['location'].to_list()
-    path2_df = pd.DataFrame(path2)
+        # para la coordenada
+        aux_loc = line_df['location'][1:].reset_index(drop=True)
+        # Repita valor en la última posición
+        aux_loc._set_value(len(aux_loc), line_df['location'].iloc[-1])
+        line_df['end_location'] = aux_loc
 
-    newdf['end_elevation'] = df_end_ele['elevation']
-    newdf['start_elevation'] = df_start_ele['elevation']
+        # para la altitud
+        aux_ele = line_df['elevation'][1:].reset_index(drop=True)
+        # Repita valor en la última posición
+        aux_ele._set_value(len(aux_ele), line_df['elevation'].iloc[-1])
+        line_df['end_elevation'] = aux_ele
+
+        end_lat = []
+        end_lng = []
+        distances = []
+        slopes = []
+        travel_time = []
+        # Para cada polilinea se calculan las distancias entre los 10 puntos
+        for line_index, line_row in line_df.iterrows():
+
+            end_lat.append(line_row['end_location']['lat'])
+            end_lng.append(line_row['end_location']['lng'])
+
+            coord1 = (line_row['location']['lat'], line_row['location']['lng'])
+            coord2 = (line_row['end_location']['lat'], line_row['end_location']['lng'])
+            run = geopy.distance.distance(coord1, coord2).km
+            travel_time.append(3600 * run / speed)
+            distances.append(run)
+
+            rise = line_row['end_elevation'] - line_row['elevation']
+            try:
+                slope = math.atan(rise / (run * 1000))  # radians
+            except ZeroDivisionError:
+                slope = 0
+            degree = (slope * 180) / math.pi
+
+            slopes.append(degree)
+
+        line_df['slope'] = slopes
+        line_df['kms'] = distances
+        line_df['mean_speed'] = speed
+        line_df['end_lat'] = end_lat
+        line_df['end_lng'] = end_lng
+        line_df['travel_time'] = travel_time
+
+        # La ultima queda con distancia 0
+        line_df.drop(line_df.tail(1).index, inplace=True)
+
+        final_df = final_df.append(line_df)
 
     fig = go.Figure(go.Scattermapbox(
-        mode = "markers+lines",
-        lon = newdf['end_lng'],
-        lat = newdf['end_lat'],
-        marker = {'size': 10}))
-
-    fig.add_trace(go.Scattermapbox(
         mode="markers+lines",
-        lon=path2_df['lng'],
-        lat=path2_df['lat'],
+        lon=final_df['end_lng'],
+        lat=final_df['end_lat'],
         marker={'size': 10}))
 
     fig.update_layout(
-        margin ={'l':0,'t':0,'b':0,'r':0},
+        margin ={'l': 0,'t': 0,'b': 0,'r': 0},
         mapbox = {
             'center': {'lon': -75.58, 'lat': 6.151},
             'style': "stamen-terrain",
@@ -84,7 +115,7 @@ def calc(json):
 
     plotly.offline.plot(fig)
 
-    return newdf, fig, path2_df
+    return final_df.reset_index(drop=True)
 
 
 def calc_shortest_path(G, lat_o, lon_o, lat_d, lon_d):
@@ -112,16 +143,10 @@ def calc_shortest_path(G, lat_o, lon_o, lat_d, lon_d):
 def calculate_consumption(segments, path):
 
     segments["id"] = segments.index
-    segments = segments.rename(columns={"id": "segmentNumber", "distance": "distanceInMeters",
-                                        "time": "travel_time", "start_elevation": "fromAltitude",
-                                        "end_elevation": "toAltitude"})
 
-    segments['slope'] = 180 * np.arctan(
-        (segments['toAltitude'] - segments['fromAltitude']) / segments['distanceInMeters']) / np.pi
-    segments['mean_speed'] = 3.6 * segments['distanceInMeters'] / segments['travel_time']
     segments['mass'] = 1604
-    segments['user_id'] = 'Esterban_Betancur'
-    # segments['user_id'] = 'Jose_Alejandro_Montoya'
+    # segments['user_id'] = 'Esterban_Betancur'
+    segments['user_id'] = 'Santiago_Echavarria_01'
     segments['slope_cat'] = pd.cut(segments["slope"], np.arange(-10, 10.1, 5))
 
     mean_features_by_slope = pd.read_csv(path+'/mean_features_by_slope.csv')
@@ -145,7 +170,7 @@ def calculate_consumption(segments, path):
         axis=1
     )
 
-    segments_consolidated['mean_soc'] = 100.0
+    segments_consolidated['mean_soc'] = 50
 
     # Apply scaling
     scaler = load(open(path + '/scaler_lm.pkl', 'rb'))
@@ -157,7 +182,7 @@ def calculate_consumption(segments, path):
     scaler_inv = load(open(path + '/scaler.pkl', 'rb'))
 
     # load random forest regressor
-    r_forest_reg = load(open(path + '/randomForest_0_14_mean_consumption_maxerr_model.pkl', 'rb'))
+    r_forest_reg = load(open(path + '/randomForest_0_13_mean_consumption_maxerr_model.pkl', 'rb'))
 
     # Load XGBoost model
     xgb_reg = load(open(path + '/xg_reg_model.pickle.dat', "rb"))
@@ -199,18 +224,19 @@ def calculate_consumption(segments, path):
     #     except:
     #         break
 
-    segments_consolidated['consumption_per_km'] = 60.478 * segments_consolidated['slope'] + \
+    segments_consolidated['consumption_per_km'] = 66.478 * segments_consolidated['slope'] + \
                                                   2.274 * segments_consolidated['mean_max_power_usr'] + \
                                                   0.186 + segments_consolidated['mean_soc'] + \
                                                   1.102 * segments_consolidated['mean_speed']
 
-    # segments_consolidated['consumption_per_km'] = lm_cons.predict(segments_consolidated[columns])
-
-    # Apply inverse scaling
+    # segments_scaled['consumption_per_km'] = xgb_reg.predict(segments_scaled[columns].values)
+    #
+    # # Apply inverse scaling
     # p_pred = pd.DataFrame(scaler_inv.inverse_transform(segments_scaled), columns=segments_scaled.columns)
     # segments_consolidated['consumption_per_km'] = p_pred['consumption_per_km']
+
     segments_consolidated['consumptionWh'] = segments_consolidated['consumption_per_km'] * \
-                                             segments_consolidated['distanceInMeters']/1000
+                                             segments_consolidated['kms']
 
     # segments_consolidated['consumptionkWh'] = lst_kWh
     # segments_consolidated['consumption_per_km'] = lst_kWh_per_km
@@ -225,14 +251,14 @@ if __name__ == '__main__':
     now = datetime.datetime.now(pytz.timezone('America/Bogota'))
     test_date = datetime.datetime.strptime('2020-08-12 10:26:45', '%Y-%m-%d %H:%M:%S')
     # Eafit to palmas
-    a = gmaps.directions(origin=(6.265026248948636, -75.59942226813949),
-                         destination=(6.242406836561683, -75.56033849716187),
+    a = gmaps.directions(origin=(6.1997762127391995, -75.5793285369873),
+                         destination=(6.197557661928623, -75.55890083312988),
                          mode='driving', alternatives=False, departure_time=now, traffic_model='pessimistic')
 
     # b = gmaps.directions(origin=(6.199303, -75.579519), destination=(6.153382, -75.541652),
     #                      mode='driving', alternatives=False, departure_time=now, traffic_model='optimistic')
 
-    df, fig1, ele_df = calc(a)
+    df = get_segments(a)
 
     # Load OSM info ----------------------------------------
 

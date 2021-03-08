@@ -259,19 +259,7 @@ def energy_monitor():
                                  mode='driving', alternatives=False, departure_time=now,
                                  traffic_model='pessimistic')  # departure_time=now
 
-            # b = gmaps.directions(origin=(6.199303, -75.579519), destination=(6.153382, -75.541652),
-            #                      mode='driving', alternatives=False, departure_time=now, traffic_model='optimistic')
-
-            segments, fig1, ele_df = google_query.calc(a)
-            # Calculate number of traffic lights per segment
-            lights = []
-            for index, row in segments.iterrows():
-                a, b = google_query.calc_shortest_path(OSM.G,
-                                                       row['start_lat'], row['start_lng'],
-                                                       row['end_lat'], row['end_lng'])
-                lights.append(b)
-            segments['lights'] = pd.Series(lights)
-            session['lights'] = int(segments['lights'].sum())
+            segments = google_query.get_segments(a)
 
             estimation_path = os.path.join(app.root_path, 'Develops/Consumption_estimation_Journal')
             # session['est_cons'], session['est_time'] = consumption_models.smartcharging_consumption_query(new_df)
