@@ -77,9 +77,11 @@ def get_segments(json):
             coord2 = (line_row['end_location']['lat'], line_row['end_location']['lng'])
             run = geopy.distance.distance(coord1, coord2).km
             travel_time.append(3600 * run / speed)
-            distances.append(run)
 
             rise = line_row['end_elevation'] - line_row['elevation']
+            distance = math.sqrt((run*1000) ** 2 + rise ** 2)  # m
+            distances.append(distance/1000)  # km
+
             try:
                 slope = math.atan(rise / (run * 1000))  # radians
             except ZeroDivisionError:
