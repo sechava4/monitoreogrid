@@ -36,9 +36,9 @@ if __name__ == '__main__':
 
     le = LabelEncoder()
     features['highway_enc'] = le.fit_transform(features['highway'])
-    X = np.array(features[['max_current', 'std_pot', 'slope', 'prom_abs_current',
+    X = features[['max_current', 'std_pot', 'slope', 'prom_abs_current',
                            'max_pot', 'max_jerk', 'consumption_per_km',
-                           'max_speed', 'mean_speed', 'highway_enc']])
+                           'max_speed', 'mean_speed', 'highway_enc']].values
 
     '''
     X = np.array(features[['num_acc_min', 'num_acc_fr_min', 'prom_sobrepaso_acc', 'prom_sobrepaso_fren', 'prom_abs_acc',

@@ -30,10 +30,11 @@ def jimenez(mass, frontal_area, cd, slope, speed, acc):
     mec_power = (net_force * speed / 3.6) / 1000
     speed = speed / 3.6
 
-    k = np.where(speed<5, speed * 0.79 , 0.79 + 0.015 * (speed - 5) )
+    k = np.where(speed < 5, speed * 0.79, 0.79 + 0.015 * (speed - 5) )
     jimenez_consumption = np.where(mec_power < 0, k * n_drive * n_motor * n_batt * mec_power , mec_power / (n_drive * n_batt * n_motor) )
 
     return np.array([(jimenez_consumption + p_aux), mec_power, net_force, friction_force])
+
 
 def fiori(mass, frontal_area, cd, slope, speed, acc):
     g = 9.8066
@@ -53,7 +54,7 @@ def fiori(mass, frontal_area, cd, slope, speed, acc):
 
     p_motor = p_wheels / (n_drive * n_motor)
 
-    n_regen = np.where(acc < -0.06, (np.exp(0.11 / acc))**-1 , 0)
+    n_regen = np.where(acc < -0.06, (np.exp(0.11 / acc))**-1, 0)
     fiori_consumption = np.where(p_motor < 0, p_motor * n_regen, p_motor )
 
     return np.array([fiori_consumption, p_motor ])
