@@ -8,58 +8,37 @@ from shapely.geometry import Point, Polygon
 from rq import get_current_job
 from app import db
 from app.models import Task, Operation
-from flask import request, session
-
-
-def get_lines_csv(day):
-    file = os.path.join(app.root_path, "rutas.csv")
-    df = pd.read_csv(file, index_col="id")
-    df = df[["longitude", "latitude", "day"]]
-
-    df = df[df["day"] == int(day)]
-    df = df.reset_index(drop=True)
-
-    lat2 = df["latitude"].iloc[1:]
-    lat2 = lat2.append(pd.Series(df["latitude"].iloc[-1]), ignore_index=True)
-    df["latitude2"] = lat2
-
-    lon2 = df["longitude"].iloc[1:]
-    lon2 = lon2.append(pd.Series(df["longitude"].iloc[-1]), ignore_index=True)
-    df["longitude2"] = lon2
-    df = df.drop(df.tail(1).index)
-    df = df.drop(df.head(1).index)
-    return df
 
 
 def get_stations():
     file = os.path.join(app.root_path, "stations.json")
     df = pd.read_json(file)
-    df.columns = ["name","latitude","longitude", "charger_types"]
+    df.columns = ["name", "latitude", "longitude", "charger_types"]
     # df = df[["name","latitude","longitude"]]
     return df
 
 
 def get_zones():
-    file = os.path.join(app.root_path, 'zones.csv')
+    file = os.path.join(app.root_path, "zones.csv")
     zones = pd.read_csv(file)
     zones = zones[["name", "longitude", "latitude"]]
     return zones
 
 
 def concat(df1, df2):
-    result = pd.concat([df1, df2], axis=1, join='inner')
+    result = pd.concat([df1, df2], axis=1, join="inner")
     return result
 
 
 def filter_by_column_value(df, colname, value):
-    s= df[df[colname] == value]
+    s = df[df[colname] == value]
     return s
 
 
 def pretty_var_name(var_name):
     doc_var = os.path.join(app.root_path, "variables.csv")
     variables = pd.read_csv(doc_var, index_col="id")
-    return variables.var_pretty[variables['var'] == var_name].values[0]
+    return variables.var_pretty[variables["var"] == var_name].values[0]
 
 
 def form_var(titles):
@@ -77,9 +56,19 @@ def form_var(titles):
 
 
 def get_lines(vehicle, d1, h1, h2):
-    query = 'SELECT latitude, longitude from operation WHERE vehicle_id = "' \
-            + str(vehicle.placa) + '" AND timestamp BETWEEN "' + str(d1) + ' ' + str(h1)[:8] + \
-            '" and "' + str(d1) + ' ' + str(h2)[:8] + '"'
+    query = (
+        'SELECT latitude, longitude from operation WHERE vehicle_id = "'
+        + str(vehicle.placa)
+        + '" AND timestamp BETWEEN "'
+        + str(d1)
+        + " "
+        + str(h1)[:8]
+        + '" and "'
+        + str(d1)
+        + " "
+        + str(h2)[:8]
+        + '"'
+    )
 
     df = pd.read_sql_query(query, db.engine)
     lat2 = df["latitude"].iloc[1:]
@@ -99,9 +88,21 @@ def get_lines(vehicle, d1, h1, h2):
 
 def get_heights(vehicle, var, d1, h1, h2):
 
-    query = 'SELECT timestamp, ' + var + ', latitude, longitude from operation WHERE vehicle_id = "' \
-            + str(vehicle.placa) + '" AND timestamp BETWEEN "' + str(d1) + ' ' + str(h1)[:8] + \
-            '" and "' + str(d1) + ' ' + str(h2)[:8] + '"'
+    query = (
+        "SELECT timestamp, "
+        + var
+        + ', latitude, longitude from operation WHERE vehicle_id = "'
+        + str(vehicle.placa)
+        + '" AND timestamp BETWEEN "'
+        + str(d1)
+        + " "
+        + str(h1)[:8]
+        + '" and "'
+        + str(d1)
+        + " "
+        + str(h2)[:8]
+        + '"'
+    )
 
     df = pd.read_sql_query(query, db.engine)
     if var not in df.columns:
@@ -114,16 +115,16 @@ def get_heights(vehicle, var, d1, h1, h2):
         try:
             if df[var].iloc[0] is not None:
                 if var in ("elevation", "elevation2"):
-                    df['var'] = df[var].map(lambda x: (x-1400)*0.5)
+                    df["var"] = df[var].map(lambda x: (x - 1400) * 0.5)
                 elif var in ("mec_power_delta_e", "mec_power"):
-                    df['var'] = df[var].map(lambda x: x*35)
+                    df["var"] = df[var].map(lambda x: x * 35)
                 elif var in "mean_acc":
-                    df['var'] = df[var].map(lambda x: x*45)
+                    df["var"] = df[var].map(lambda x: x * 45)
                 elif var in "angle_x":
-                    df['var'] = df[var].abs()
+                    df["var"] = df[var].abs()
                 else:
-                    df['var'] = df[var].map(lambda x: x*4)
-                df = df[["latitude", "longitude", 'name', 'var', 'timestamp']]
+                    df["var"] = df[var].map(lambda x: x * 4)
+                df = df[["latitude", "longitude", "name", "var", "timestamp"]]
         except IndexError:
             pass
     return df
@@ -135,15 +136,17 @@ def point_in_zone(day):
     gdf = gpd.read_file(doc_var)
     z = get_zones()
     centroids_gdf = gpd.GeoDataFrame(
-        z, geometry=gpd.points_from_xy(z.longitude, z.latitude))
+        z, geometry=gpd.points_from_xy(z.longitude, z.latitude)
+    )
     fig, ax = plt.subplots(1, 1, sharex=True, sharey=True, figsize=(11, 11))
-    gdf.plot(ax=ax, color='blue')
-    centroids_gdf.plot(ax=ax, color='black')
+    gdf.plot(ax=ax, color="blue")
+    centroids_gdf.plot(ax=ax, color="black")
 
     alturas = alturas[["latitude", "longitude"]]
     points_df = alturas.iloc[-2:-1]
     points_gdf = gpd.GeoDataFrame(
-        points_df, geometry=gpd.points_from_xy(points_df.longitude, points_df.latitude))
+        points_df, geometry=gpd.points_from_xy(points_df.longitude, points_df.latitude)
+    )
 
     a = gdf["geometry"].contains(points_gdf["geometry"].values[0])
     _set_task_progress(0)
@@ -153,53 +156,19 @@ def point_in_zone(day):
 def _set_task_progress(progress):
     job = get_current_job()
     if job:
-        job.meta['progress'] = progress
+        job.meta["progress"] = progress
         job.save_meta()
         task = Task.query.get(job.get_id())
-        task.user.add_notification('task_progress', {'task_id': job.get_id(),
-                                                     'progress': progress})
+        task.user.add_notification(
+            "task_progress", {"task_id": job.get_id(), "progress": progress}
+        )
         if progress >= 100:
             task.complete = True
         db.session.commit()
 
 
-if __name__ == '__main__':
-    a=get_heights("elevation")
+if __name__ == "__main__":
+    a = get_heights("elevation")
     titles = Operation.__dict__
     print(titles)
     b = form_var(titles)
-
-    #id, municipio = point_in_zone(1)
-    #id = id.item()
-    #municipio = municipio.item()
-
-    #doc = os.path.join(app.root_path, 'vWeights.xlsx')
-    #df = pd.read_excel(doc,names=["v","d","w"])
-    #df = df.sort_values(by=['w'],ascending=False)
-
-
-
-    # gdf.to_file("zones.geojson", driver="GeoJSON")
-    #fig, ax = plt.subplots(1, 1)
-    #df.plot(column="Nueva_Zona", ax=ax, legend=True)
-    # rutas2 = pd.read_csv(doc2, index_col="id")
-    # rutas2 = rutas2[["accelerationX","accelerationY","accelerationZ", "Time_2", "dia"]]
-
-    # s.to_csv("rutas.csv")
-    # df = rutas[rutas.elevation.notnull()]
-
-    # OD = OD[["zone", "name","lat","lon"]]
-    # OD['zone'] = OD['zone'].map(lambda x: str(x).replace("Z",""))
-    # OD["zone"] = OD["zone"].astype(float)
-    # OD = OD.sort_values(by=["zone"])
-
-    # OD.drop_duplicates(subset="zone", inplace=True)
-    # s = df.var_pretty[df['var']=="speed"].values[0]
-    # df = df[0:20]
-
-
-
-
-
-
-

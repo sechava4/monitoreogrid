@@ -1,0 +1,19 @@
+2020-11-25 14:50:55,443 INFO osmnx Configured osmnx
+2020-11-25 14:50:55,458 INFO osmnx Retrieved response from cache file "cache\65a1298a2acc085ed69b61b26237d2e2.json"
+2020-11-25 14:50:55,459 INFO osmnx Geocoded "Medellin, Colombia" to (6.2443382, -75.573553)
+2020-11-25 14:50:55,459 INFO osmnx Created bbox 11000 m from (6.2443382, -75.573553): 6.343263436904218,6.145412963095781,-75.47403734580247,-75.67306865419754
+2020-11-25 14:50:55,684 INFO osmnx Projected GeoDataFrame to +proj=utm +zone=18 +ellps=WGS84 +datum=WGS84 +units=m +no_defs +type=crs
+2020-11-25 14:50:55,744 INFO osmnx Projected GeoDataFrame to epsg:4326
+2020-11-25 14:50:55,821 INFO osmnx Projected GeoDataFrame to +proj=utm +zone=18 +ellps=WGS84 +datum=WGS84 +units=m +no_defs +type=crs
+2020-11-25 14:50:55,877 INFO osmnx Projected GeoDataFrame to epsg:4326
+2020-11-25 14:50:55,878 INFO osmnx Requesting data within polygon from API in 1 request(s)
+2020-11-25 14:50:56,424 INFO osmnx Retrieved response from cache file "cache\519b5fdef06d0ea975c924acdac097d0.json"
+2020-11-25 14:50:56,425 INFO osmnx Got all network data within polygon from API in 1 request(s)
+2020-11-25 14:50:56,425 INFO osmnx Creating graph from downloaded OSM data...
+2020-11-25 18:20:33,421 INFO osmnx Configured osmnx
+2020-11-25 18:21:22,043 INFO osmnx Converting node and edge attribute data types
+2020-11-25 18:21:24,855 INFO osmnx Loaded graph with 22795 nodes and 55147 edges from "./data/medellin.graphml"
+2020-11-25 18:38:50,456 INFO osmnx Created edges GeoDataFrame from graph
+2020-11-25 18:39:07,590 INFO osmnx Converted MultiDiGraph to undirected MultiGraph
+2020-11-25 18:51:16,493 INFO osmnx Created edges GeoDataFrame from graph
+2020-11-25 18:51:32,712 INFO osmnx Converted MultiDiGraph to undirected MultiGraph

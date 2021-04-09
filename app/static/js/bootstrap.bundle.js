@@ -153,7 +153,7 @@
       return prefix;
     },
     getSelectorFromElement: function getSelectorFromElement(element) {
-      var selector = element.getAttribute('data-target');
+      var selector = element.getAttribute('osm_data-target');
 
       if (!selector || selector === '#') {
         var hrefAttr = element.getAttribute('href');
@@ -264,10 +264,10 @@
   var VERSION = '4.4.1';
   var DATA_KEY = 'bs.alert';
   var EVENT_KEY = "." + DATA_KEY;
-  var DATA_API_KEY = '.data-api';
+  var DATA_API_KEY = '.osm_data-api';
   var JQUERY_NO_CONFLICT = $.fn[NAME];
   var Selector = {
-    DISMISS: '[data-dismiss="alert"]'
+    DISMISS: '[osm_data-dismiss="alert"]'
   };
   var Event = {
     CLOSE: "close" + EVENT_KEY,
@@ -428,7 +428,7 @@
   var VERSION$1 = '4.4.1';
   var DATA_KEY$1 = 'bs.button';
   var EVENT_KEY$1 = "." + DATA_KEY$1;
-  var DATA_API_KEY$1 = '.data-api';
+  var DATA_API_KEY$1 = '.osm_data-api';
   var JQUERY_NO_CONFLICT$1 = $.fn[NAME$1];
   var ClassName$1 = {
     ACTIVE: 'active',
@@ -436,10 +436,10 @@
     FOCUS: 'focus'
   };
   var Selector$1 = {
-    DATA_TOGGLE_CARROT: '[data-toggle^="button"]',
-    DATA_TOGGLES: '[data-toggle="buttons"]',
-    DATA_TOGGLE: '[data-toggle="button"]',
-    DATA_TOGGLES_BUTTONS: '[data-toggle="buttons"] .btn',
+    DATA_TOGGLE_CARROT: '[osm_data-toggle^="button"]',
+    DATA_TOGGLES: '[osm_data-toggle="buttons"]',
+    DATA_TOGGLE: '[osm_data-toggle="button"]',
+    DATA_TOGGLES_BUTTONS: '[osm_data-toggle="buttons"] .btn',
     INPUT: 'input:not([type="hidden"])',
     ACTIVE: '.active',
     BUTTON: '.btn'
@@ -578,7 +578,7 @@
   });
   $(window).on(Event$1.LOAD_DATA_API, function () {
     // ensure correct active class is set to match the controls' actual values/states
-    // find all checkboxes/readio buttons inside data-toggle groups
+    // find all checkboxes/readio buttons inside osm_data-toggle groups
     var buttons = [].slice.call(document.querySelectorAll(Selector$1.DATA_TOGGLES_BUTTONS));
 
     for (var i = 0, len = buttons.length; i < len; i++) {
@@ -629,7 +629,7 @@
   var VERSION$2 = '4.4.1';
   var DATA_KEY$2 = 'bs.carousel';
   var EVENT_KEY$2 = "." + DATA_KEY$2;
-  var DATA_API_KEY$2 = '.data-api';
+  var DATA_API_KEY$2 = '.osm_data-api';
   var JQUERY_NO_CONFLICT$2 = $.fn[NAME$2];
   var ARROW_LEFT_KEYCODE = 37; // KeyboardEvent.which value for left arrow key
 
@@ -693,8 +693,8 @@
     ITEM_IMG: '.carousel-item img',
     NEXT_PREV: '.carousel-item-next, .carousel-item-prev',
     INDICATORS: '.carousel-indicators',
-    DATA_SLIDE: '[data-slide], [data-slide-to]',
-    DATA_RIDE: '[data-ride="carousel"]'
+    DATA_SLIDE: '[osm_data-slide], [osm_data-slide-to]',
+    DATA_RIDE: '[osm_data-ride="carousel"]'
   };
   var PointerType = {
     TOUCH: 'touch',
@@ -1079,7 +1079,7 @@
         Util.reflow(nextElement);
         $(activeElement).addClass(directionalClassName);
         $(nextElement).addClass(directionalClassName);
-        var nextElementInterval = parseInt(nextElement.getAttribute('data-interval'), 10);
+        var nextElementInterval = parseInt(nextElement.getAttribute('osm_data-interval'), 10);
 
         if (nextElementInterval) {
           this._config.defaultInterval = this._config.defaultInterval || this._config.interval;
@@ -1157,7 +1157,7 @@
 
       var config = _objectSpread2({}, $(target).data(), {}, $(this).data());
 
-      var slideIndex = this.getAttribute('data-slide-to');
+      var slideIndex = this.getAttribute('osm_data-slide-to');
 
       if (slideIndex) {
         config.interval = false;
@@ -1227,7 +1227,7 @@
   var VERSION$3 = '4.4.1';
   var DATA_KEY$3 = 'bs.collapse';
   var EVENT_KEY$3 = "." + DATA_KEY$3;
-  var DATA_API_KEY$3 = '.data-api';
+  var DATA_API_KEY$3 = '.osm_data-api';
   var JQUERY_NO_CONFLICT$3 = $.fn[NAME$3];
   var Default$1 = {
     toggle: true,
@@ -1256,7 +1256,7 @@
   };
   var Selector$3 = {
     ACTIVES: '.show, .collapsing',
-    DATA_TOGGLE: '[data-toggle="collapse"]'
+    DATA_TOGGLE: '[osm_data-toggle="collapse"]'
   };
   /**
    * ------------------------------------------------------------------------
@@ -1271,7 +1271,7 @@
       this._isTransitioning = false;
       this._element = element;
       this._config = this._getConfig(config);
-      this._triggerArray = [].slice.call(document.querySelectorAll("[data-toggle=\"collapse\"][href=\"#" + element.id + "\"]," + ("[data-toggle=\"collapse\"][data-target=\"#" + element.id + "\"]")));
+      this._triggerArray = [].slice.call(document.querySelectorAll("[osm_data-toggle=\"collapse\"][href=\"#" + element.id + "\"]," + ("[osm_data-toggle=\"collapse\"][osm_data-target=\"#" + element.id + "\"]")));
       var toggleList = [].slice.call(document.querySelectorAll(Selector$3.DATA_TOGGLE));
 
       for (var i = 0, len = toggleList.length; i < len; i++) {
@@ -1324,7 +1324,7 @@
       if (this._parent) {
         actives = [].slice.call(this._parent.querySelectorAll(Selector$3.ACTIVES)).filter(function (elem) {
           if (typeof _this._config.parent === 'string') {
-            return elem.getAttribute('data-parent') === _this._config.parent;
+            return elem.getAttribute('osm_data-parent') === _this._config.parent;
           }
 
           return elem.classList.contains(ClassName$3.COLLAPSE);
@@ -1476,7 +1476,7 @@
         parent = document.querySelector(this._config.parent);
       }
 
-      var selector = "[data-toggle=\"collapse\"][data-parent=\"" + this._config.parent + "\"]";
+      var selector = "[osm_data-toggle=\"collapse\"][osm_data-parent=\"" + this._config.parent + "\"]";
       var children = [].slice.call(parent.querySelectorAll(selector));
       $(children).each(function (i, element) {
         _this3._addAriaAndCollapsedClass(Collapse._getTargetFromElement(element), [element]);
@@ -2262,9 +2262,9 @@
    * available space.
    * @method
    * @memberof Popper.Utils
-   * @argument {Object} data - The data object generated by update method
+   * @argument {Object} osm_data - The osm_data object generated by update method
    * @argument {Object} options - Modifiers configuration and options
-   * @returns {Object} The data object, properly modified
+   * @returns {Object} The osm_data object, properly modified
    */
   function computeAutoPlacement(placement, refRect, popper, reference, boundariesElement) {
     var padding = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : 0;
@@ -2451,7 +2451,7 @@
 
   /**
    * Loop trough the list of modifiers and run them in order,
-   * each of them will then edit the data object.
+   * each of them will then edit the osm_data object.
    * @method
    * @memberof Popper.Utils
    * @param {dataObject} data
@@ -2507,7 +2507,7 @@
     // compute reference element offsets
     data.offsets.reference = getReferenceOffsets(this.state, this.popper, this.reference, this.options.positionFixed);
 
-    // compute auto placement, store placement inside the data object,
+    // compute auto placement, store placement inside the osm_data object,
     // modifiers will be able to edit `placement` if needed
     // and refer to originalPlacement to know the original value
     data.placement = computeAutoPlacement(this.options.placement, data.offsets.reference, this.popper, this.reference, this.options.modifiers.flip.boundariesElement, this.options.modifiers.flip.padding);
@@ -2742,20 +2742,20 @@
   /**
    * @function
    * @memberof Modifiers
-   * @argument {Object} data - The data object generated by `update` method
-   * @argument {Object} data.styles - List of style properties - values to apply to popper element
-   * @argument {Object} data.attributes - List of attribute properties - values to apply to popper element
+   * @argument {Object} osm_data - The osm_data object generated by `update` method
+   * @argument {Object} osm_data.styles - List of style properties - values to apply to popper element
+   * @argument {Object} osm_data.attributes - List of attribute properties - values to apply to popper element
    * @argument {Object} options - Modifiers configuration and options
-   * @returns {Object} The same data object
+   * @returns {Object} The same osm_data object
    */
   function applyStyle(data) {
-    // any property present in `data.styles` will be applied to the popper,
+    // any property present in `osm_data.styles` will be applied to the popper,
     // in this way we can make the 3rd party modifiers add custom styles to it
     // Be aware, modifiers could override the properties defined in the previous
     // lines of this modifier!
     setStyles(data.instance.popper, data.styles);
 
-    // any property present in `data.attributes` will be applied to the popper,
+    // any property present in `osm_data.attributes` will be applied to the popper,
     // they will be set as HTML attributes of the element
     setAttributes(data.instance.popper, data.attributes);
 
@@ -2781,7 +2781,7 @@
     // compute reference element offsets
     var referenceOffsets = getReferenceOffsets(state, popper, reference, options.positionFixed);
 
-    // compute auto placement, store placement inside the data object,
+    // compute auto placement, store placement inside the osm_data object,
     // modifiers will be able to edit `placement` if needed
     // and refer to originalPlacement to know the original value
     var placement = computeAutoPlacement(options.placement, referenceOffsets, popper, reference, options.modifiers.flip.boundariesElement, options.modifiers.flip.padding);
@@ -2798,7 +2798,7 @@
   /**
    * @function
    * @memberof Popper.Utils
-   * @argument {Object} data - The data object generated by `update` method
+   * @argument {Object} osm_data - The osm_data object generated by `update` method
    * @argument {Boolean} shouldRound - If the offsets should be rounded at all
    * @returns {Object} The popper's position offsets rounded
    *
@@ -2849,9 +2849,9 @@
   /**
    * @function
    * @memberof Modifiers
-   * @argument {Object} data - The data object generated by `update` method
+   * @argument {Object} osm_data - The osm_data object generated by `update` method
    * @argument {Object} options - Modifiers configuration and options
-   * @returns {Object} The data object, properly modified
+   * @returns {Object} The osm_data object, properly modified
    */
   function computeStyle(data, options) {
     var x = options.x,
@@ -2936,7 +2936,7 @@
       'x-placement': data.placement
     };
 
-    // Update `data` attributes, styles and arrowStyles
+    // Update `osm_data` attributes, styles and arrowStyles
     data.attributes = _extends({}, attributes, data.attributes);
     data.styles = _extends({}, styles, data.styles);
     data.arrowStyles = _extends({}, data.offsets.arrow, data.arrowStyles);
@@ -2975,9 +2975,9 @@
   /**
    * @function
    * @memberof Modifiers
-   * @argument {Object} data - The data object generated by update method
+   * @argument {Object} osm_data - The osm_data object generated by update method
    * @argument {Object} options - Modifiers configuration and options
-   * @returns {Object} The data object, properly modified
+   * @returns {Object} The osm_data object, properly modified
    */
   function arrow(data, options) {
     var _data$offsets$arrow;
@@ -3133,9 +3133,9 @@
   /**
    * @function
    * @memberof Modifiers
-   * @argument {Object} data - The data object generated by update method
+   * @argument {Object} osm_data - The osm_data object generated by update method
    * @argument {Object} options - Modifiers configuration and options
-   * @returns {Object} The data object, properly modified
+   * @returns {Object} The osm_data object, properly modified
    */
   function flip(data, options) {
     // if `inner` modifier is enabled, we can't use the `flip` modifier
@@ -3230,9 +3230,9 @@
   /**
    * @function
    * @memberof Modifiers
-   * @argument {Object} data - The data object generated by update method
+   * @argument {Object} osm_data - The osm_data object generated by update method
    * @argument {Object} options - Modifiers configuration and options
-   * @returns {Object} The data object, properly modified
+   * @returns {Object} The osm_data object, properly modified
    */
   function keepTogether(data) {
     var _data$offsets = data.offsets,
@@ -3390,11 +3390,11 @@
   /**
    * @function
    * @memberof Modifiers
-   * @argument {Object} data - The data object generated by update method
+   * @argument {Object} osm_data - The osm_data object generated by update method
    * @argument {Object} options - Modifiers configuration and options
    * @argument {Number|String} options.offset=0
    * The offset value as described in the modifier description
-   * @returns {Object} The data object, properly modified
+   * @returns {Object} The osm_data object, properly modified
    */
   function offset(data, _ref) {
     var offset = _ref.offset;
@@ -3433,9 +3433,9 @@
   /**
    * @function
    * @memberof Modifiers
-   * @argument {Object} data - The data object generated by `update` method
+   * @argument {Object} osm_data - The osm_data object generated by `update` method
    * @argument {Object} options - Modifiers configuration and options
-   * @returns {Object} The data object, properly modified
+   * @returns {Object} The osm_data object, properly modified
    */
   function preventOverflow(data, options) {
     var boundariesElement = options.boundariesElement || getOffsetParent(data.instance.popper);
@@ -3504,9 +3504,9 @@
   /**
    * @function
    * @memberof Modifiers
-   * @argument {Object} data - The data object generated by `update` method
+   * @argument {Object} osm_data - The osm_data object generated by `update` method
    * @argument {Object} options - Modifiers configuration and options
-   * @returns {Object} The data object, properly modified
+   * @returns {Object} The osm_data object, properly modified
    */
   function shift(data) {
     var placement = data.placement;
@@ -3537,9 +3537,9 @@
   /**
    * @function
    * @memberof Modifiers
-   * @argument {Object} data - The data object generated by update method
+   * @argument {Object} osm_data - The osm_data object generated by update method
    * @argument {Object} options - Modifiers configuration and options
-   * @returns {Object} The data object, properly modified
+   * @returns {Object} The osm_data object, properly modified
    */
   function hide(data) {
     if (!isModifierRequired(data.instance.modifiers, 'hide', 'preventOverflow')) {
@@ -3575,9 +3575,9 @@
   /**
    * @function
    * @memberof Modifiers
-   * @argument {Object} data - The data object generated by `update` method
+   * @argument {Object} osm_data - The osm_data object generated by `update` method
    * @argument {Object} options - Modifiers configuration and options
-   * @returns {Object} The data object, properly modified
+   * @returns {Object} The osm_data object, properly modified
    */
   function inner(data) {
     var placement = data.placement;
@@ -3605,9 +3605,9 @@
    * make sure they are performant enough to avoid performance bottlenecks.
    *
    * @function ModifierFn
-   * @argument {dataObject} data - The data object generated by `update` method
+   * @argument {dataObject} osm_data - The osm_data object generated by `update` method
    * @argument {Object} options - Modifiers configuration and options
-   * @returns {dataObject} The data object, properly modified
+   * @returns {dataObject} The osm_data object, properly modified
    */
 
   /**
@@ -3942,19 +3942,19 @@
    * The `dataObject` is an object containing all the information used by Popper.js.
    * This object is passed to modifiers and to the `onCreate` and `onUpdate` callbacks.
    * @name dataObject
-   * @property {Object} data.instance The Popper.js instance
-   * @property {String} data.placement Placement applied to popper
-   * @property {String} data.originalPlacement Placement originally defined on init
-   * @property {Boolean} data.flipped True if popper has been flipped by flip modifier
-   * @property {Boolean} data.hide True if the reference element is out of boundaries, useful to know when to hide the popper
-   * @property {HTMLElement} data.arrowElement Node used as arrow by arrow modifier
-   * @property {Object} data.styles Any CSS property defined here will be applied to the popper. It expects the JavaScript nomenclature (eg. `marginBottom`)
-   * @property {Object} data.arrowStyles Any CSS property defined here will be applied to the popper arrow. It expects the JavaScript nomenclature (eg. `marginBottom`)
-   * @property {Object} data.boundaries Offsets of the popper boundaries
-   * @property {Object} data.offsets The measurements of popper, reference and arrow elements
-   * @property {Object} data.offsets.popper `top`, `left`, `width`, `height` values
-   * @property {Object} data.offsets.reference `top`, `left`, `width`, `height` values
-   * @property {Object} data.offsets.arrow] `top` and `left` offsets, only one of them will be different from 0
+   * @property {Object} osm_data.instance The Popper.js instance
+   * @property {String} osm_data.placement Placement applied to popper
+   * @property {String} osm_data.originalPlacement Placement originally defined on init
+   * @property {Boolean} osm_data.flipped True if popper has been flipped by flip modifier
+   * @property {Boolean} osm_data.hide True if the reference element is out of boundaries, useful to know when to hide the popper
+   * @property {HTMLElement} osm_data.arrowElement Node used as arrow by arrow modifier
+   * @property {Object} osm_data.styles Any CSS property defined here will be applied to the popper. It expects the JavaScript nomenclature (eg. `marginBottom`)
+   * @property {Object} osm_data.arrowStyles Any CSS property defined here will be applied to the popper arrow. It expects the JavaScript nomenclature (eg. `marginBottom`)
+   * @property {Object} osm_data.boundaries Offsets of the popper boundaries
+   * @property {Object} osm_data.offsets The measurements of popper, reference and arrow elements
+   * @property {Object} osm_data.offsets.popper `top`, `left`, `width`, `height` values
+   * @property {Object} osm_data.offsets.reference `top`, `left`, `width`, `height` values
+   * @property {Object} osm_data.offsets.arrow] `top` and `left` offsets, only one of them will be different from 0
    */
 
   /**
@@ -4002,7 +4002,7 @@
     /**
      * Callback called when the popper is created.<br />
      * By default, it is set to no-op.<br />
-     * Access Popper.js instance with `data.instance`.
+     * Access Popper.js instance with `osm_data.instance`.
      * @prop {onCreate}
      */
     onCreate: function onCreate() {},
@@ -4012,7 +4012,7 @@
      * on the initialization/creation of the popper, but only on subsequent
      * updates.<br />
      * By default, it is set to no-op.<br />
-     * Access Popper.js instance with `data.instance`.
+     * Access Popper.js instance with `osm_data.instance`.
      * @prop {onUpdate}
      */
     onUpdate: function onUpdate() {},
@@ -4177,11 +4177,11 @@
    *
    * NB: This feature isn't supported in Internet Explorer 10.
    * @name referenceObject
-   * @property {Function} data.getBoundingClientRect
+   * @property {Function} osm_data.getBoundingClientRect
    * A function that returns a set of coordinates compatible with the native `getBoundingClientRect` method.
-   * @property {number} data.clientWidth
+   * @property {number} osm_data.clientWidth
    * An ES6 getter that will return the width of the virtual reference element.
-   * @property {number} data.clientHeight
+   * @property {number} osm_data.clientHeight
    * An ES6 getter that will return the height of the virtual reference element.
    */
 
@@ -4200,7 +4200,7 @@
   var VERSION$4 = '4.4.1';
   var DATA_KEY$4 = 'bs.dropdown';
   var EVENT_KEY$4 = "." + DATA_KEY$4;
-  var DATA_API_KEY$4 = '.data-api';
+  var DATA_API_KEY$4 = '.osm_data-api';
   var JQUERY_NO_CONFLICT$4 = $.fn[NAME$4];
   var ESCAPE_KEYCODE = 27; // KeyboardEvent.which value for Escape (Esc) key
 
@@ -4236,7 +4236,7 @@
     POSITION_STATIC: 'position-static'
   };
   var Selector$4 = {
-    DATA_TOGGLE: '[data-toggle="dropdown"]',
+    DATA_TOGGLE: '[osm_data-toggle="dropdown"]',
     FORM_CHILD: '.dropdown form',
     MENU: '.dropdown-menu',
     NAVBAR_NAV: '.navbar-nav',
@@ -4732,7 +4732,7 @@
   var VERSION$5 = '4.4.1';
   var DATA_KEY$5 = 'bs.modal';
   var EVENT_KEY$5 = "." + DATA_KEY$5;
-  var DATA_API_KEY$5 = '.data-api';
+  var DATA_API_KEY$5 = '.osm_data-api';
   var JQUERY_NO_CONFLICT$5 = $.fn[NAME$5];
   var ESCAPE_KEYCODE$1 = 27; // KeyboardEvent.which value for Escape (Esc) key
 
@@ -4774,8 +4774,8 @@
   var Selector$5 = {
     DIALOG: '.modal-dialog',
     MODAL_BODY: '.modal-body',
-    DATA_TOGGLE: '[data-toggle="modal"]',
-    DATA_DISMISS: '[data-dismiss="modal"]',
+    DATA_TOGGLE: '[osm_data-toggle="modal"]',
+    DATA_DISMISS: '[osm_data-dismiss="modal"]',
     FIXED_CONTENT: '.fixed-top, .fixed-bottom, .is-fixed, .sticky-top',
     STICKY_CONTENT: '.sticky-top'
   };
@@ -5373,7 +5373,7 @@
 
   var SAFE_URL_PATTERN = /^(?:(?:https?|mailto|ftp|tel|file):|[^&:/?#]*(?:[/?#]|$))/gi;
   /**
-   * A pattern that matches safe data URLs. Only matches image, video and audio types.
+   * A pattern that matches safe osm_data URLs. Only matches image, video and audio types.
    *
    * Shoutout to Angular 7 https://github.com/angular/angular/blob/7.2.4/packages/core/src/sanitization/url_sanitizer.ts
    */
@@ -5815,7 +5815,7 @@
     };
 
     _proto.getTitle = function getTitle() {
-      var title = this.element.getAttribute('data-original-title');
+      var title = this.element.getAttribute('osm_data-original-title');
 
       if (!title) {
         title = typeof this.config.title === 'function' ? this.config.title.call(this.element) : this.config.title;
@@ -5926,10 +5926,10 @@
     };
 
     _proto._fixTitle = function _fixTitle() {
-      var titleType = typeof this.element.getAttribute('data-original-title');
+      var titleType = typeof this.element.getAttribute('osm_data-original-title');
 
       if (this.element.getAttribute('title') || titleType !== 'string') {
-        this.element.setAttribute('data-original-title', this.element.getAttribute('title') || '');
+        this.element.setAttribute('osm_data-original-title', this.element.getAttribute('title') || '');
         this.element.setAttribute('title', '');
       }
     };
@@ -6262,7 +6262,7 @@
     ;
 
     _proto._getContent = function _getContent() {
-      return this.element.getAttribute('data-content') || this.config.content;
+      return this.element.getAttribute('osm_data-content') || this.config.content;
     };
 
     _proto._cleanTipClass = function _cleanTipClass() {
@@ -6365,7 +6365,7 @@
   var VERSION$8 = '4.4.1';
   var DATA_KEY$8 = 'bs.scrollspy';
   var EVENT_KEY$8 = "." + DATA_KEY$8;
-  var DATA_API_KEY$6 = '.data-api';
+  var DATA_API_KEY$6 = '.osm_data-api';
   var JQUERY_NO_CONFLICT$8 = $.fn[NAME$8];
   var Default$6 = {
     offset: 10,
@@ -6388,7 +6388,7 @@
     ACTIVE: 'active'
   };
   var Selector$8 = {
-    DATA_SPY: '[data-spy="scroll"]',
+    DATA_SPY: '[osm_data-spy="scroll"]',
     ACTIVE: '.active',
     NAV_LIST_GROUP: '.nav, .list-group',
     NAV_LINKS: '.nav-link',
@@ -6563,7 +6563,7 @@
       this._clear();
 
       var queries = this._selector.split(',').map(function (selector) {
-        return selector + "[data-target=\"" + target + "\"]," + selector + "[href=\"" + target + "\"]";
+        return selector + "[osm_data-target=\"" + target + "\"]," + selector + "[href=\"" + target + "\"]";
       });
 
       var $link = $([].slice.call(document.querySelectorAll(queries.join(','))));
@@ -6671,7 +6671,7 @@
   var VERSION$9 = '4.4.1';
   var DATA_KEY$9 = 'bs.tab';
   var EVENT_KEY$9 = "." + DATA_KEY$9;
-  var DATA_API_KEY$7 = '.data-api';
+  var DATA_API_KEY$7 = '.osm_data-api';
   var JQUERY_NO_CONFLICT$9 = $.fn[NAME$9];
   var Event$9 = {
     HIDE: "hide" + EVENT_KEY$9,
@@ -6692,7 +6692,7 @@
     NAV_LIST_GROUP: '.nav, .list-group',
     ACTIVE: '.active',
     ACTIVE_UL: '> li > .active',
-    DATA_TOGGLE: '[data-toggle="tab"], [data-toggle="pill"], [data-toggle="list"]',
+    DATA_TOGGLE: '[osm_data-toggle="tab"], [osm_data-toggle="pill"], [osm_data-toggle="list"]',
     DROPDOWN_TOGGLE: '.dropdown-toggle',
     DROPDOWN_ACTIVE_CHILD: '> .dropdown-menu .active'
   };
@@ -6930,7 +6930,7 @@
     delay: 500
   };
   var Selector$a = {
-    DATA_DISMISS: '[data-dismiss="toast"]'
+    DATA_DISMISS: '[osm_data-dismiss="toast"]'
   };
   /**
    * ------------------------------------------------------------------------

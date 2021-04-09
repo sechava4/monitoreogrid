@@ -13,10 +13,10 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(64), index=True, unique=True)
     email = db.Column(db.String(120), index=True, unique=True)
     password_hash = db.Column(db.String(128))
-    genre = (db.String(64))
+    genre = db.String(64)
     driven_kms = db.Column(db.Integer)
     co2_saved = db.Column(db.Integer)
-    roi = db.Column(db.Integer)    # Return on investment
+    roi = db.Column(db.Integer)  # Return on investment
     age = db.Column(db.Integer)
     driving_cluster = db.Column(db.Integer)
     charging_cluster = db.Column(db.Integer)
@@ -24,7 +24,7 @@ class User(UserMixin, db.Model):
 
     # For debuging purposes, we type the instance name and it prints self,username
     def __repr__(self):
-        return '<User {}>'.format(self.username)
+        return "<User {}>".format(self.username)
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -32,7 +32,8 @@ class User(UserMixin, db.Model):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
-    tasks = db.relationship('Task', backref='user', lazy='dynamic')
+    tasks = db.relationship("Task", backref="user", lazy="dynamic")
+
 
 # Crear un metodo para serializar
 # insert into vehicle(placa, marca, modelo, year, weight, cd, frontal_area, odometer) values('GHW284', 'RENAULT', 'ZOE', 2020, 1528, 0.31, 2.43, 0);
@@ -49,7 +50,9 @@ class Vehicle(db.Model):
     weight = db.Column(db.Float)
     # https://en.wikipedia.org/wiki/Automobile_drag_coefficient
     cd = db.Column(db.Float)  # 0.29 car 1.8 motorcycle # Drag coefficient
-    frontal_area = db.Column(db.Float)  # 0.303  # 0.79 car 0.303 motorcycle # Frontal area m2
+    frontal_area = db.Column(
+        db.Float
+    )  # 0.303  # 0.79 car 0.303 motorcycle # Frontal area m2
     capacity_nominal = db.Column(db.Float)
     odometer = db.Column(db.Integer)  # db.ForeignKey('operation.odometer')) ?
     soh = db.Column(db.Float)
@@ -59,7 +62,7 @@ class Vehicle(db.Model):
 
     # For debuging purposes, we type the instance name and it prints self,username
     def __repr__(self):
-        return '<Placa {}>'.format(self.placa)
+        return "<Placa {}>".format(self.placa)
 
 
 class Station(db.Model):
@@ -73,7 +76,7 @@ class Station(db.Model):
 
     # For debuging purposes, we type the instance name and it prints self,username
     def __repr__(self):
-        return '<Name {}>'.format(self.name)
+        return "<Name {}>".format(self.name)
 
 
 @login.user_loader
@@ -84,7 +87,18 @@ def load_user(id):
 class Operation(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
-    timestamp = db.Column(db.DateTime, index=True, default=datetime.strptime((datetime.now(pytz.timezone('America/Bogota')).strftime('%Y-%m-%d %H:%M:%S')), '%Y-%m-%d %H:%M:%S'))
+    timestamp = db.Column(
+        db.DateTime,
+        index=True,
+        default=datetime.strptime(
+            (
+                datetime.now(pytz.timezone("America/Bogota")).strftime(
+                    "%Y-%m-%d %H:%M:%S"
+                )
+            ),
+            "%Y-%m-%d %H:%M:%S",
+        ),
+    )
     placa = db.Column(db.String(64))
     operative_state = db.Column(db.Integer)
     latitude = db.Column(db.Float)
@@ -158,7 +172,7 @@ class Task(db.Model):
     id = db.Column(db.String(36), primary_key=True)
     name = db.Column(db.String(128), index=True)
     description = db.Column(db.String(128))
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
     complete = db.Column(db.Boolean, default=False)
 
     def get_rq_job(self):
@@ -170,13 +184,13 @@ class Task(db.Model):
 
     def get_progress(self):
         job = self.get_rq_job()
-        return job.meta.get('progress', 0) if job is not None else 100
+        return job.meta.get("progress", 0) if job is not None else 100
 
     def launch_task(self, name, description, *args, **kwargs):
-        rq_job = app.task_queue.enqueue('app.open_dataframes.' + name, self.id,
-                                                *args, **kwargs)
-        task = Task(id=rq_job.get_id(), name=name, description=description,
-                    user=self)
+        rq_job = app.task_queue.enqueue(
+            "app.open_dataframes." + name, self.id, *args, **kwargs
+        )
+        task = Task(id=rq_job.get_id(), name=name, description=description, user=self)
         db.session.add(task)
         return task
 
@@ -184,12 +198,13 @@ class Task(db.Model):
         return Task.query.filter_by(user=self, complete=False).all()
 
     def get_task_in_progress(self, name):
-        return Task.query.filter_by(name=name, user=self,
-                                    complete=False).first()
+        return Task.query.filter_by(name=name, user=self, complete=False).first()
 
 
 class OSM:
-    graphpath = app.root_path + '/Develops/data/medellin.graphml'
-    print('Empezando a cargar ')
+    graphpath = (
+        app.root_path + "/Investigation/OpenStreetMaps/osm_data/medellin.graphml"
+    )
+    print("Empezando a cargar ")
     G = ox.load_graphml(graphpath)
-    print('termina de cargar ')
+    print("termina de cargar ")
