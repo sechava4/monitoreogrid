@@ -23,11 +23,10 @@ __pycache__/
 /app/db.sql
 /app/operation.csv
 /app/DataBackup/old_vehicle_operation.csv
-/app/Develops/ArcGis
-/app/Develops/OpenStreetMaps
+/app/Investigation/ArcGis
+/app/Investigation/OpenStreetMaps
 
 /Backup_monitoreo_data/
 /NodeServer/.pio
 
 temp-plot.html
-/app/Investigation/OpenStreetMaps/MDE_ELE/

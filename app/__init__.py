@@ -1,4 +1,4 @@
-from flask import Flask, session, g
+from flask import Flask
 from app.config import DevConfig, Config
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
@@ -16,10 +16,7 @@ app.task_queue = rq.Queue("app-tasks", connection=app.redis)
 db = SQLAlchemy(app)
 Bootstrap(app)
 
-# if db.engine.url.drivername == 'sqlite':
 migrate = Migrate(app, db)
-# else:
-#    migrate = Migrate(app, db, render_as_batch=True)
 
 login = LoginManager(app)
 login.login_view = "login"

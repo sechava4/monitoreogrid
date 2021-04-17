@@ -196,12 +196,26 @@ def calculate_consumption(
         axis=1,
     )
 
+    segments_consolidated["mean_min_power_usr"] = segments_consolidated.apply(
+        lambda row: row["mean_min_power"]
+        if np.isnan(row["mean_min_power_usr"])
+        else row["mean_min_power_usr"],
+        axis=1,
+    )
+
+    segments_consolidated["mean_consumption_per_km_usr"] = segments_consolidated.apply(
+        lambda row: row["mean_consumption_per_km"]
+        if np.isnan(row["mean_consumption_per_km_usr"])
+        else row["mean_consumption_per_km_usr"],
+        axis=1,
+    )
+
     segments_consolidated["mean_soc"] = soc
 
     # Apply scaling
     scaler = load(open(path + "/MachineLearningModels/scaler_lm.pkl", "rb"))
 
-    columns = ["mean_max_power_usr", "mean_soc", "mean_speed", "slope"]
+    columns = ["mean_max_power_usr", "mean_soc", "mean_speed", "slope", 'mean_min_power_usr', 'mean_consumption_per_km_usr']
     segments_scaled = pd.DataFrame(
         scaler.transform(segments_consolidated[columns]), columns=columns
     )
@@ -213,24 +227,24 @@ def calculate_consumption(
     r_forest_reg = load(
         open(
             path
-            + "/MachineLearningModels//randomForest_0_3_mean_consumption_maxerr_model.pkl",
+            + "/MachineLearningModels/randomForest_0_3_mean_consumption_maxerr_model.pkl",
             "rb",
         )
     )
 
     # Load XGBoost model
-    xgb_reg = load(open(path + "/MachineLearningModels//xg_reg_model.pickle.dat", "rb"))
+    xgb_reg = load(open(path + "/MachineLearningModels/xg_reg_model.pickle.dat", "rb"))
 
     # Load linear model
-    lm_cons = load(open(path + "/MachineLearningModels//linear_model.pkl", "rb"))
+    lm_cons = load(open(path + "/MachineLearningModels/linear_model.pkl", "rb"))
 
     # Load linear model
     linear_regr_sklearn = load(
-        open(path + "/MachineLearningModels//linear_regr_sklearn.pkl", "rb")
+        open(path + "/MachineLearningModels/linear_regr_sklearn.pkl", "rb")
     )
 
     # load ANN regressor
-    ann_reg = load(open(path + "/MachineLearningModels//ann_regr.pkl", "rb"))
+    ann_reg = load(open(path + "/MachineLearningModels/ann_regr.pkl", "rb"))
 
     models = {
         "linear": linear_regr_sklearn,

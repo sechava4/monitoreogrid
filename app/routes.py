@@ -528,12 +528,12 @@ def show_tables():
         scatter = 0
         integral_jimenez = 0
         integral_power = 0
+        integral_fiori = 0
         if (
             all(elem in list(df) for elem in ["slope", "speed", "mean_acc", "power_kw"])
             and len(set(list(df))) == 6
             and len(df) > 1
         ):
-            # print(len(set(list(df))))  # != len(set(your_list))
 
             try:
                 consumption_models.add_consumption_cols(
