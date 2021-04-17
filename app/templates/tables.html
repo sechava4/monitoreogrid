@@ -626,8 +626,12 @@
     </div>
 </div>
 
+<a href="{{ url_for('download_csv', username=current_user.username) }}"
+   style="margin: 10px; background-color: #80bdff; color: white;"
+   class="btn"><i class="fa fa-download"></i> Download .csv
+</a>
 
-    <table class="table">
+<table class="table">
 
     <tbody>
         {% for table in tables %}

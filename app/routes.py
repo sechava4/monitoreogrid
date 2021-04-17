@@ -10,6 +10,7 @@ from flask import (
     render_template,
     flash,
     send_from_directory,
+    Response
 )
 import pandas as pd
 from werkzeug.urls import url_parse
@@ -522,6 +523,8 @@ def show_tables():
             + str(session["records"])
         )
 
+        session["query"] = query
+
         df_calendar = pd.read_sql_query(query0, db.engine)
         df_calendar = df_calendar.dropna()
         df = pd.read_sql_query(query, db.engine)
@@ -585,6 +588,17 @@ def show_tables():
         calendar=df_calendar.to_json(orient="records"),
         vehicles=df_vehicles.to_json(orient="records"),
     )
+
+
+@app.route("/<username>/download-csv")
+def download_csv(username):
+    query = session["query"] or 'select * from operation limit 1000'
+    operation = pd.read_sql_query(query, db.engine)
+    return Response(
+        operation.to_csv(sep=";"),
+        mimetype="text/csv",
+        headers={"Content-disposition":
+                 "attachment; filename=operation.csv"})
 
 
 @app.route("/zones_map", methods=["GET", "POST"])
