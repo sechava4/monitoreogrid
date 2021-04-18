@@ -2,6 +2,7 @@ import ast
 import math
 import os
 from datetime import datetime, timedelta
+import logging
 
 import geopy.distance
 import googlemaps
@@ -27,8 +28,15 @@ from app import app, open_dataframes, plot, db, consumption_models, degradation_
 from app.Investigation.Google import google_linear_model as google_query
 from app.closest_points import Trees
 from app.config import SessionConfig, OperationQuery, CalendarQuery
-from app.forms import LoginForm, RegistrationForm, VehicleRegistrationForm
+from app.forms import (
+    LoginForm,
+    RegistrationForm,
+    VehicleRegistrationForm,
+    read_form_dates,
+)
 from app.models import User, Operation, Vehicle
+
+logger = logging.getLogger(__name__)
 
 
 # ---------------------------------Vehicle routes ----------------------------------#
@@ -97,48 +105,17 @@ def show_entries():
     now = datetime.now(pytz.timezone("America/Bogota")) + timedelta(hours=1)
 
     sess_conf = SessionConfig(now)
-    sess_conf.assign_missing_keys(session)
-    print(session.keys())
+    sess_conf.assign_missing_variables(session)
 
     if request.method == "POST":
+        for var in ["calendar_var", "graph_var_x", "graph_var_y", "graph_var_x2", "graph_var_y2"]:
+            session[var] = request.form[var]
 
-        session["graph_var_x"] = request.form["variable_x"]
-        session["graph_var_y"] = request.form["variable_y"]
-        session["calendar_var"] = request.form["calendar_var"]
+        for var in ["d1", "h1", "h2", "d2", "h3", "h4"]:
+            session["form_" + var] = request.form[var]
 
-        session["form_d1"] = request.form["d1"]
-        session["form_h1"] = request.form["h1"]
-        session["form_h2"] = request.form["h2"]
-
-        session["d1"] = (datetime.strptime(request.form["d1"], "%d/%m/%Y")).strftime(
-            "%Y-%m-%d"
-        )
-        session["h1"] = (datetime.strptime(request.form["h1"], "%I:%M %p")).strftime(
-            "%H:%M:%S"
-        )
-        session["h2"] = (datetime.strptime(request.form["h2"], "%I:%M %p")).strftime(
-            "%H:%M:%S"
-        )
-        if session["h2"] < session["h1"]:
-            session["h1"], session["h2"] = session["h2"], session["h1"]  # Swap times
-
-        session["graph_var_x2"] = request.form["variable_x2"]
-        session["graph_var_y2"] = request.form["variable_y2"]
-        session["form_d2"] = request.form["d2"]
-        session["form_h3"] = request.form["h3"]
-        session["form_h4"] = request.form["h4"]
-
-        session["d2"] = (datetime.strptime(request.form["d2"], "%d/%m/%Y")).strftime(
-            "%Y-%m-%d"
-        )
-        session["h3"] = (datetime.strptime(request.form["h3"], "%I:%M %p")).strftime(
-            "%H:%M:%S"
-        )
-        session["h4"] = (datetime.strptime(request.form["h4"], "%I:%M %p")).strftime(
-            "%H:%M:%S"
-        )
-        if session["h4"] < session["h3"]:
-            session["h3"], session["h4"] = session["h4"], session["h3"]  # Swap times
+        read_form_dates(session, day=1, hour=1)
+        read_form_dates(session, day=2, hour=3)
 
     if vehicle:
         operation_query = OperationQuery(session, vehicle)
@@ -157,6 +134,7 @@ def show_entries():
         except (ValueError, TypeError):
             pearson_coef = 0
             pass
+        logger.info("Pearson corr = {}".format(pearson_coef))
 
         scatter = plot.create_plot(df_o, session["graph_var_x"], session["graph_var_y"])
         scatter2 = plot.create_plot(
@@ -164,22 +142,10 @@ def show_entries():
         )
         box = df_o[session["graph_var_y"]].tolist()
         box2 = df_o2[session["graph_var_y2"]].tolist()
-        session["calendar_pretty"] = open_dataframes.pretty_var_name(
-            session["calendar_var"]
-        )
-        session["x_pretty_graph"] = open_dataframes.pretty_var_name(
-            session["graph_var_x"]
-        )
-        session["y_pretty_graph"] = open_dataframes.pretty_var_name(
-            session["graph_var_y"]
-        )
 
-        session["x_pretty_graph2"] = open_dataframes.pretty_var_name(
-            session["graph_var_x2"]
-        )
-        session["y_pretty_graph2"] = open_dataframes.pretty_var_name(
-            session["graph_var_y2"]
-        )
+        for var in ["calendar_var", "graph_var_x", "graph_var_y", "graph_var_x2", "graph_var_y2"]:
+            session[var + "_pretty"] = open_dataframes.pretty_var_name(session[var])
+
     else:
         scatter = 0
         scatter2 = 0
@@ -212,21 +178,8 @@ def update_plot():
 
     operation_query = OperationQuery(session, vehicle)
     df_o = pd.read_sql_query(operation_query.query_1, db.engine)
-    df_o2 = pd.read_sql_query(operation_query.query_2, db.engine)
     scatter = plot.create_plot(df_o, session["graph_var_x"], session["graph_var_y"])
-    scatter2 = plot.create_plot(df_o2, session["graph_var_x2"], session["graph_var_y2"])
-    session["calendar_pretty"] = open_dataframes.pretty_var_name(
-        session["calendar_var"]
-    )
-    session["x_pretty_graph"] = open_dataframes.pretty_var_name(session["graph_var_x"])
-    session["y_pretty_graph"] = open_dataframes.pretty_var_name(session["graph_var_y"])
 
-    session["x_pretty_graph2"] = open_dataframes.pretty_var_name(
-        session["graph_var_x2"]
-    )
-    session["y_pretty_graph2"] = open_dataframes.pretty_var_name(
-        session["graph_var_y2"]
-    )
     return scatter
 
 
@@ -240,7 +193,7 @@ def energy_monitor():
     vehicle = Vehicle.query.filter_by(belongs_to=current_user.id, activo=True).first()
     now = datetime.now(pytz.timezone("America/Bogota"))
     sess_conf = SessionConfig(now)
-    sess_conf.assign_missing_keys(session)
+    sess_conf.assign_missing_variables(session)
 
     if request.method == "POST":
         session["time_interval"] = request.form["time_interval"]
@@ -262,14 +215,10 @@ def energy_monitor():
             segments = google_query.get_segments(a)
 
             estimation_path = os.path.join(
-                app.root_path, "Develops/ConsumptionEstimationJournal"
+                app.root_path, "Investigation/ConsumptionEstimationJournal"
             )
             # session['est_cons'], session['est_time'] = consumption_models.smartcharging_consumption_query(new_df)
-            (
-                session["est_cons"],
-                session["est_time"],
-                _,
-            ) = google_query.calculate_consumption(segments, estimation_path)
+            session["est_cons"], session["est_time"], _ = google_query.calculate_consumption(segments, estimation_path)
         except SyntaxError:
             session["est_cons"] = 0
             session["est_time"] = 0
@@ -286,11 +235,11 @@ def energy_monitor():
         session["energy_t2"] = now - timedelta(days=number)
 
     operation_query = (
-        'SELECT timestamp, power_kw from operation WHERE speed > 0 AND timestamp BETWEEN "'
-        + str(session["energy_t2"])
-        + '" and "'
-        + str(session["energy_t1"])
-        + '" ORDER BY timestamp'
+            'SELECT timestamp, power_kw from operation WHERE speed > 0 AND timestamp BETWEEN "'
+            + str(session["energy_t2"])
+            + '" and "'
+            + str(session["energy_t1"])
+            + '" ORDER BY timestamp'
     )
 
     df_o = pd.read_sql_query(operation_query, db.engine)
@@ -320,86 +269,80 @@ def show_tables():
     vehicle = Vehicle.query.filter_by(belongs_to=current_user.id, activo=True).first()
     now = datetime.now(pytz.timezone("America/Bogota"))
     sess_conf = SessionConfig(now)
-    sess_conf.assign_missing_keys(session)
+    sess_conf.assign_missing_variables(session)
 
     if request.method == "POST":
-        session["var1"] = request.form["var1"]
-        session["var2"] = request.form["var2"]
-        session["var3"] = request.form["var3"]
-        session["var4"] = request.form["var4"]
-        session["var5"] = request.form["var5"]
+        for i in range(1, 6):
+            session["var%d" % i] = request.form["var%d" % i]
+
         session["records"] = request.form["records"]
-        session["form_d1"] = request.form["d1"]
-        session["form_h1"] = request.form["h1"]
-        session["form_h2"] = request.form["h2"]
+        for var in ["d1", "h1", "h2"]:
+            session["form_" + var] = request.form[var]
+
         if session["records"] is None:
             session["records"] = 20
 
-        session["d1"] = (datetime.strptime(request.form["d1"], "%d/%m/%Y")).strftime(
-            "%Y-%m-%d"
-        )
-        session["h1"] = (datetime.strptime(request.form["h1"], "%I:%M %p")).strftime(
-            "%H:%M:%S"
-        )
-        session["h2"] = (datetime.strptime(request.form["h2"], "%I:%M %p")).strftime(
-            "%H:%M:%S"
-        )
-        if session["h2"] < session["h1"]:
-            session["h1"], session["h2"] = session["h2"], session["h1"]  # Swap times
+        read_form_dates(session, day=1, hour=1)
 
     if vehicle:
         query = (
-            "SELECT timestamp, "
-            + session["var1"]
-            + " ,"
-            + session["var2"]
-            + " ,"
-            + session["var3"]
-            + " ,"
-            + session["var4"]
-            + " ,"
-            + session["var5"]
-            + ' from operation WHERE vehicle_id = "'
-            + str(vehicle.placa)
-            + '" AND timestamp BETWEEN "'
-            + session["d1"]
-            + " "
-            + str(session["h1"])[:8]
-            + '" and "'
-            + str(session["d1"])
-            + " "
-            + str(session["h2"])[:8]
-            + '" limit '
-            + str(session["records"])
+                "SELECT timestamp, "
+                + session["var1"]
+                + " ,"
+                + session["var2"]
+                + " ,"
+                + session["var3"]
+                + " ,"
+                + session["var4"]
+                + " ,"
+                + session["var5"]
+                + ' from operation WHERE vehicle_id = "'
+                + str(vehicle.placa)
+                + '" AND timestamp BETWEEN "'
+                + session["d1"]
+                + " "
+                + str(session["h1"])[:8]
+                + '" and "'
+                + str(session["d1"])
+                + " "
+                + str(session["h2"])[:8]
+                + '" limit '
+                + str(session["records"])
         )
 
         session["query"] = query
         calendar_query = CalendarQuery(session, vehicle)
         df_calendar = pd.read_sql_query(calendar_query.query, db.engine)
         df_calendar = df_calendar.dropna()
-        df = pd.read_sql_query(query, db.engine)
+        operation_df = pd.read_sql_query(query, db.engine)
         scatter = 0
         integral_jimenez = 0
         integral_power = 0
         integral_fiori = 0
-        if (
-            all(elem in list(df) for elem in ["slope", "speed", "mean_acc", "power_kw"])
-            and len(set(list(df))) == 6
-            and len(df) > 1
-        ):
+        if (all(col in operation_df.columns for col in ["slope", "speed", "mean_acc", "power_kw"])
+                and len(operation_df.columns) == 6
+                and len(operation_df) > 1):
 
             try:
                 consumption_models.add_consumption_cols(
-                    df,
+                    operation_df,
                     float(vehicle.weight),
                     float(vehicle.frontal_area),
                     float(vehicle.cd),
                 )
 
-                scatter = plot.create_plot(df, "jimenez_estimation", "power_kw")
-                integral_jimenez = plot.create_plot(df, "timestamp", "jimenez_int")
-                integral_fiori = plot.create_plot(df, "timestamp", "fiori_int")
-                integral_power = plot.create_plot(df, "timestamp", "power_int")
+                scatter = plot.create_plot(
+                    operation_df, "jimenez_estimation", "power_kw"
+                )
+                integral_jimenez = plot.create_plot(
+                    operation_df, "timestamp", "jimenez_int"
+                )
+                integral_fiori = plot.create_plot(
+                    operation_df, "timestamp", "fiori_int"
+                )
+                integral_power = plot.create_plot(
+                    operation_df, "timestamp", "power_int"
+                )
             except Exception as e:
                 print(e)
 
@@ -408,13 +351,13 @@ def show_tables():
             integral_fiori = 0
             integral_power = 0
 
-        if all(elem in list(df) for elem in ["current", "batt_temp"]):
-            degradation_models.add_wang_column(df)
+        if all(col in operation_df.columns for col in ["current", "batt_temp"]):
+            degradation_models.add_wang_column(operation_df)
     else:
         integral_jimenez = 0
         integral_fiori = 0
         integral_power = 0
-        df = pd.DataFrame([])
+        operation_df = pd.DataFrame([])
         session["query"] = None
         df_calendar = pd.DataFrame([])
         scatter = 0
@@ -430,8 +373,8 @@ def show_tables():
 
     return render_template(
         "tables.html",
-        tables=[df.to_html(classes="osm_data")],
-        titles=df.columns.values,
+        tables=[operation_df.to_html(classes="osm_data")],
+        titles=operation_df.columns.values,
         plot=scatter,
         plotint1=integral_jimenez,
         plotint2=integral_power,
@@ -470,7 +413,7 @@ def show_zones_map():
 
     now = datetime.now(pytz.timezone("America/Bogota"))
     sess_conf = SessionConfig(now)
-    sess_conf.assign_missing_keys(session)
+    sess_conf.assign_missing_variables(session)
 
     session["calendar_pretty"] = open_dataframes.pretty_var_name(
         session["calendar_var"]
@@ -522,7 +465,7 @@ def show_vehicle_map():
 
     now = datetime.now(pytz.timezone("America/Bogota"))
     sess_conf = SessionConfig(now)
-    sess_conf.assign_missing_keys(session)
+    sess_conf.assign_missing_variables(session)
 
     session["calendar_pretty"] = open_dataframes.pretty_var_name(
         session["calendar_var"]
@@ -598,10 +541,7 @@ def add_entry():
         return "Null osm_data"
     else:
         if float(args["latitude"]) > 0:
-            operation = Operation(
-                **args
-            )  # ** pasa un numero variable de argumentos a la funcion/crea instancia
-
+            operation = Operation(**args)
             operation.timestamp = datetime.strptime(
                 (
                     datetime.now(pytz.timezone("America/Bogota")).strftime(
@@ -612,14 +552,13 @@ def add_entry():
             )
 
             # insert into vehicle(placa, marca, modelo, year, odometer) values('BOTE01', 'ENERGETICA', 'ECO100', 2011, 10)
-            # operation.angle_y = -float(request.args["angle_y"]) - 9.27
 
             # Si es el primer dato de ese vehículo
             last = args
             query = (
-                'SELECT * FROM operation where vehicle_id = "'
-                + args["vehicle_id"]
-                + '" ORDER  BY id DESC LIMIT 1'
+                    'SELECT * FROM operation where vehicle_id = "'
+                    + args["vehicle_id"]
+                    + '" ORDER  BY id DESC LIMIT 1'
             )
 
             # Select the last from the same vehicle that is incoming
@@ -630,11 +569,11 @@ def add_entry():
 
             coords_2 = (float(args["latitude"]), float(args["longitude"]))
             google_url = (
-                "https://maps.googleapis.com/maps/api/elevation/json?locations="
-                + str(args["latitude"])
-                + ","
-                + str(args["longitude"])
-                + "&key=AIzaSyChV7Sy3km3Fi8hGKQ8K9t7n7J9f6yq9cI"
+                    "https://maps.googleapis.com/maps/api/elevation/json?locations="
+                    + str(args["latitude"])
+                    + ","
+                    + str(args["longitude"])
+                    + "&key=AIzaSyChV7Sy3km3Fi8hGKQ8K9t7n7J9f6yq9cI"
             )
 
             r = requests.get(google_url).json()
@@ -708,12 +647,12 @@ def add_entry():
                 if c_rate > 0:
                     b = 448.96 * c_rate ** 2 - 6301.1 * c_rate + 33840
                     operation.q_loss = (
-                        b
-                        * math.exp(
-                            (-31700 + (c_rate * 370.3))
-                            / (8.314472 * (float(args["batt_temp"])))
-                        )
-                        * ah ** 0.552
+                            b
+                            * math.exp(
+                        (-31700 + (c_rate * 370.3))
+                        / (8.314472 * (float(args["batt_temp"])))
+                    )
+                            * ah ** 0.552
                     )
                 else:
                     operation.q_loss = 0
@@ -787,21 +726,10 @@ def map_var():
     :return:
     """
     session["map_var"] = request.form["map_var"]
-    session["form_d1"] = request.form["d1"]
-    session["form_h1"] = request.form["h1"]
-    session["form_h2"] = request.form["h2"]
+    for var in ["d1", "h1", "h2"]:
+        session["form_" + var] = request.form[var]
 
-    session["d1"] = (datetime.strptime(request.form["d1"], "%d/%m/%Y")).strftime(
-        "%Y-%m-%d"
-    )
-    session["h1"] = (datetime.strptime(request.form["h1"], "%I:%M %p")).strftime(
-        "%H:%M:%S"
-    )
-    session["h2"] = (datetime.strptime(request.form["h2"], "%I:%M %p")).strftime(
-        "%H:%M:%S"
-    )
-    if session["h2"] < session["h1"]:
-        session["h1"], session["h2"] = session["h2"], session["h1"]  # Swap times
+    read_form_dates(session, day=1, hour=1)
 
     return redirect(url_for("show_vehicle_map"))
 
@@ -812,21 +740,10 @@ def zones_interval():
     redirects when zones map form is submitted
     :return:
     """
-    session["form_d1"] = request.form["d1"]
-    session["form_h1"] = request.form["h1"]
-    session["form_h2"] = request.form["h2"]
+    for var in ["d1", "h1", "h2"]:
+        session["form_" + var] = request.form[var]
 
-    session["d1"] = (datetime.strptime(request.form["d1"], "%d/%m/%Y")).strftime(
-        "%Y-%m-%d"
-    )
-    session["h1"] = (datetime.strptime(request.form["h1"], "%I:%M %p")).strftime(
-        "%H:%M:%S"
-    )
-    session["h2"] = (datetime.strptime(request.form["h2"], "%I:%M %p")).strftime(
-        "%H:%M:%S"
-    )
-    if session["h2"] < session["h1"]:
-        session["h1"], session["h2"] = session["h2"], session["h1"]  # Swap times
+    read_form_dates(session, day=1, hour=1)
     return redirect(url_for("show_zones_map"))
 
 

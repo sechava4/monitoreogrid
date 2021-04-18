@@ -151,7 +151,7 @@ def calculate_consumption(
     path=os.path.join(app.root_path) + "/Investigation/ConsumptionEstimationJournal",
     model="linear",
     soc=70,
-    user="Santiago_Echavarria",
+    user="Santiago_Echavarria_01",
 ):
     segments["id"] = segments.index
     segments = segments.sort_values(by=["id"])
@@ -224,6 +224,7 @@ def calculate_consumption(
         "mean_min_power_usr",
         "mean_consumption_per_km_usr",
     ]
+
     segments_scaled = pd.DataFrame(
         scaler.transform(segments_consolidated[columns]), columns=columns
     )

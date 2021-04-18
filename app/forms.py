@@ -1,4 +1,6 @@
+from datetime import datetime
 from flask_wtf import FlaskForm
+from flask import request
 from wtforms import (
     StringField,
     PasswordField,
@@ -8,7 +10,25 @@ from wtforms import (
     IntegerField,
 )
 from wtforms.validators import ValidationError, DataRequired, Email, EqualTo
+
 from app.models import User, Vehicle
+
+
+def read_form_dates(session, day, hour):
+    session["d%d" % day] = (
+        datetime.strptime(request.form["d%d" % day], "%d/%m/%Y")
+    ).strftime("%Y-%m-%d")
+    session["h%d" % hour] = (
+        datetime.strptime(request.form["h%d" % hour], "%I:%M %p")
+    ).strftime("%H:%M:%S")
+    session["h%d" % (hour + 1)] = (
+        datetime.strptime(request.form["h%d" % (hour + 1)], "%I:%M %p")
+    ).strftime("%H:%M:%S")
+    if session["h%d" % (hour + 1)] < session["h%d" % hour]:
+        session["h%d" % hour], session["h%d" % (hour + 1)] = (
+            session["h%d" % (hour + 1)],
+            session["h%d" % hour],
+        )
 
 
 class LoginForm(FlaskForm):

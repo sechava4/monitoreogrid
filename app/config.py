@@ -32,14 +32,14 @@ class SessionConfig:
             "form_d2": now.strftime("%d/%m/%Y"),
             "form_h3": "0:01 AM",
             "form_h4": now.strftime("%I:%M %p"),
-            "d2":now.strftime("%Y-%m-%d"),
-            "h3":"00:00:00",
+            "d2": now.strftime("%Y-%m-%d"),
+            "h3": "00:00:00",
             "h4": now.strftime("%H:%M:%S"),
             "graph_var_x2": "timestamp",
-            "graph_var_y2": "power_kw"
+            "graph_var_y2": "power_kw",
         }
 
-    def assign_missing_keys(self, session):
+    def assign_missing_variables(self, session):
         for key in self.sess.keys():
             if key not in session.keys():
                 session[key] = self.sess.get(key)

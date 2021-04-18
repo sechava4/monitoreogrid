@@ -154,7 +154,7 @@
 
                 <div style="width: 100%;margin: 10px;">
                 <select class="form-control" id="CalendarVarSelect" name = calendar_var onchange="this.form.submit();">
-                    <option value="{{session.calendar_var}}"> {{session.calendar_pretty}}</option>
+                    <option value="{{session.calendar_var}}"> {{session.calendar_var_pretty}}</option>
                     <option value="drivetime">Tiempo de manejo</option>
                     <option value="mec_power">Potencia efectiva (server) (kW) </option>
                     <option value="power_kw">Potencia eléctrica (Kw)</option>
@@ -171,8 +171,8 @@
 
                 <div class="col-auto">
                     <label class="label label-default" for="exampleFormControlSelect1"> Eje X </label>
-                    <select class="form-control" id="exampleFormControlSelect1" name = variable_x >
-                        <option value="{{session.graph_var_x}}"> {{session.x_pretty_graph}}</option>
+                    <select class="form-control" id="exampleFormControlSelect1" name = graph_var_x >
+                        <option value="{{session.graph_var_x}}"> {{session.graph_var_x_pretty}}</option>
                         <option value="timestamp">Tiempo</option>
                         <option value="elevation">Altitud (google api)</option>
                         <option value="elevation2">Altitud (Barómetro)</option>
@@ -210,8 +210,8 @@
                 </div>
                 <div class="col-auto">
                     <label class="label label-default" for="exampleFormControlSelect2"> Eje Y </label>
-                    <select class="form-control" id="exampleFormControlSelect2" name = variable_y onchange="this.form.submit();">
-                        <option value="{{session.graph_var_y}}"> {{session.y_pretty_graph}}</option>
+                    <select class="form-control" id="exampleFormControlSelect2" name = graph_var_y onchange="this.form.submit();">
+                        <option value="{{session.graph_var_y}}"> {{session.graph_var_y_pretty}}</option>
                         <option value="elevation">Altitud (google api)</option>
                         <option value="slope">Pendiente (°)</option>
                         <option value="speed">Velocidad instantánea (Km/h)</option>
@@ -342,13 +342,13 @@
 
                     <div id = 'boxDiv2' style="width:30%;float: right;">
                         <script>
-                            var name1 = "{{session.y_pretty_graph}}";
+                            var name1 = "{{session.graph_var_y_pretty}}";
                             var y0 = {{box | safe}};
                             var trace1 = {
                               y: y0,
                               type: 'box',
                               color: 'blue',
-                              name: "{{session.y_pretty_graph}}",
+                              name: "{{session.graph_var_y_pretty}}",
                               boxmean: 'sd'
                             };
 
@@ -359,8 +359,8 @@
                 </div>
                 <div class="col-auto" >
                     <label class="label label-default" for="FormControlSelect1"> Eje X </label>
-                    <select class="form-control" id="FormControlSelect1" name = variable_x2>
-                        <option value="{{session.graph_var_x2}}"> {{session.x_pretty_graph2}}</option>
+                    <select class="form-control" id="FormControlSelect1" name = graph_var_x2>
+                        <option value="{{session.graph_var_x2}}"> {{session.graph_var_x2_pretty}}</option>
                        <option value="timestamp">Tiempo</option>
                         <option value="elevation">Altitud (google api)</option>
                         <option value="elevation2">Altitud (Barómetro)</option>
@@ -398,8 +398,8 @@
                 </div>
                 <div class="col-auto">
                     <label class="label label-default" for="FormControlSelect2"> Eje Y </label>
-                    <select class="form-control" id="FormControlSelect2" name = variable_y2 onchange="this.form.submit();">
-                        <option value="{{session.graph_var_y2}}"> {{session.y_pretty_graph2}}</option>
+                    <select class="form-control" id="FormControlSelect2" name = graph_var_y2 onchange="this.form.submit();">
+                        <option value="{{session.graph_var_y2}}"> {{session.graph_var_y2_pretty}}</option>
                         <option value="elevation">Altitud (google api)</option>
                         <option value="slope">Pendiente (°)</option>
                         <option value="speed">Velocidad instantánea (Km/h)</option>
@@ -539,7 +539,7 @@
                           y: y2,
                           type: 'box',
                           color: 'orange',
-                          name: "{{session.y_pretty_graph2}}"+" (Fig 2)",
+                          name: "{{session.graph_var_y2_pretty}}"+" (Fig 2)",
                           boxmean: 'sd'
                         };
 
@@ -565,7 +565,7 @@
                       meanline: {
                         visible: true
                       },
-                      name: "{{session.y_pretty_graph}}"+" (Fig 1)",
+                      name: "{{session.graph_var_y_pretty}}"+" (Fig 1)",
                       boxmean: 'sd'
                     };
 
@@ -585,7 +585,7 @@
                       meanline: {
                         visible: true
                       },
-                      name: "{{session.y_pretty_graph2}}"+" (Fig 2)",
+                      name: "{{session.graph_var_y2_pretty}}"+" (Fig 2)",
                       boxmean: 'sd'
                     };
 
