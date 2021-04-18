@@ -1,6 +1,13 @@
-import os
+import ast
 import math
+import os
+from datetime import datetime, timedelta
 
+import geopy.distance
+import googlemaps
+import pandas as pd
+import pytz
+import requests
 from flask import (
     request,
     session,
@@ -10,21 +17,16 @@ from flask import (
     render_template,
     flash,
     send_from_directory,
-    Response
+    Response,
 )
-import pandas as pd
-from werkzeug.urls import url_parse
 from flask_login import current_user, login_user, logout_user, login_required
-import geopy.distance
-from datetime import datetime, timedelta
-import pytz
-import ast
-import googlemaps
-import requests
 from scipy import stats
+from werkzeug.urls import url_parse
+
 from app import app, open_dataframes, plot, db, consumption_models, degradation_models
 from app.Investigation.Google import google_linear_model as google_query
 from app.closest_points import Trees
+from app.config import SessionConfig, OperationQuery, CalendarQuery
 from app.forms import LoginForm, RegistrationForm, VehicleRegistrationForm
 from app.models import User, Operation, Vehicle
 
@@ -93,47 +95,10 @@ def show_entries():
 
     vehicle = Vehicle.query.filter_by(belongs_to=current_user.id, activo=True).first()
     now = datetime.now(pytz.timezone("America/Bogota")) + timedelta(hours=1)
-    try:
-        session["graph_var_x"]
-        session["graph_var_y"]
-        session["form_d1"]
-        session["form_h1"]
-        session["form_h2"]
-        session["d1"]
-        session["h1"]
-        session["h2"]
-        session["calendar_var"]
 
-    except KeyError:
-
-        session["form_d1"] = now.strftime("%d/%m/%Y")
-        session["form_h1"] = "0:01 AM"
-        session["form_h2"] = now.strftime("%I:%M %p")  # 12H Format
-        session["d1"] = now.strftime("%Y-%m-%d")
-        session["h1"] = "00:00:00"
-        session["h2"] = now.strftime("%H:%M:%S")
-        session["graph_var_x"] = "timestamp"
-        session["graph_var_y"] = "power_kw"
-        session["calendar_var"] = "power_kw"
-    try:
-        session["graph_var_x2"]
-        session["graph_var_y2"]
-        session["form_d2"]
-        session["form_h3"]
-        session["form_h4"]
-        session["d2"]
-        session["h3"]
-        session["h4"]
-
-    except KeyError:
-        session["form_d2"] = now.strftime("%d/%m/%Y")
-        session["form_h3"] = "0:01 AM"
-        session["form_h4"] = now.strftime("%I:%M %p")  # 12H Format
-        session["d2"] = now.strftime("%Y-%m-%d")
-        session["h3"] = "00:00:00"
-        session["h4"] = now.strftime("%H:%M:%S")
-        session["graph_var_x2"] = "timestamp"
-        session["graph_var_y2"] = "power_kw"
+    sess_conf = SessionConfig(now)
+    sess_conf.assign_missing_keys(session)
+    print(session.keys())
 
     if request.method == "POST":
 
@@ -175,60 +140,14 @@ def show_entries():
         if session["h4"] < session["h3"]:
             session["h3"], session["h4"] = session["h4"], session["h3"]  # Swap times
 
-    if vehicle is not None:
+    if vehicle:
+        operation_query = OperationQuery(session, vehicle)
+        calendar_query = CalendarQuery(session, vehicle)
 
-        query0 = (
-            "SELECT date(timestamp), MAX("
-            + session["calendar_var"]
-            + ") as 'max_value' FROM operation WHERE vehicle_id = '"
-            + str(vehicle.placa)
-            + "' GROUP BY date(timestamp)"
-        )
-
-        query1 = (
-            "SELECT "
-            + session["graph_var_x"]
-            + " ,"
-            + session["graph_var_y"]
-            + ' from operation WHERE vehicle_id = "'
-            + str(vehicle.placa)
-            + '" AND timestamp BETWEEN "'
-            + session["d1"]
-            + " "
-            + str(session["h1"])[:8]
-            + '" and "'
-            + str(session["d1"])
-            + " "
-            + str(session["h2"])[:8]
-            + '"'
-        )
-
-        query2 = (
-            "SELECT "
-            + session["graph_var_x2"]
-            + " ,"
-            + session["graph_var_y2"]
-            + ' from operation WHERE vehicle_id = "'
-            + str(vehicle.placa)
-            + '" AND timestamp BETWEEN "'
-            + session["d2"]
-            + " "
-            + str(session["h3"])[:8]
-            + '" and "'
-            + str(session["d2"])
-            + " "
-            + str(session["h4"])[:8]
-            + '"'
-        )
-
-        # df_exp = pd.read_csv('app/old_vehicle_operation.csv', sep=',', index_col=0, decimal=".")
-        # df['timestamp'] = pd.to_datetime(df['timestamp'])"
-        # df_exp.to_sql('DB',db.engine )
-
-        df_calendar = pd.read_sql_query(query0, db.engine)
+        df_calendar = pd.read_sql_query(calendar_query.query, db.engine)
         df_calendar = df_calendar.dropna()
-        df_o = pd.read_sql_query(query1, db.engine)
-        df_o2 = pd.read_sql_query(query2, db.engine)
+        df_o = pd.read_sql_query(operation_query.query_1, db.engine)
+        df_o2 = pd.read_sql_query(operation_query.query_2, db.engine)
 
         try:
             pearson_coef = stats.pearsonr(
@@ -291,50 +210,9 @@ def update_plot():
     except KeyError:
         session["calendar_var"] = "power_kw"
 
-    "SELECT date(timestamp), MAX(" + session[
-        "calendar_var"
-    ] + ") as 'max_value' FROM operation WHERE vehicle_id = '" + str(
-        vehicle.placa
-    ) + "' GROUP BY date(timestamp)"
-
-    query = (
-        "SELECT "
-        + session["graph_var_x"]
-        + " ,"
-        + session["graph_var_y"]
-        + ' from operation WHERE vehicle_id = "'
-        + str(vehicle.placa)
-        + '" AND timestamp BETWEEN "'
-        + session["d1"]
-        + " "
-        + str(session["h1"])[:8]
-        + '" and "'
-        + str(session["d1"])
-        + " "
-        + str(session["h2"])[:8]
-        + '"'
-    )
-
-    query2 = (
-        "SELECT "
-        + session["graph_var_x2"]
-        + " ,"
-        + session["graph_var_y2"]
-        + ' from operation WHERE vehicle_id = "'
-        + str(vehicle.placa)
-        + '" AND timestamp BETWEEN "'
-        + session["d2"]
-        + " "
-        + str(session["h3"])[:8]
-        + '" and "'
-        + str(session["d2"])
-        + " "
-        + str(session["h4"])[:8]
-        + '"'
-    )
-
-    df_o = pd.read_sql_query(query, db.engine)
-    df_o2 = pd.read_sql_query(query2, db.engine)
+    operation_query = OperationQuery(session, vehicle)
+    df_o = pd.read_sql_query(operation_query.query_1, db.engine)
+    df_o2 = pd.read_sql_query(operation_query.query_2, db.engine)
     scatter = plot.create_plot(df_o, session["graph_var_x"], session["graph_var_y"])
     scatter2 = plot.create_plot(df_o2, session["graph_var_x2"], session["graph_var_y2"])
     session["calendar_pretty"] = open_dataframes.pretty_var_name(
@@ -360,16 +238,9 @@ def energy_monitor():
     :return:
     """
     vehicle = Vehicle.query.filter_by(belongs_to=current_user.id, activo=True).first()
-    try:
-        session["time_interval"]
-        session["est_cons"]
-        session["est_time"]
-        session["lights"]
-    except KeyError:
-        session["time_interval"] = "2 d"
-        session["est_time"] = 0
-        session["est_cons"] = 0
-        session["lights"] = 0
+    now = datetime.now(pytz.timezone("America/Bogota"))
+    sess_conf = SessionConfig(now)
+    sess_conf.assign_missing_keys(session)
 
     if request.method == "POST":
         session["time_interval"] = request.form["time_interval"]
@@ -414,7 +285,7 @@ def energy_monitor():
     elif "d" in unit:
         session["energy_t2"] = now - timedelta(days=number)
 
-    query1 = (
+    operation_query = (
         'SELECT timestamp, power_kw from operation WHERE speed > 0 AND timestamp BETWEEN "'
         + str(session["energy_t2"])
         + '" and "'
@@ -422,7 +293,7 @@ def energy_monitor():
         + '" ORDER BY timestamp'
     )
 
-    df_o = pd.read_sql_query(query1, db.engine)
+    df_o = pd.read_sql_query(operation_query, db.engine)
     try:
         scatter_cons = plot.create_double_plot(df_o, "timestamp", "power_kw")
         donut = plot.create_kwh_donut(df_o, "timestamp", "power_kw", "cons", "regen")
@@ -447,21 +318,9 @@ def show_tables():
     df_vehicles = pd.read_sql_query(query, db.engine)
 
     vehicle = Vehicle.query.filter_by(belongs_to=current_user.id, activo=True).first()
-    try:
-        session["var1"]
-        session["var2"]
-        session["var3"]
-        session["var4"]
-        session["var5"]
-        session["records"]
-    except KeyError:
-
-        session["var1"] = "odometer"
-        session["var2"] = "speed"
-        session["var3"] = "mean_acc"
-        session["var4"] = "power_kw"
-        session["var5"] = "slope"
-        session["records"] = 200
+    now = datetime.now(pytz.timezone("America/Bogota"))
+    sess_conf = SessionConfig(now)
+    sess_conf.assign_missing_keys(session)
 
     if request.method == "POST":
         session["var1"] = request.form["var1"]
@@ -488,16 +347,7 @@ def show_tables():
         if session["h2"] < session["h1"]:
             session["h1"], session["h2"] = session["h2"], session["h1"]  # Swap times
 
-    if vehicle is not None:
-
-        query0 = (
-            "SELECT date(timestamp), MAX("
-            + session["calendar_var"]
-            + ") as 'max_value' FROM operation WHERE vehicle_id = '"
-            + str(vehicle.placa)
-            + "' GROUP BY date(timestamp)"
-        )
-
+    if vehicle:
         query = (
             "SELECT timestamp, "
             + session["var1"]
@@ -524,8 +374,8 @@ def show_tables():
         )
 
         session["query"] = query
-
-        df_calendar = pd.read_sql_query(query0, db.engine)
+        calendar_query = CalendarQuery(session, vehicle)
+        df_calendar = pd.read_sql_query(calendar_query.query, db.engine)
         df_calendar = df_calendar.dropna()
         df = pd.read_sql_query(query, db.engine)
         scatter = 0
@@ -565,6 +415,7 @@ def show_tables():
         integral_fiori = 0
         integral_power = 0
         df = pd.DataFrame([])
+        session["query"] = None
         df_calendar = pd.DataFrame([])
         scatter = 0
 
@@ -592,13 +443,17 @@ def show_tables():
 
 @app.route("/<username>/download-csv")
 def download_csv(username):
-    query = session["query"] or 'select * from operation limit 1000'
+    query = session["query"] or "select 1"
     operation = pd.read_sql_query(query, db.engine)
     return Response(
         operation.to_csv(sep=";"),
         mimetype="text/csv",
-        headers={"Content-disposition":
-                 "attachment; filename=operation.csv"})
+        headers={
+            "Content-disposition": "attachment; filename=operation-{}.csv".format(
+                username
+            )
+        },
+    )
 
 
 @app.route("/zones_map", methods=["GET", "POST"])
@@ -612,43 +467,20 @@ def show_zones_map():
     df_vehicles = pd.read_sql_query(query, db.engine)
 
     vehicle = Vehicle.query.filter_by(belongs_to=current_user.id, activo=True).first()
-    try:
-        session["form_d1"]
-        session["form_h1"]
-        session["form_h2"]
-        session["d1"]
-        session["h1"]
-        session["h2"]
-        session["calendar_var"]
 
-    except KeyError:
-        now = datetime.now(pytz.timezone("America/Bogota"))
-        session["form_d1"] = now.strftime("%d/%m/%Y")
-        session["form_h1"] = "0:01 AM"
-        session["form_h2"] = now.strftime("%I:%M %p")  # 12H Format
-        session["d1"] = now.strftime("%Y-%m-%d")
-        session["h1"] = "00:00:00"
-        session["h2"] = now.strftime("%H:%M:%S")
-        session["calendar_var"] = "power_kw"
+    now = datetime.now(pytz.timezone("America/Bogota"))
+    sess_conf = SessionConfig(now)
+    sess_conf.assign_missing_keys(session)
 
-    # if vehicle is not None:
-
-    query0 = (
-        "SELECT date(timestamp), MAX("
-        + session["calendar_var"]
-        + ") as 'max_value' FROM operation WHERE vehicle_id = '"
-        + str(vehicle.placa)
-        + "' GROUP BY date(timestamp)"
-    )
-
-    df_calendar = pd.read_sql_query(query0, db.engine)
     session["calendar_pretty"] = open_dataframes.pretty_var_name(
         session["calendar_var"]
     )
     zones = open_dataframes.get_zones()
     json_zones = Markup(zones.to_json(orient="records"))
 
-    if vehicle is not None:
+    if vehicle:
+        calendar_query = CalendarQuery(session, vehicle)
+        df_calendar = pd.read_sql_query(calendar_query.query, db.engine)
 
         lines_df = open_dataframes.get_lines(
             vehicle, session["d1"], session["h1"], session["h2"]
@@ -664,6 +496,7 @@ def show_zones_map():
         json_lines = Markup(lines_df.to_json(orient="records"))
     else:
         json_lines = 0
+        df_calendar = pd.DataFrame([])
 
     return render_template(
         "zones_map.html",
@@ -685,36 +518,12 @@ def show_vehicle_map():
     df_vehicles = pd.read_sql_query(query, db.engine)
 
     vehicle = Vehicle.query.filter_by(belongs_to=current_user.id, activo=True).first()
-    try:
-        session["map_var"]
-        session["form_d1"]
-        session["form_h1"]
-        session["form_h2"]
-        session["d1"]
-        session["h1"]
-        session["h2"]
-        session["calendar_var"]
-    except KeyError:
-        session["map_var"] = "elevation"
-        session["map_car"] = "seleccione vehiculo"
-        now = datetime.now(pytz.timezone("America/Bogota"))
-        session["form_d1"] = now.strftime("%d/%m/%Y")
-        session["form_h1"] = "0:01 AM"
-        session["form_h2"] = now.strftime("%I:%M %p")  # 12H Format
-        session["d1"] = now.strftime("%Y-%m-%d")
-        session["h1"] = "00:00:00"
-        session["h2"] = now.strftime("%H:%M:%S ")
-        session["calendar_var"] = "power_kw"
+    now = datetime.now(pytz.timezone("America/Bogota"))
 
-    query0 = (
-        "SELECT date(timestamp), MAX("
-        + session["calendar_var"]
-        + ") as 'max_value' FROM operation WHERE vehicle_id = '"
-        + str(vehicle.placa)
-        + "' GROUP BY date(timestamp)"
-    )
+    now = datetime.now(pytz.timezone("America/Bogota"))
+    sess_conf = SessionConfig(now)
+    sess_conf.assign_missing_keys(session)
 
-    df_calendar = pd.read_sql_query(query0, db.engine)
     session["calendar_pretty"] = open_dataframes.pretty_var_name(
         session["calendar_var"]
     )
@@ -722,7 +531,9 @@ def show_vehicle_map():
     stations_df = open_dataframes.get_stations()
     json_stations = Markup(stations_df.to_json(orient="records"))
 
-    if vehicle is not None:
+    if vehicle:
+        calendar_query = CalendarQuery(session, vehicle)
+        df_calendar = pd.read_sql_query(calendar_query.query, db.engine)
 
         lines_df = open_dataframes.get_lines(
             vehicle, session["d1"], session["h1"], session["h2"]
@@ -753,6 +564,7 @@ def show_vehicle_map():
     else:
         json_lines = 0
         json_operation = 0
+        df_calendar = pd.DataFrame([])
 
     return render_template(
         "vehicle_map.html",

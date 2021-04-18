@@ -1,15 +1,16 @@
-import os
-import math
 import datetime
+import math
+import os
 from pickle import load
-import osmnx as ox
+
 import geopy
-import pandas as pd
 import googlemaps
-import pytz
-import plotly.graph_objects as go
-import numpy as np
 import networkx as nw
+import numpy as np
+import osmnx as ox
+import pandas as pd
+import plotly.graph_objects as go
+import pytz
 
 from app import app
 
@@ -215,7 +216,14 @@ def calculate_consumption(
     # Apply scaling
     scaler = load(open(path + "/MachineLearningModels/scaler_lm.pkl", "rb"))
 
-    columns = ["mean_max_power_usr", "mean_soc", "mean_speed", "slope", 'mean_min_power_usr', 'mean_consumption_per_km_usr']
+    columns = [
+        "mean_max_power_usr",
+        "mean_soc",
+        "mean_speed",
+        "slope",
+        "mean_min_power_usr",
+        "mean_consumption_per_km_usr",
+    ]
     segments_scaled = pd.DataFrame(
         scaler.transform(segments_consolidated[columns]), columns=columns
     )

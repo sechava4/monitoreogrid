@@ -16,9 +16,7 @@ gunicorn
 gevent
 scikit-learn~=0.24.0
 matplotlib
-redis
 
-rq~=1.7.0
 xgboost~=1.3.3
 pytz~=2020.5
 email_validator
