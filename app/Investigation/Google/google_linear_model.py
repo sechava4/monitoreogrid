@@ -297,16 +297,6 @@ def calculate_consumption(
     # segments_consolidated['consumption_per_km'] = lst_kWh_per_km
 
     for mod in models:
-        # if mod == 'linear':
-        #     segments_consolidated['consumption_per_km_lm'] = 0.0598 * segments_consolidated['slope'] + \
-        #                                                      0.0023 * segments_consolidated['mean_max_power_usr'] + \
-        #                                                      0.0004 + segments_consolidated['mean_soc'] + \
-        #                                                      0.0005 * segments_consolidated['mean_speed']
-        #
-        #     segments_consolidated['consumptionWh_lm'] = segments_consolidated['consumption_per_km_lm'] * \
-        #                                                 segments_consolidated['kms']
-        #
-        # else:
         segments_scaled["consumption_per_km"] = models[mod].predict(
             segments_scaled[columns].values
         )

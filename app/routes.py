@@ -200,7 +200,7 @@ def energy_monitor():
         try:
             session["P_ini"] = ast.literal_eval(request.form["pos_o"])
             session["P_fin"] = ast.literal_eval(request.form["pos_d"])
-            now = datetime.now(pytz.timezone("America/Bogota"))
+            now = datetime.now()
             print(session["P_fin"])
             gmaps = googlemaps.Client(key="AIzaSyChV7Sy3km3Fi8hGKQ8K9t7n7J9f6yq9cI")
             a = gmaps.directions(
