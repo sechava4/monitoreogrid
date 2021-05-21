@@ -1,7 +1,8 @@
 //const vehicle_id = "FSV110";
 const vehicle_id = "GHW284";
-const URL = "http://157.230.209.3/addjson";
-var URL_esp32 = "http://192.168.4.3/data";
+//const URL = "http://157.230.209.3/addjson";
+const URL = "http://ec2-3-234-243-227.compute-1.amazonaws.com/addjson";
+//var URL_esp32 = "http://192.168.4.3/data";
 var espurl = 2;
 var objTLM;
 var objTimer;
@@ -182,8 +183,8 @@ function GetURL_auxdata() {
 function Make_Request(){
     p = new Date();
     prev = p.getTime();
-    HTTP.Request(GetURL_auxdata());
-    //HTTP.Request(GetURLcfg());
+    //HTTP.Request(GetURL_auxdata());
+    HTTP.Request(GetURLcfg());
 }
 
 function SendLiveData() {
@@ -215,23 +216,7 @@ function SendLiveData() {
         if (i > 8) {
             Make_Request();
         }
-        /*
-        if ((OvmsMetrics.AsFloat("v.p.speed") <= 1) && (first == true) ) { //&& ((cms - time_to_os4_millis) > 90000) ){  // && (Boolean(OvmsMetrics.Value("v.e.on")) == true) ){
-            // Ir al estado "detenido en ruta"
-            //operative_state = 4;
-            time_to_os4 = new Date();
-            time_to_os4_millis = time_to_os4.getTime();
-            first = false;
-            print("fisrt");
-            Make_Request();
-        }
 
-        else if (OvmsMetrics.AsFloat("v.p.speed") > 1)  {
-            first = true;
-            Make_Request();
-        }
-        */
-        // si han pasado mas de 90 segundos de estar quieto
         if ((speed <= 1) && (Boolean(OvmsMetrics.Value("v.e.on")) === false) ) { //&& ((cms - time_to_os4_millis) > 90000) ) {
             operative_state = 4;
             Make_Request();

@@ -166,6 +166,7 @@ class Operation(db.Model):
     AcY = db.Column(db.Float)
     AcZ = db.Column(db.Float)
     humidity = db.Column(db.Float)
+    assist_level = db.Column(db.Integer)
 
 
 class Task(db.Model):
