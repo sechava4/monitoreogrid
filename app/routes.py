@@ -108,7 +108,13 @@ def show_entries():
     sess_conf.assign_missing_variables(session)
 
     if request.method == "POST":
-        for var in ["calendar_var", "graph_var_x", "graph_var_y", "graph_var_x2", "graph_var_y2"]:
+        for var in [
+            "calendar_var",
+            "graph_var_x",
+            "graph_var_y",
+            "graph_var_x2",
+            "graph_var_y2",
+        ]:
             session[var] = request.form[var]
 
         for var in ["d1", "h1", "h2", "d2", "h3", "h4"]:
@@ -143,7 +149,13 @@ def show_entries():
         box = df_o[session["graph_var_y"]].tolist()
         box2 = df_o2[session["graph_var_y2"]].tolist()
 
-        for var in ["calendar_var", "graph_var_x", "graph_var_y", "graph_var_x2", "graph_var_y2"]:
+        for var in [
+            "calendar_var",
+            "graph_var_x",
+            "graph_var_y",
+            "graph_var_x2",
+            "graph_var_y2",
+        ]:
             session[var + "_pretty"] = open_dataframes.pretty_var_name(session[var])
 
     else:
@@ -218,7 +230,11 @@ def energy_monitor():
                 app.root_path, "Investigation/ConsumptionEstimationJournal"
             )
             # session['est_cons'], session['est_time'] = consumption_models.smartcharging_consumption_query(new_df)
-            session["est_cons"], session["est_time"], _ = google_query.calculate_consumption(segments, estimation_path)
+            (
+                session["est_cons"],
+                session["est_time"],
+                _,
+            ) = google_query.calculate_consumption(segments, estimation_path)
         except SyntaxError:
             session["est_cons"] = 0
             session["est_time"] = 0
@@ -235,11 +251,11 @@ def energy_monitor():
         session["energy_t2"] = now - timedelta(days=number)
 
     operation_query = (
-            'SELECT timestamp, power_kw from operation WHERE speed > 0 AND timestamp BETWEEN "'
-            + str(session["energy_t2"])
-            + '" and "'
-            + str(session["energy_t1"])
-            + '" ORDER BY timestamp'
+        'SELECT timestamp, power_kw from operation WHERE speed > 0 AND timestamp BETWEEN "'
+        + str(session["energy_t2"])
+        + '" and "'
+        + str(session["energy_t1"])
+        + '" ORDER BY timestamp'
     )
 
     df_o = pd.read_sql_query(operation_query, db.engine)
@@ -286,28 +302,28 @@ def show_tables():
 
     if vehicle:
         query = (
-                "SELECT timestamp, "
-                + session["var1"]
-                + " ,"
-                + session["var2"]
-                + " ,"
-                + session["var3"]
-                + " ,"
-                + session["var4"]
-                + " ,"
-                + session["var5"]
-                + ' from operation WHERE vehicle_id = "'
-                + str(vehicle.placa)
-                + '" AND timestamp BETWEEN "'
-                + session["d1"]
-                + " "
-                + str(session["h1"])[:8]
-                + '" and "'
-                + str(session["d1"])
-                + " "
-                + str(session["h2"])[:8]
-                + '" limit '
-                + str(session["records"])
+            "SELECT timestamp, "
+            + session["var1"]
+            + " ,"
+            + session["var2"]
+            + " ,"
+            + session["var3"]
+            + " ,"
+            + session["var4"]
+            + " ,"
+            + session["var5"]
+            + ' from operation WHERE vehicle_id = "'
+            + str(vehicle.placa)
+            + '" AND timestamp BETWEEN "'
+            + session["d1"]
+            + " "
+            + str(session["h1"])[:8]
+            + '" and "'
+            + str(session["d1"])
+            + " "
+            + str(session["h2"])[:8]
+            + '" limit '
+            + str(session["records"])
         )
 
         session["query"] = query
@@ -319,9 +335,14 @@ def show_tables():
         integral_jimenez = 0
         integral_power = 0
         integral_fiori = 0
-        if (all(col in operation_df.columns for col in ["slope", "speed", "mean_acc", "power_kw"])
-                and len(operation_df.columns) == 6
-                and len(operation_df) > 1):
+        if (
+            all(
+                col in operation_df.columns
+                for col in ["slope", "speed", "mean_acc", "power_kw"]
+            )
+            and len(operation_df.columns) == 6
+            and len(operation_df) > 1
+        ):
 
             try:
                 consumption_models.add_consumption_cols(
@@ -556,9 +577,9 @@ def add_entry():
             # Si es el primer dato de ese vehículo
             last = args
             query = (
-                    'SELECT * FROM operation where vehicle_id = "'
-                    + args["vehicle_id"]
-                    + '" ORDER  BY id DESC LIMIT 1'
+                'SELECT * FROM operation where vehicle_id = "'
+                + args["vehicle_id"]
+                + '" ORDER  BY id DESC LIMIT 1'
             )
 
             # Select the last from the same vehicle that is incoming
@@ -569,11 +590,11 @@ def add_entry():
 
             coords_2 = (float(args["latitude"]), float(args["longitude"]))
             google_url = (
-                    "https://maps.googleapis.com/maps/api/elevation/json?locations="
-                    + str(args["latitude"])
-                    + ","
-                    + str(args["longitude"])
-                    + "&key=AIzaSyChV7Sy3km3Fi8hGKQ8K9t7n7J9f6yq9cI"
+                "https://maps.googleapis.com/maps/api/elevation/json?locations="
+                + str(args["latitude"])
+                + ","
+                + str(args["longitude"])
+                + "&key=AIzaSyChV7Sy3km3Fi8hGKQ8K9t7n7J9f6yq9cI"
             )
 
             r = requests.get(google_url).json()
@@ -647,12 +668,12 @@ def add_entry():
                 if c_rate > 0:
                     b = 448.96 * c_rate ** 2 - 6301.1 * c_rate + 33840
                     operation.q_loss = (
-                            b
-                            * math.exp(
-                        (-31700 + (c_rate * 370.3))
-                        / (8.314472 * (float(args["batt_temp"])))
-                    )
-                            * ah ** 0.552
+                        b
+                        * math.exp(
+                            (-31700 + (c_rate * 370.3))
+                            / (8.314472 * (float(args["batt_temp"])))
+                        )
+                        * ah ** 0.552
                     )
                 else:
                     operation.q_loss = 0

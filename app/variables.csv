@@ -80,3 +80,4 @@ id,var,var_pretty
 78,AcY, Acelerómetro (Y)
 79,AcZ, Acelerómetro (Z)
 80,humidity, Humedad (%)
+81,assist_level, Nivel de asistencia

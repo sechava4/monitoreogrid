@@ -149,7 +149,6 @@ def calc_shortest_path(G, lat_o, lon_o, lat_d, lon_d):
 def calculate_consumption(
     segments,
     path=os.path.join(app.root_path) + "/Investigation/ConsumptionEstimationJournal",
-    model="linear",
     soc=70,
     user="Santiago_Echavarria_01",
 ):
@@ -190,39 +189,34 @@ def calculate_consumption(
         right_on=["slope_cat", "user_id"],
     )
 
-    segments_consolidated["mean_max_power_usr"] = segments_consolidated.apply(
-        lambda row: row["mean_max_power"]
-        if np.isnan(row["mean_max_power_usr"])
-        else row["mean_max_power_usr"],
+    segments_consolidated["mean_power_usr"] = segments_consolidated.apply(
+        lambda row: row["mean_power_by_slope"]
+        if np.isnan(row["mean_power_usr"])
+        else row["mean_power_usr"],
         axis=1,
     )
-
-    segments_consolidated["mean_min_power_usr"] = segments_consolidated.apply(
-        lambda row: row["mean_min_power"]
-        if np.isnan(row["mean_min_power_usr"])
-        else row["mean_min_power_usr"],
+    segments_consolidated["mean_min_acc_usr"] = segments_consolidated.apply(
+        lambda row: row["mean_min_acc"]
+        if np.isnan(row["mean_min_acc_usr"])
+        else row["mean_min_acc_usr"],
         axis=1,
     )
-
     segments_consolidated["mean_consumption_per_km_usr"] = segments_consolidated.apply(
         lambda row: row["mean_consumption_per_km"]
         if np.isnan(row["mean_consumption_per_km_usr"])
         else row["mean_consumption_per_km_usr"],
         axis=1,
     )
-
     segments_consolidated["mean_soc"] = soc
 
     # Apply scaling
     scaler = load(open(path + "/MachineLearningModels/scaler_lm.pkl", "rb"))
 
     columns = [
-        "mean_max_power_usr",
-        "mean_soc",
+        "mean_power_usr",
+        "mean_min_acc_usr",
         "mean_speed",
         "slope",
-        "mean_min_power_usr",
-        "mean_consumption_per_km_usr",
     ]
 
     segments_scaled = pd.DataFrame(
@@ -230,7 +224,7 @@ def calculate_consumption(
     )
 
     # Load inverse scaler
-    scaler_inv = load(open(path + "/MachineLearningModels//scaler.pkl", "rb"))
+    scaler_inv = load(open(path + "/MachineLearningModels/scaler.pkl", "rb"))
 
     # load random forest regressor
     r_forest_reg = load(
@@ -339,7 +333,7 @@ if __name__ == "__main__":
     df = get_segments(a)
 
     consumption, time, df = calculate_consumption(
-        segments=df, path=path, model="RF", soc=100, user="Santiago_Echavarria_01"
+        segments=df, path=path, soc=100, user="Santiago_Echavarria_01"
     )
 
     print("Consumo estimado", consumption, "kWh")
