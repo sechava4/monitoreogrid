@@ -109,10 +109,7 @@ def show_entries():
 
     if request.method == "POST":
         for var in [
-            "calendar_var",
-            "graph_var_x",
             "graph_var_y",
-            "graph_var_x2",
             "graph_var_y2",
         ]:
             session[var] = request.form[var]
@@ -150,10 +147,7 @@ def show_entries():
         box2 = df_o2[session["graph_var_y2"]].tolist()
 
         for var in [
-            "calendar_var",
-            "graph_var_x",
             "graph_var_y",
-            "graph_var_x2",
             "graph_var_y2",
         ]:
             session[var + "_pretty"] = open_dataframes.pretty_var_name(session[var])
@@ -182,11 +176,8 @@ def update_plot():
     :return:
     """
     vehicle = Vehicle.query.filter_by(belongs_to=current_user.id, activo=True).first()
-    try:
-
-        session["calendar_var"]
-    except KeyError:
-        session["calendar_var"] = "power_kw"
+    if "calendar_var" not in session.keys():
+        session["calendar_var"] = "drivetime"
 
     operation_query = OperationQuery(session, vehicle)
     df_o = pd.read_sql_query(operation_query.query_1, db.engine)
@@ -420,57 +411,6 @@ def download_csv(username):
     )
 
 
-@app.route("/zones_map", methods=["GET", "POST"])
-@login_required
-def show_zones_map():
-    """
-    page for showing sit zones
-    :return:
-    """
-    query = 'SELECT * FROM vehicle where belongs_to = "' + str(current_user.id) + '"'
-    df_vehicles = pd.read_sql_query(query, db.engine)
-
-    vehicle = Vehicle.query.filter_by(belongs_to=current_user.id, activo=True).first()
-
-    now = datetime.now(pytz.timezone("America/Bogota"))
-    sess_conf = SessionConfig(now)
-    sess_conf.assign_missing_variables(session)
-
-    session["calendar_pretty"] = open_dataframes.pretty_var_name(
-        session["calendar_var"]
-    )
-    zones = open_dataframes.get_zones()
-    json_zones = Markup(zones.to_json(orient="records"))
-
-    if vehicle:
-        calendar_query = CalendarQuery(session, vehicle)
-        df_calendar = pd.read_sql_query(calendar_query.query, db.engine)
-
-        lines_df = open_dataframes.get_lines(
-            vehicle, session["d1"], session["h1"], session["h2"]
-        )
-        if len(lines_df) > 0:
-            _, lines_df["id_nearest_zone"] = Trees.zones_tree.query(
-                lines_df[["latitude", "longitude"]].values, k=1
-            )
-            lines_df["name"] = (
-                zones["name"].reindex(index=lines_df["id_nearest_zone"]).tolist()
-            )
-
-        json_lines = Markup(lines_df.to_json(orient="records"))
-    else:
-        json_lines = 0
-        df_calendar = pd.DataFrame([])
-
-    return render_template(
-        "zones_map.html",
-        json_zones=json_zones,
-        json_lines=json_lines,
-        calendar=df_calendar.to_json(orient="records"),
-        vehicles=df_vehicles.to_json(orient="records"),
-    )
-
-
 @app.route("/vehicle_map", methods=["GET", "POST"])
 @login_required
 def show_vehicle_map():
@@ -482,8 +422,6 @@ def show_vehicle_map():
     df_vehicles = pd.read_sql_query(query, db.engine)
 
     vehicle = Vehicle.query.filter_by(belongs_to=current_user.id, activo=True).first()
-    now = datetime.now(pytz.timezone("America/Bogota"))
-
     now = datetime.now(pytz.timezone("America/Bogota"))
     sess_conf = SessionConfig(now)
     sess_conf.assign_missing_variables(session)
@@ -694,7 +632,7 @@ def login():
     if current_user.is_authenticated:
         session["graph_var_x"] = "timestamp"
         session["graph_var_y"] = "soc"
-        return redirect(url_for("show_entries"))
+        return redirect(url_for("show_vehicle_map"))
     form = LoginForm()
     if form.validate_on_submit():
         user = User.query.filter_by(username=form.username.data).first()
@@ -704,7 +642,7 @@ def login():
         login_user(user, remember=form.remember_me.data)
         next_page = request.args.get("next")
         if not next_page or url_parse(next_page).netloc != "":
-            next_page = url_for("show_entries")
+            next_page = url_for("show_vehicle_map")
         session["graph_var_x"] = "timestamp"
         session["graph_var_y"] = "soc"
         return redirect(next_page)
@@ -718,7 +656,7 @@ def register():
     :return:
     """
     if current_user.is_authenticated:
-        return redirect(url_for("show_entries"))
+        return redirect(url_for("show_vehicle_map"))
     form = RegistrationForm()
     if form.validate_on_submit():
         user = User(username=form.username.data, email=form.email.data)
@@ -753,19 +691,6 @@ def map_var():
     read_form_dates(session, day=1, hour=1)
 
     return redirect(url_for("show_vehicle_map"))
-
-
-@app.route("/zones_interval", methods=["POST"])
-def zones_interval():
-    """
-    redirects when zones map form is submitted
-    :return:
-    """
-    for var in ["d1", "h1", "h2"]:
-        session["form_" + var] = request.form[var]
-
-    read_form_dates(session, day=1, hour=1)
-    return redirect(url_for("show_zones_map"))
 
 
 @app.route("/favicon.ico")

@@ -16,8 +16,8 @@ class SessionConfig:
             "h1": "00:00:00",
             "h2": now.strftime("%H:%M:%S"),
             "graph_var_x": "timestamp",
-            "graph_var_y": "power_ kw",
-            "calendar_var": "power_kw",
+            "graph_var_y": "speed",
+            "calendar_var": "drivetime",
             "map_var": "elevation",
             "time_interval": "2 d",
             "est_time": 0,
@@ -36,7 +36,7 @@ class SessionConfig:
             "h3": "00:00:00",
             "h4": now.strftime("%H:%M:%S"),
             "graph_var_x2": "timestamp",
-            "graph_var_y2": "power_kw",
+            "graph_var_y2": "capacity",
         }
 
     def assign_missing_variables(self, session):

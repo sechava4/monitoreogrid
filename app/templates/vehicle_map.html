@@ -6,14 +6,14 @@
     <title>Vehiculos</title>
     <div id="line_top_x"></div>
         <ul class="nav nav-tabs">
+{#          <li class="nav-item">#}
+{#            <a class="nav-link" href="{{ url_for('energy_monitor') }}">Panel de energía</a>#}
+{#          </li>#}
           <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('energy_monitor') }}">Panel de energía</a>
+            <a class="nav-link active" href="{{ url_for('show_vehicle_map') }}" aria-selected="true">Mapa</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link active" href="{{ url_for('show_vehicle_map') }}" aria-selected="true">Panel topográfico</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('show_entries') }}" aria-selected="false" >Gráficos personalizados</a>
+            <a class="nav-link" href="{{ url_for('show_entries') }}" aria-selected="false" > Dashboard </a>
           </li>
           <li class="nav-item">
             <a class="nav-link" href="{{ url_for('show_tables') }}" aria-selected="false">Tablas</a>
@@ -23,11 +23,8 @@
      </div>
     <ul class="nav nav-tabs">
           <li class="nav-item">
-          <a class="nav-link active" id="v-pills-profile-tab"  href="{{ url_for('show_vehicle_map') }}" >Vehículos</a>
+          <a class="nav-link active" id="v-pills-profile-tab"  href="{{ url_for('show_vehicle_map') }}" > Operación </a>
           </li>
-         <li class="nav-item">
-          <a class="nav-link" href="{{ url_for('show_zones_map') }}" >Zonas</a>
-         </li>
     </ul>
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     <script type="text/javascript">
@@ -49,7 +46,7 @@
            var chart = new google.visualization.Calendar(document.getElementById('calendar_basic'));
 
            var options = {
-             title: "Valores máximos por día",
+             title: "Tiempo de manejo",
            };
 
            chart.draw(dataTable, options);
@@ -110,7 +107,6 @@
           google.visualization.events.addListener(table, 'select', selectHandler);
 
                function selectHandler() {
-                   console.log('holalala')
                     item = table.getSelection()[0]
                     if (item.row != null) {
                         console.log(data_vehicles[item.row]);
@@ -140,84 +136,19 @@
 
     <div class="variables">
         <form role="form" class="form-inline" id="Mainform1" action="{{ url_for('map_var') }}" method=post>
-
-             <div style="width: 100%;margin: 10px;">
-                <select class="form-control" id="CalendarVarSelect" name = calendar_var onchange="this.form.submit();">
-                    <option value="{{session.calendar_var}}"> {{session.calendar_pretty}}</option>
-                    <option value="drivetime">Tiempo de manejo</option>
-                    <option value="mec_power">Potencia efectiva (server) (kW) </option>
-                    <option value="power_kw">Potencia eléctrica (Kw)</option>
-                    <option value="elevation">Altitud (msnm)</option>
-                    <option value="slope">Pendiente (°)</option>
-                    <option value="mean_speed">Velocidad promedio (Km/h)</option>
-                    <option value="speed">Velocidad instantánea (Km/h)</option>
-                    <option value="odometer">Odometro (Km)</option>
-                    <option value="capacity">Capacidad (kWh)</option>
-                </select>
-                </div>
-                <div id="calendar_basic" style="width: 100%; height: 50%;margin: 20px;"></div>
-
+            <div id="calendar_basic" style="width: 100%; height: 50%;margin: 20px;"></div>
             <div class="col-auto">
-                <label class="label label-default" for="exampleFormControlSelect3"> Variable de monitoreo </label>
+                <label class="label label-default" for="exampleFormControlSelect3"> Visualizar </label>
                 <select class="form-control" id="exampleFormControlSelect3" name = map_var onchange="this.form.submit();">
                     <option value="{{session.map_var}}"> {{session.map_var_pretty}}</option>
-                    <option value="elevation">Altitud (google api)</option>
-                    <option value="elevation2">Altitud (Barómetro)</option>
-                    <option value="slope">Pendiente (°)</option>
-                    <option value="mean_speed">Velocidad promedio (Km/h)</option>
                     <option value="speed">Velocidad instantánea (Km/h)</option>
-                    <option value="user_id">Usuario</option>
-                    <option value="operative_state">Estado Operativo</option>
-                    <option value="odometer">Odometro (Km)</option>
                     <option value="capacity">Capacidad (kWh)</option>
-
-                    <option value="energy_rec">Energia recuperada (Kwh) </option>
-                    <option value="charge_current">Corriente de carga (A) </option>
-                    <option value="charge_time">Tiempo de Carga (s) </option>
-                    <option value="charger_type">Tipo de cargador  </option>
-
-                    <option value="power_kw">Potencia eléctrica (Kw)</option>
-                    <option value="mec_power">Potencia efectiva (Kw) </option>
-                    <option value="eff">Eficiencia (%) </option>
-                    <option value="angle_x">Angulo X </option>
-                    <option value="angle_y">Angulo Y </option>
-
-                    <option value="AcX">Acelerómetro (X) </option>
-                    <option value="AcY">Acelerómetro (Y) </option>
-                    <option value="AcZ">Acelerómetro (Z) </option>
-                    <option value="humidity">Humedad (%) </option>
-                    <option value="q_loss">Perdida de Capacidad </option>
-
-                    <option value="en_pot">Delta Energía potenical (J) </option>
-                    <option value="net_force">Fuerza neta (N) </option>
-                    <option value="friction_force">Fuerza de fricción (N) </option>
-                    <option value="run">Recorrido desde ultimo registro (m) </option>
                     <option value="soc">SOC</option>
-                    <option value="soh">SOH</option>
                     <option value="batt_temp">Temperatura de batería (°C)</option>
-                    <option value="ext_temp">Temperatura externa (°C)</option>
-                    <option value="voltage">Voltage (V)</option>
-                    <option value="current">Corriente (A)</option>
-                    <option value="mean_acc">Aceleración promedio (m/s^2)</option>
-                    <option value="acceleration">Aceleración motor </option>
-                    <option value="net_signal">network quality </option>
-                    <option value="throttle">Pedal de acelerador</option>
-                    <option value="regen_brake">Freno regenerativo</option>
-                    <option value="consumption">Consumo</option>
-                    <option value="range_est">Rango estimado</option>
-                    <option value="range_ideal">Rango ideal</option>
-                    <option value="drivetime">Tiempo de manejo</option>
-                    <option value="charge_time">Tiempo de carga </option>
-                    <option value="is_charging">Esta cargando</option>
-                    <option value="tpms">presion llantas (psi)</option>
-                    <option value="ocv">OCV</option>
-                    <option value="occupants">Ocupantes</option>
-                    <option value="footbrake">Freno de pedal</option>
-                    <option value="engine_temp">Temperatura de motor (°C)</option>
                 </select>
             </div>
 
-            <div class='col-sm-2'>
+            <div class=' col-auto'>
                 <label class="label label-default" for="date"> Fecha </label>
                 <div class="form-group" id = 'date'>
                     <div class='input-group date' id='datetimepicker1'>
@@ -236,7 +167,7 @@
                 });
             </script>
 
-            <div class='col-sm-2'>
+            <div class=' col-auto'>
                 <label class="label label-default" for="hora1"> Desde </label>
                 <div class="form-group" id="hora1">
                     <div class='input-group date' id='datetimepicker3'>
@@ -257,7 +188,7 @@
                 });
             </script>
 
-            <div class='col-sm-2'>
+            <div class=' col-auto'>
                 <label class="label label-default" for="hora2"> Hasta </label>
                 <div class="form-group" id="hora2">
                     <div class='input-group date' id='datetimepicker4'>
