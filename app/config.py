@@ -56,7 +56,7 @@ class OperationQuery:
             + session["graph_var_y"]
             + ' from operation WHERE vehicle_id = "'
             + str(vehicle.placa)
-            + '" AND timestamp BETWEEN "'
+            + '" AND ' + session["graph_var_y"] + ' IS NOT NULL AND timestamp BETWEEN "'
             + session["d1"]
             + " "
             + str(session["h1"])[:8]
@@ -74,7 +74,7 @@ class OperationQuery:
             + session["graph_var_y2"]
             + ' from operation WHERE vehicle_id = "'
             + str(vehicle.placa)
-            + '" AND timestamp BETWEEN "'
+            + '" AND ' + session["graph_var_y2"] + ' IS NOT NULL AND timestamp BETWEEN "'
             + session["d2"]
             + " "
             + str(session["h3"])[:8]
@@ -99,22 +99,26 @@ class CalendarQuery:
 
 class DevConfig(object):
     SECRET_KEY = (
-        os.environ.get("SECRET_KEY")
-        or "aj8hdljsdaklhqhk248e21cjn!Ew@fhfkfghfghggg4565t@dsa"
+        os.environ.get("SECRET_KEY") or "adljsakldjk72s4e21cjn!Ew@fhfghfghggg4565t@dsa"
     )
-    SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.join(
-        basedir, "DB.db"
-    )  # os.environ.get('DATABASE_URL') or \
-    SQLALCHEMY_TRACK_MODIFICATIONS = False
+    # La clave puede venir como configuración idealmente
+    SQLALCHEMY_DATABASE_URI = (
+        # os.environ.get("DATABASE_URL") or
+        "mysql+pymysql://admin:5Actu_adores.@localhost/monitoreodb"
+    )
+
+    SQLALCHEMY_TRACK_MODIFICATIONS = True
     TESTING = False
-    REDIS_URL = os.environ.get("REDIS_URL") or "redis://"
 
 
 class Config(object):
     SECRET_KEY = (
-        os.environ.get("SECRET_KEY") or "adljsakldjk2s4e21cyjn!Ew@fhfghfghggg4565t@dsa"
+        os.environ.get("SECRET_KEY") or "adljsakldjk72s4e21cjn!Ew@fhfghfghggg4565t@dsa"
     )
-    SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL")
+    SQLALCHEMY_DATABASE_URI = (
+        os.environ.get("DATABASE_URL")
+        or "mysql+pymysql://admin:5Actu_adores.@localhost:3306/monitoreodb"
+    )
+
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     TESTING = False
-    REDIS_URL = os.environ.get("REDIS_URL") or "redis://"

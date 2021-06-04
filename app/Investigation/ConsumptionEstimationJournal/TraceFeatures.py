@@ -11,13 +11,6 @@ import plotly
 import time
 
 
-class OSM:
-    graphpath = app.root_path + "/Develops/osm_data/medellin.graphml"
-    print("Empezando a cargar ")
-    G = ox.load_graphml(graphpath)
-    print("termina de cargar ")
-
-
 def calc_shortest_path(G, lat_o, lon_o, lat_d, lon_d):
     point_o = (lat_o, lon_o)
     point_d = (lat_d, lon_d)

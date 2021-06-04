@@ -45,7 +45,7 @@ logger = logging.getLogger(__name__)
 def my_vehicles(username):
     user = User.query.filter_by(username=username).first_or_404()
 
-    query = 'SELECT * FROM vehicle where belongs_to = "' + str(user.id) + '"'
+    query = 'SELECT * FROM vehicle where user_id = "' + str(user.id) + '"'
 
     df_vehicles = pd.read_sql_query(query, db.engine)
     print(df_vehicles.to_json(orient="records", indent=True))
@@ -57,7 +57,7 @@ def my_vehicles(username):
 @app.route("/update_vehicle/<placa>")
 @login_required
 def update_vehicle(placa):
-    vehicles = Vehicle.query.filter_by(belongs_to=current_user.id)
+    vehicles = Vehicle.query.filter_by(user_id=current_user.id)
     for vehicle in vehicles:
         if vehicle.placa == placa:
             vehicle.activo = True
@@ -73,13 +73,16 @@ def update_vehicle(placa):
 def register_vehicle():
     form = VehicleRegistrationForm()
     if form.validate_on_submit():
-        print(current_user.id)
+        existing_vehicles = db.session.query(Vehicle).filter(Vehicle.user_id==current_user.id).all()
+        for existing in existing_vehicles:
+            existing.activo = False
         vehicle = Vehicle(
             placa=form.placa.data,
             marca=form.marca.data,
             year=int(form.year.data),
-            belongs_to=current_user.id,
+            user_id=current_user.id,
             odometer=0,
+            activo=True
         )
         db.session.add(vehicle)
         db.session.commit()
@@ -98,10 +101,10 @@ def show_entries():
     main page
     :return:
     """
-    query = 'SELECT * FROM vehicle where belongs_to = "' + str(current_user.id) + '"'
+    query = 'SELECT * FROM vehicle where user_id = "' + str(current_user.id) + '"'
     df_vehicles = pd.read_sql_query(query, db.engine)
 
-    vehicle = Vehicle.query.filter_by(belongs_to=current_user.id, activo=True).first()
+    vehicle = Vehicle.query.filter_by(user_id=current_user.id, activo=True).first()
     now = datetime.now(pytz.timezone("America/Bogota")) + timedelta(hours=1)
 
     sess_conf = SessionConfig(now)
@@ -111,14 +114,15 @@ def show_entries():
         for var in [
             "graph_var_y",
             "graph_var_y2",
+            "graph_var_y2",
         ]:
             session[var] = request.form[var]
 
         for var in ["d1", "h1", "h2", "d2", "h3", "h4"]:
             session["form_" + var] = request.form[var]
 
-        read_form_dates(session, day=1, hour=1)
-        read_form_dates(session, day=2, hour=3)
+        read_form_dates(session, day=1, hour=1)  # hours 1 and 2
+        read_form_dates(session, day=2, hour=3)  # hours 3 and 4
 
     if vehicle:
         operation_query = OperationQuery(session, vehicle)
@@ -175,7 +179,7 @@ def update_plot():
     updates graphs of main page
     :return:
     """
-    vehicle = Vehicle.query.filter_by(belongs_to=current_user.id, activo=True).first()
+    vehicle = Vehicle.query.filter_by(user_id=current_user.id, activo=True).first()
     if "calendar_var" not in session.keys():
         session["calendar_var"] = "drivetime"
 
@@ -193,7 +197,7 @@ def energy_monitor():
     page for energy related features such as consumption prediction and energy regeneration
     :return:
     """
-    vehicle = Vehicle.query.filter_by(belongs_to=current_user.id, activo=True).first()
+    vehicle = Vehicle.query.filter_by(user_id=current_user.id, activo=True).first()
     now = datetime.now(pytz.timezone("America/Bogota"))
     sess_conf = SessionConfig(now)
     sess_conf.assign_missing_variables(session)
@@ -270,10 +274,10 @@ def show_tables():
     page for displaying osm_data in tabular form
     :return:
     """
-    query = 'SELECT * FROM vehicle where belongs_to = "' + str(current_user.id) + '"'
+    query = 'SELECT * FROM vehicle where user_id = "' + str(current_user.id) + '"'
     df_vehicles = pd.read_sql_query(query, db.engine)
 
-    vehicle = Vehicle.query.filter_by(belongs_to=current_user.id, activo=True).first()
+    vehicle = Vehicle.query.filter_by(user_id=current_user.id, activo=True).first()
     now = datetime.now(pytz.timezone("America/Bogota"))
     sess_conf = SessionConfig(now)
     sess_conf.assign_missing_variables(session)
@@ -418,10 +422,10 @@ def show_vehicle_map():
     page for showing osm_data in map
     :return:
     """
-    query = 'SELECT * FROM vehicle where belongs_to = "' + str(current_user.id) + '"'
+    query = 'SELECT * FROM vehicle where user_id = "' + str(current_user.id) + '"'
     df_vehicles = pd.read_sql_query(query, db.engine)
 
-    vehicle = Vehicle.query.filter_by(belongs_to=current_user.id, activo=True).first()
+    vehicle = Vehicle.query.filter_by(user_id=current_user.id, activo=True).first()
     now = datetime.now(pytz.timezone("America/Bogota"))
     sess_conf = SessionConfig(now)
     sess_conf.assign_missing_variables(session)
@@ -496,111 +500,99 @@ def add_entry():
     else:
         args = request.args
 
-    if not bool(args):
+    if not args:
         return "Null osm_data"
     else:
-        if float(args["latitude"]) > 0:
-            operation = Operation(**args)
-            operation.timestamp = datetime.strptime(
-                (
-                    datetime.now(pytz.timezone("America/Bogota")).strftime(
-                        "%Y-%m-%d %H:%M:%S"
-                    )
-                ),
-                "%Y-%m-%d %H:%M:%S",
-            )
+        operation = Operation(**args)
+        operation.timestamp = datetime.strptime(
+            (
+                datetime.now(pytz.timezone("America/Bogota")).strftime(
+                    "%Y-%m-%d %H:%M:%S"
+                )
+            ),
+            "%Y-%m-%d %H:%M:%S",
+        )
 
-            # insert into vehicle(placa, marca, modelo, year, odometer) values('BOTE01', 'ENERGETICA', 'ECO100', 2011, 10)
+        last = (
+            db.session.query(Operation)
+            .filter(Operation.vehicle_id == args.get("vehicle_id"))
+            .first()
+        )
 
-            # Si es el primer dato de ese vehículo
-            last = args
-            query = (
-                'SELECT * FROM operation where vehicle_id = "'
-                + args["vehicle_id"]
-                + '" ORDER  BY id DESC LIMIT 1'
-            )
+        coords_2 = (float(args.get("latitude")), float(args.get("longitude")))
+        google_url = (
+            "https://maps.googleapis.com/maps/api/elevation/json?locations="
+            + str(coords_2[0])
+            + ","
+            + str(coords_2[1])
+            + "&key=AIzaSyChV7Sy3km3Fi8hGKQ8K9t7n7J9f6yq9cI"
+        )
 
-            # Select the last from the same vehicle that is incoming
-            with db.engine.connect() as con:
-                rs = con.execute(query)
-                for row in rs:
-                    last = row
+        r = requests.get(google_url).json()
+        elevation = r["results"][0]["elevation"]
 
-            coords_2 = (float(args["latitude"]), float(args["longitude"]))
-            google_url = (
-                "https://maps.googleapis.com/maps/api/elevation/json?locations="
-                + str(args["latitude"])
-                + ","
-                + str(args["longitude"])
-                + "&key=AIzaSyChV7Sy3km3Fi8hGKQ8K9t7n7J9f6yq9cI"
-            )
+        if last:
+            delta_t = (operation.timestamp - last.timestamp).total_seconds()
+            coords_1 = (last.latitude, last.longitude)
+            rise = elevation - last.elevation
 
-            r = requests.get(google_url).json()
-            elevation = r["results"][0]["elevation"]
+        else:
+            coords_1 = coords_2
+            delta_t = 7
+            rise = 0
 
-            # Si es el primer dato de la base de datos
+        run = geopy.distance.distance(coords_1, coords_2).m  # meters
+
+        distance = math.sqrt(run ** 2 + rise ** 2)
+        operation.elevation = elevation
+        operation.run = distance
+        print(operation.vehicle_id)
+        vehicle = Vehicle.query.filter_by(placa=operation.vehicle_id).first()
+        if not vehicle:
+            return "Please create the vehicle first"
+        try:
+            vehicle.odometer = float(args["odometer"])
+        except KeyError:
             try:
-                delta_t = (operation.timestamp - last["timestamp"]).total_seconds()
-                coords_1 = (last["latitude"], last["longitude"])
-                rise = elevation - last["elevation"]
+                vehicle.odometer += run
+            except TypeError:
+                vehicle.odometer = run
 
-            except Exception as e:
-                print(e)
-                coords_1 = coords_2
-                delta_t = 7
-                rise = 0
+        try:
+            slope = math.atan(rise / run)  # radians
+        except ZeroDivisionError:
+            slope = 0
+        degree = (slope * 180) / math.pi
+        operation.slope = degree
 
-            run = geopy.distance.distance(coords_1, coords_2).m  # meters
-
-            distance = math.sqrt(run ** 2 + rise ** 2)
-            operation.elevation = elevation
-            operation.run = distance
-            print(operation.vehicle_id)
-            vehicle = Vehicle.query.filter_by(placa=operation.vehicle_id).first()
-            print(vehicle.marca)
-            try:
-                vehicle.odometer = float(args["odometer"])
-            except KeyError:
-                try:
-                    vehicle.odometer += run
-                except TypeError:
-                    vehicle.odometer = run
-
-            try:
-                slope = math.atan(rise / run)  # radians
-            except ZeroDivisionError:
-                slope = 0
-            degree = (slope * 180) / math.pi
-            operation.slope = degree
-
+        vehicle.weight = float(args.get("mass"))
+        if "bote" in operation.vehicle_id.lower():
+            operation.mec_power, operation.net_force = consumption_models.zavitsky(
+                (float(operation.mean_speed) / 3.6),
+                float(operation.mean_acc),
+                float(vehicle.weight),
+            )
+        else:
             # JIMENEZ MODEL IMPLEMANTATION
-            vehicle.weight = float(args["mass"])
-            if "BOTE" in operation.vehicle_id:
-                operation.mec_power, operation.net_force = consumption_models.zavitsky(
-                    (float(operation.mean_speed) / 3.6),
-                    float(operation.mean_acc),
-                    float(vehicle.weight),
-                )
-            else:
-                consumption_values = consumption_models.jimenez(
-                    vehicle.weight,
-                    float(vehicle.frontal_area),
-                    float(vehicle.cd),
-                    operation.slope,
-                    float(operation.mean_speed),
-                    float(operation.mean_acc),
-                )
+            consumption_values = consumption_models.jimenez(
+                vehicle.weight,
+                float(vehicle.frontal_area),
+                float(vehicle.cd),
+                operation.slope,
+                float(operation.mean_speed),
+                float(operation.mean_acc),
+            )
 
-                operation.consumption = float(consumption_values[0])
-                operation.mec_power = float(consumption_values[1])
-                operation.net_force = float(consumption_values[2])
-                operation.friction_force = float(consumption_values[3])
+            operation.consumption = float(consumption_values[0])
+            operation.mec_power = float(consumption_values[1])
+            operation.net_force = float(consumption_values[2])
+            operation.friction_force = float(consumption_values[3])
 
-                operation.en_pot = rise * 9.81 * vehicle.weight
+            operation.en_pot = rise * 9.81 * vehicle.weight
 
-                # WANG MODEL IMPLEMANTATION
-
-                current = float(args["current"])
+            # WANG MODEL IMPLEMANTATION
+            current = float(args.get("current"))
+            if current:
                 ah = current * delta_t / 3600
                 c_rate = current / 100  # 100 = Amperios hora totales bateria
                 if c_rate > 0:
@@ -609,18 +601,16 @@ def add_entry():
                         b
                         * math.exp(
                             (-31700 + (c_rate * 370.3))
-                            / (8.314472 * (float(args["batt_temp"])))
+                            / (8.314472 * (float(args.get("batt_temp"))))
                         )
                         * ah ** 0.552
                     )
                 else:
                     operation.q_loss = 0
 
-            db.session.add(operation)
-            db.session.commit()
-            return "Data received"
-        else:
-            return "Null location"
+        db.session.add(operation)
+        db.session.commit()
+        return "Data received"
 
 
 @app.route("/login", methods=["GET", "POST"])

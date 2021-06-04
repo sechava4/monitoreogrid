@@ -57,7 +57,7 @@ class Vehicle(db.Model):
     odometer = db.Column(db.Integer)  # db.ForeignKey('operation.odometer')) ?
     soh = db.Column(db.Float)
     rul = db.Column(db.Integer)
-    belongs_to = db.Column(db.Integer)  # db.ForeignKey('user.id')) ?
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
     activo = db.Column(db.Boolean)
 
     # For debuging purposes, we type the instance name and it prints self,username
@@ -113,13 +113,15 @@ class Operation(db.Model):
     speed = db.Column(db.Float)
     mean_speed = db.Column(db.Float)
     odometer = db.Column(db.Float)
-    user_id = db.Column(db.String(64))
+    user_name = db.Column(db.String(64))
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
     batt_temp = db.Column(db.Float)
     ext_temp = db.Column(db.Float)
     power_kw = db.Column(db.Float)
     eff = db.Column(db.Float)
     mec_power = db.Column(db.Float)
     mec_power_delta_e = db.Column(db.Float)
+    pressure = db.Column(db.Float)
     acceleration = db.Column(db.Float)
     mean_acc = db.Column(db.Float)
     mean_acc_server = db.Column(db.Float)
@@ -200,12 +202,3 @@ class Task(db.Model):
 
     def get_task_in_progress(self, name):
         return Task.query.filter_by(name=name, user=self, complete=False).first()
-
-
-class OSM:
-    graphpath = (
-        app.root_path + "/Investigation/OpenStreetMaps/osm_data/medellin.graphml"
-    )
-    print("Empezando a cargar ")
-    G = ox.load_graphml(graphpath)
-    print("termina de cargar ")
