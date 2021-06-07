@@ -13,7 +13,7 @@
             <a class="nav-link active" href="{{ url_for('show_vehicle_map') }}" aria-selected="true">Mapa</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('show_entries') }}" aria-selected="false" > Dashboard </a>
+            <a class="nav-link" href="{{ url_for('show_entries') }}" aria-selected="false" > Dashboard por vehículo</a>
           </li>
           <li class="nav-item">
             <a class="nav-link" href="{{ url_for('show_tables') }}" aria-selected="false">Tablas</a>
@@ -27,52 +27,12 @@
           </li>
     </ul>
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-    <script type="text/javascript">
-      google.charts.load("current", {packages:["calendar"]});
-      google.charts.setOnLoadCallback(drawChart);
-      var data_cal = {{ calendar|safe }};
 
-        function drawChart() {
-           var dataTable = new google.visualization.DataTable();
-           dataTable.addColumn({ type: 'date', id: 'Date' });
-           dataTable.addColumn({ type: 'number', id: 'Max_value' });
-           for (var cal in data_cal) {
-                   var cal_date = new Date(data_cal[cal]['date(timestamp)']);
-                   cal_date.setDate(cal_date.getDate() + 1);
-                   console.log(cal_date);
-                   dataTable.addRows([[ cal_date, Math.round(data_cal[cal]['max_value']*100)/100 ]]);
-                }
-
-           var chart = new google.visualization.Calendar(document.getElementById('calendar_basic'));
-
-           var options = {
-             title: "Tiempo de manejo",
-           };
-
-           chart.draw(dataTable, options);
-           google.visualization.events.addListener(chart, 'select', selectHandler);
-
-           function selectHandler() {
-                item = chart.getSelection()[0]
-                if (item.row != null) {
-
-                    var date1 = new Date(data_cal[item.row]['date(timestamp)']);
-                    date1.setDate(date1.getDate() + 1);
-                    var dd = String(date1. getDate())
-                    var mm = String(date1. getMonth() + 1). padStart(2, '0');
-                    var yyyy = date1. getFullYear();
-                    date1 = dd + '/' + mm + '/' + yyyy;
-                    console.log(date1);
-                    document.getElementById('d1_input').value = date1;
-                    document.getElementById('Mainform1').submit();
-                };
-            };
-       }
-    </script>
     <script type="text/javascript">
       google.charts.load('current', {'packages':['table']});
       google.charts.setOnLoadCallback(drawTable);
       var data_vehicles = {{ vehicles|safe }};
+      console.log(data_vehicles)
 
       function drawTable() {
         var data = new google.visualization.DataTable();
@@ -82,15 +42,16 @@
         data.addColumn('string', 'Marca');
         data.addColumn('number', 'Odometro');
 
-
         for (var row in data_vehicles) {
             data.addRows([[
-                          data_vehicles[row]['year'],
-                          data_vehicles[row]['placa'],
-                          data_vehicles[row]['marca'],
-                          data_vehicles[row]['odometer']
+                      data_vehicles[row]['year'],
+                      data_vehicles[row]['placa'],
+                      data_vehicles[row]['marca'],
+                      data_vehicles[row]['odometer']
             ]]);
         }
+
+
 
         var table = new google.visualization.Table(document.getElementById('table_div'));
         var options = {
@@ -108,115 +69,34 @@
 
                function selectHandler() {
                     item = table.getSelection()[0]
-                    if (item.row != null) {
-                        console.log(data_vehicles[item.row]);
+                   let req;
+                   if (item.row != null) {
+                       console.log(data_vehicles[item.row]);
 
-                        req2 = $.ajax({
-                                url : "/update_vehicle/" + data_vehicles[item.row]['placa'],
-                                type : "GET",
-                            });
+                       req = $.ajax({
+                           // activa el vehículo seleccionado
+                           url: "/update_vehicle/" + data_vehicles[item.row]['placa'],
+                           type: "GET",
+                       });
 
-                        req2.done(function(res) {
+                       req.done(function (res) {
 
-                            if (res == 1) {
-                                console.log('activo');
-                            } else {
-                                console.log('no_activo');
-                                window.location.reload();
-                            }
-                        });
+                           if (res === 1) {
+                               console.log('activo');
+                           } else {
+                               console.log('no_activo');
+                               window.location.reload();
+                           }
+                       });
 
-                    };
+                   };
                 };
       }
 
 
     </script>
+      <h4  style="margin: 20px;"> Seleccione un vehículo para ver detalle </h4>
     <div id="table_div" style="width: 96%; margin: 20px;"></div>
-
-    <div class="variables">
-        <form role="form" class="form-inline" id="Mainform1" action="{{ url_for('map_var') }}" method=post>
-            <div id="calendar_basic" style="width: 100%; height: 50%;margin: 20px;"></div>
-            <div class="col-auto">
-                <label class="label label-default" for="exampleFormControlSelect3"> Visualizar </label>
-                <select class="form-control" id="exampleFormControlSelect3" name = map_var onchange="this.form.submit();">
-                    <option value="{{session.map_var}}"> {{session.map_var_pretty}}</option>
-                    <option value="speed">Velocidad instantánea (Km/h)</option>
-                    <option value="capacity">Capacidad (kWh)</option>
-                    <option value="soc">SOC</option>
-                    <option value="batt_temp">Temperatura de batería (°C)</option>
-                </select>
-            </div>
-
-            <div class=' col-auto'>
-                <label class="label label-default" for="date"> Fecha </label>
-                <div class="form-group" id = 'date'>
-                    <div class='input-group date' id='datetimepicker1'>
-                        <input type='text' id = 'd1_input' class="form-control" name = 'd1' />
-                        <span class="input-group-addon"><span class="glyphicon glyphicon-time"></span>
-                        </span>
-                    </div>
-                </div>
-            </div>
-            <script type="text/javascript">
-                document.getElementById('d1_input').defaultValue = '{{ session.form_d1 }}'
-                $(function() {
-                   $('#datetimepicker1').datetimepicker({
-                         format: 'DD/MM/YYYY'
-                   });
-                });
-            </script>
-
-            <div class=' col-auto'>
-                <label class="label label-default" for="hora1"> Desde </label>
-                <div class="form-group" id="hora1">
-                    <div class='input-group date' id='datetimepicker3'>
-                        <input type='text' id = 'h1_input' class="form-control" name = 'h1'/>
-                        <span class="input-group-addon">
-                            <span class="glyphicon glyphicon-time"></span>
-                        </span>
-                    </div>
-                </div>
-            </div>
-            <script type="text/javascript">
-
-                document.getElementById('h1_input').defaultValue = '{{ session.form_h1 }}'
-                $(function () {
-                    $('#datetimepicker3').datetimepicker({
-                        format: 'LT'
-                    });
-                });
-            </script>
-
-            <div class=' col-auto'>
-                <label class="label label-default" for="hora2"> Hasta </label>
-                <div class="form-group" id="hora2">
-                    <div class='input-group date' id='datetimepicker4'>
-                        <input type='text' id = 'h2_input' class="form-control" name = 'h2'/>
-                        <span class="input-group-addon">
-                            <span class="glyphicon glyphicon-time"></span>
-                        </span>
-                    </div>
-                </div>
-            </div>
-            <script>
-                document.getElementById('h2_input').defaultValue = '{{ session.form_h2 }}';
-                $(function () {
-                    $('#datetimepicker4').datetimepicker({
-                        format: 'LT'
-                    });
-                });
-            </script>
-
-
-            <div class="col-auto">
-                <button class="btn btn-dark" type="submit">Ver</button>
-            </div>
-
-            </form>
-        </div>
-    <div>
-    </div>
 
     <style>
     body {
@@ -261,15 +141,21 @@
   </body>
   <script>
 
+    var json_operation = JSON.parse('{{ json_operation | safe}}');
+    var json_stations = JSON.parse('{{ json_stations | safe}}');
 
     const jsonInput = {"initialViewState": {"bearing": -27.36, "latitude": 6.17184, "longitude": -75.56359, "maxZoom": 17, "minZoom": 3, "pitch": 40.5, "zoom": 13},
-      "layers": [{"@@type": "ScatterplotLayer", "data":{{json_stations}}, "filled": true, "getFillColor": [255, 140, 0], "getLineColor": [0, 0, 0], "getPosition": "@@=[longitude, latitude]",
-      "id": "2695882c-7d5e-4f89-9e8a-049b84822d70", "lineWidthMinPixels": 1, "opacity": 0.8, "pickable": true, "radiusMaxPixels": 8, "radiusMinPixels": 8, "radiusScale": 6, "stroked": true},
-      {"@@type": "LineLayer", "autoHighlight": true, "data": {{json_lines}}, "getSourcePosition": "@@=[longitude,latitude]", "getTargetPosition": "@@=[longitude2,latitude2]", "getWidth": 10, "highlightColor": [255, 255, 0], "id": "e7cf82d5-b4d6-4f9b-86ee-5f8712240607", "pickable": false, "pickingRadius": 10},
-      {"@@type": "ColumnLayer", "data":{{json_operation}},"elevationScale": 12, "getElevation": "@@=var", "getFillColor": "@@=[2, var * 2,  var * 5,  var* 50]", "getPosition": "@@=[longitude, latitude]", "id": "27bac356-e75f-4bab-b330-7c6e7c831819", "pickable": true, "radius": 20}],
-      "mapStyle": "mapbox://styles/mapbox/cjaudgl840gn32rnrepcb9b9g", "views": [{"@@type": "MapView", "controller": true}]};
+      "layers": [
+          {"@@type": "ScatterplotLayer", "data":json_stations, "filled": true, "getFillColor": [255, 140, 0], "getLineColor": [0, 0, 0], "getPosition": "@@=[longitude, latitude]", "id": "695882c-7d5e-4f89-9e8a-049b84822d70", "lineWidthMinPixels": 1, "opacity": 0.8, "pickable": true, "radiusMaxPixels": 5, "radiusMinPixels": 5, "radiusScale": 4, "stroked": true},
+          {"@@type": "ScatterplotLayer", "data":json_operation, "filled": true, "getFillColor": [0, 0, 255], "getLineColor": [0, 0, 0], "getPosition": "@@=[longitude, latitude]", "id": "2695882c-7d5e-4g89-9e8a-049b84822d70", "lineWidthMinPixels": 1, "opacity": 0.9, "pickable": true, "radiusMaxPixels": 8, "radiusMinPixels": 8, "radiusScale": 6, "stroked": false},
+      ],
+        "mapStyle": "mapbox://styles/mapbox/cjaudgl840gn32rnrepcb9b9g", "views": [{"@@type": "MapView", "controller": true}]};
     const MAPBOX_API_KEY = 'pk.eyJ1Ijoic2FudGlhZ28xNzFjYyIsImEiOiJja2NjZTkzOTkwM3ZxMndxa296YTVseGNkIn0.EFcvvL83cLQZYsqSgLVa6A';
-    const tooltip = {'html':'<b>Valor : </b>  <b>{name}</b>, Hora: <b>{timestamp}</b> Cerca a estaciones: {closest_station1} y {closest_station2}', 'style': {'background': 'grey', 'color': 'white', 'font-family': '"Helvetica Neue", Arial', 'z-index': '10000'}};
+    const tooltip = {
+        'html':
+            '<b>{name}</b>, Hora: <b>{timestamp}</b> ' +
+            'Cerca a estacion {closest_station}',
+        'style': {'background': 'grey', 'color': 'white', 'font-family': '"Helvetica Neue", Arial', 'z-index': '10000'}};
     const customLibraries = null;
 
     const deck = createDeck({

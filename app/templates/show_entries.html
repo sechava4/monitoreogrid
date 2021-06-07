@@ -12,7 +12,7 @@
             <a class="nav-link" href="{{ url_for('show_vehicle_map') }}" aria-selected="false">Mapa</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link active" href="{{ url_for('show_entries') }}" aria-selected="true" >Dashboard</a>
+            <a class="nav-link active" href="{{ url_for('show_entries') }}" aria-selected="true" >Dashboard por vehículo</a>
           </li>
           <li class="nav-item">
             <a class="nav-link" href="{{ url_for('show_tables') }}" aria-selected="false">Tablas</a>
@@ -46,7 +46,7 @@
                     }
                var chart = new google.visualization.Calendar(document.getElementById('calendar_basic'));
                var options = {
-                    title: "Tiempo de manejo",
+                    title: "Tiempo de manejo por día",
                     allowHtml: true,
                     showRowNumber: true,
                     width: '100%',
@@ -87,14 +87,25 @@
             data.addColumn('string', 'Marca');
             data.addColumn('number', 'Odometro');
 
-
             for (var row in data_vehicles) {
-                data.addRows([[
+                if (data_vehicles[row]['activo']===1){
+                    data.addRows([[
+                        {v: data_vehicles[row]['year'], p: {style: 'background-color: lavender;'}},
+                        {v: data_vehicles[row]['placa'], p: {style: 'background-color: lavender;'}},
+                        {v: data_vehicles[row]['marca'], p: {style: 'background-color: lavender;'}},
+                        {v: data_vehicles[row]['odometer'], p: {style: 'background-color: lavender;'}},
+                    ]]);
+                }
+
+                else {
+                    data.addRows([[
                               data_vehicles[row]['year'],
                               data_vehicles[row]['placa'],
                               data_vehicles[row]['marca'],
                               data_vehicles[row]['odometer']
-                ]]);
+                    ]]);
+                }
+
             }
 
             var table = new google.visualization.Table(document.getElementById('table_div'));

@@ -1,9 +1,11 @@
 import ast
 import math
 import os
+import json
 from datetime import datetime, timedelta
 import logging
 
+import numpy as np
 import geopy.distance
 import googlemaps
 import pandas as pd
@@ -73,7 +75,9 @@ def update_vehicle(placa):
 def register_vehicle():
     form = VehicleRegistrationForm()
     if form.validate_on_submit():
-        existing_vehicles = db.session.query(Vehicle).filter(Vehicle.user_id==current_user.id).all()
+        existing_vehicles = (
+            db.session.query(Vehicle).filter(Vehicle.user_id == current_user.id).all()
+        )
         for existing in existing_vehicles:
             existing.activo = False
         vehicle = Vehicle(
@@ -82,7 +86,7 @@ def register_vehicle():
             year=int(form.year.data),
             user_id=current_user.id,
             odometer=0,
-            activo=True
+            activo=True,
         )
         db.session.add(vehicle)
         db.session.commit()
@@ -422,66 +426,69 @@ def show_vehicle_map():
     page for showing osm_data in map
     :return:
     """
-    query = 'SELECT * FROM vehicle where user_id = "' + str(current_user.id) + '"'
-    df_vehicles = pd.read_sql_query(query, db.engine)
-
-    vehicle = Vehicle.query.filter_by(user_id=current_user.id, activo=True).first()
-    now = datetime.now(pytz.timezone("America/Bogota"))
-    sess_conf = SessionConfig(now)
-    sess_conf.assign_missing_variables(session)
-
-    session["calendar_pretty"] = open_dataframes.pretty_var_name(
-        session["calendar_var"]
-    )
-
     stations_df = open_dataframes.get_stations()
     json_stations = Markup(stations_df.to_json(orient="records"))
 
-    if vehicle:
-        calendar_query = CalendarQuery(session, vehicle)
-        df_calendar = pd.read_sql_query(calendar_query.query, db.engine)
+    query = 'SELECT * FROM vehicle where user_id = "' + str(current_user.id) + '"'
+    df_vehicles = pd.read_sql_query(query, db.engine)
 
-        lines_df = open_dataframes.get_lines(
-            vehicle, session["d1"], session["h1"], session["h2"]
+    vehicle_list = []
+    for vehicle in (
+        db.session.query(Vehicle.placa).filter_by(user_id=current_user.id).distinct().all()
+    ):
+        last = (
+            db.session.query(Operation)
+            .filter(Operation.vehicle_id == vehicle.placa)
+            .order_by(Operation.id.desc())
+            .first()
+            .__dict__
         )
-        json_lines = Markup(lines_df.to_json(orient="records"))
+        keys = ["latitude", "longitude", "elevation", "vehicle_id", "timestamp"]
 
-        alturas_df = open_dataframes.get_heights(
-            vehicle, session["map_var"], session["d1"], session["h1"], session["h2"]
-        )
-        # current_pos = alturas_df.iloc[1:2]
+        if last:
+            last = {key: value for key, value in last.items() if key in keys}
+            last["name"] = last.get("vehicle_id")
+            _, st_id = Trees.station_tree.query(
+                np.array([last["latitude"], last["longitude"]]).reshape(1, -1), k=1)
+            last["closest_station"] = stations_df["name"].reindex(index=st_id[0]).tolist()
+            vehicle_list.append(last)
 
-        session["map_var_pretty"] = open_dataframes.pretty_var_name(session["map_var"])
+    # lines_df = open_dataframes.get_lines(
+    #     vehicle, session["d1"], session["h1"], session["h2"]
+    # )
+    # json_lines = Markup(lines_df.to_json(orient="records"))
+    #
+    # alturas_df = open_dataframes.get_heights(
+    #     vehicle, session["map_var"], session["d1"], session["h1"], session["h2"]
+    # )
+    # # current_pos = alturas_df.iloc[1:2]
+    #
+    # session["map_var_pretty"] = open_dataframes.pretty_var_name(session["map_var"])
 
-        if len(lines_df) > 0:
-            # Select nearest 2 stations (K-nearest)
-            _, a = Trees.station_tree.query(
-                alturas_df[["latitude", "longitude"]].values, k=2
-            )
-            alturas_df["closest_st_id1"] = a[:, 0]
-            alturas_df["closest_st_id2"] = a[:, 1]
-            alturas_df["closest_station1"] = (
-                stations_df["name"].reindex(index=alturas_df["closest_st_id1"]).tolist()
-            )  # map station id with station name
-            alturas_df["closest_station2"] = (
-                stations_df["name"].reindex(index=alturas_df["closest_st_id2"]).tolist()
-            )  # map station2  id with station name
-        json_operation = Markup(alturas_df.to_json(orient="records"))
-    else:
-        json_lines = 0
-        json_operation = 0
-        df_calendar = pd.DataFrame([])
+    # if len(lines_df) > 0:
+    #         # Select nearest 2 stations (K-nearest)
+
+    #     )
+    #     alturas_df["closest_st_id1"] = a[:, 0]
+    #     alturas_df["closest_st_id2"] = a[:, 1]
+    #     alturas_df["closest_station1"] = (
+    #         stations_df["name"].reindex(index=alturas_df["closest_st_id1"]).tolist()
+    #     )  # map station id with station name
+    #     alturas_df["closest_station2"] = (
+    #         stations_df["name"].reindex(index=alturas_df["closest_st_id2"]).tolist()
+    #     )  # map station2  id with station name
+    # json_operation = Markup(alturas_df.to_json(orient="records"))
+    # else:
+    #     json_lines = 0
+    #     json_operation = 0
+    #     df_calendar = pd.DataFrame([])
 
     return render_template(
         "vehicle_map.html",
-        json_lines=json_lines,
-        json_operation=json_operation,
         json_stations=json_stations,
-        calendar=df_calendar.to_json(orient="records"),
+        json_operation=json.dumps(vehicle_list, default=str),
         vehicles=df_vehicles.to_json(orient="records"),
     )
-
-    # return Json para hacer el render en el cliente
 
 
 # --------------------------------- IoT routes ---------------------------------------------------#
@@ -572,7 +579,7 @@ def add_entry():
                 float(operation.mean_acc),
                 float(vehicle.weight),
             )
-        else:
+        elif "RENAULT" in vehicle.marca:
             # JIMENEZ MODEL IMPLEMANTATION
             consumption_values = consumption_models.jimenez(
                 vehicle.weight,

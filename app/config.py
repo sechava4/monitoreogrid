@@ -56,7 +56,9 @@ class OperationQuery:
             + session["graph_var_y"]
             + ' from operation WHERE vehicle_id = "'
             + str(vehicle.placa)
-            + '" AND ' + session["graph_var_y"] + ' IS NOT NULL AND timestamp BETWEEN "'
+            + '" AND '
+            + session["graph_var_y"]
+            + ' IS NOT NULL AND timestamp BETWEEN "'
             + session["d1"]
             + " "
             + str(session["h1"])[:8]
@@ -74,7 +76,9 @@ class OperationQuery:
             + session["graph_var_y2"]
             + ' from operation WHERE vehicle_id = "'
             + str(vehicle.placa)
-            + '" AND ' + session["graph_var_y2"] + ' IS NOT NULL AND timestamp BETWEEN "'
+            + '" AND '
+            + session["graph_var_y2"]
+            + ' IS NOT NULL AND timestamp BETWEEN "'
             + session["d2"]
             + " "
             + str(session["h3"])[:8]
