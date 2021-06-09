@@ -80,11 +80,17 @@ def register_vehicle():
         )
         for existing in existing_vehicles:
             existing.activo = False
+        properties = {}
+        if form.marca.data == "RENAULT":
+            properties.update(dict(cd=0.31, frontal_area=2.43, weight=1528))
         vehicle = Vehicle(
             placa=form.placa.data,
             marca=form.marca.data,
             year=int(form.year.data),
             user_id=current_user.id,
+            cd=properties.get("cd"),
+            frontal_area=properties.get("frontal_area"),
+            weight=properties.get("weight"),
             odometer=0,
             activo=True,
         )
@@ -448,6 +454,7 @@ def show_vehicle_map():
         if last:
             last = {key: value for key, value in last.items() if key in keys}
             last["name"] = last.get("vehicle_id")
+            # Closest station
             _, st_id = Trees.station_tree.query(
                 np.array([last["latitude"], last["longitude"]]).reshape(1, -1), k=1)
             last["closest_station"] = stations_df["name"].reindex(index=st_id[0]).tolist()
