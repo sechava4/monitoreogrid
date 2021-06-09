@@ -160,7 +160,7 @@
                         <option value="speed">Velocidad instantánea (Km/h)</option>
                         <option value="capacity">Capacidad (kWh)</option>
                         <option value="power_kw">Potencia eléctrica (Kw)</option>
-                        <option value="soc">SOC</option>
+                        <option value="soc">Estado de Carga (SoC)</option>
                         <option value="soh">SOH</option>
                         <option value="batt_temp">Temperatura de batería (°C)</option>
                         <option value="assist_level">Nivel de asistencia</option>
@@ -275,7 +275,7 @@
                         <option value="speed">Velocidad instantánea (Km/h)</option>
                         <option value="capacity">Capacidad (kWh)</option>
                         <option value="power_kw">Potencia eléctrica (Kw)</option>
-                        <option value="soc">SOC</option>
+                        <option value="soc">Estado de Carga (SoC)</option>
                         <option value="soh">SOH</option>
                         <option value="batt_temp">Temperatura de batería (°C)</option>
                         <option value="assist_level">Nivel de asistencia</option>
@@ -385,6 +385,38 @@
                     </script>
                 </div>
             </div>
+
+            {#      map      #}
+            <h4 style="margin: 25px">Visualización en mapa: <b>{{session.graph_var_y2_pretty}}</b></h4>
+
+            <div id="deck-container" style=" width: 71%; height: 60vh; margin: 40px;">
+
+            </div>
+            <script>
+            const jsonInput = {"initialViewState": {"bearing": -27.36, "latitude": 6.17184, "longitude": -75.56359, "maxZoom": 17, "minZoom": 3, "pitch": 40.5, "zoom": 13},
+              "layers": [
+                  {#{"@@type": "ScatterplotLayer", "data":{{json_stations}}, "filled": true, "getFillColor": [255, 140, 0], "getLineColor": [0, 0, 0], "getPosition": "@@=[longitude, latitude]", "id": "2695882c-7d5e-4f89-9e8a-049b84822d70", "lineWidthMinPixels": 1, "opacity": 0.8, "pickable": true, "radiusMaxPixels": 8, "radiusMinPixels": 8, "radiusScale": 6, "stroked": true},#}
+                  {"@@type": "LineLayer", "autoHighlight": true, "data": {{json_lines}}, "getSourcePosition": "@@=[longitude,latitude]", "getTargetPosition": "@@=[longitude2,latitude2]", "getWidth": 10, "highlightColor": [255, 255, 0], "id": "e7cf82d5-b4d6-4f9b-86ee-5f8712240607", "pickable": false, "pickingRadius": 10},
+                  {"@@type": "ColumnLayer", "data":{{json_operation}},"elevationScale": 12, "getElevation": "@@=var", "getFillColor": "@@=[2, var * 2,  var * 5,  var* 50]", "getPosition": "@@=[longitude, latitude]", "id": "27bac356-e75f-4bab-b330-7c6e7c831819", "pickable": true, "radius": 20}
+                  ],
+              "mapStyle": "mapbox://styles/mapbox/cjaudgl840gn32rnrepcb9b9g", "views": [{"@@type": "MapView", "controller": true}]};
+            const MAPBOX_API_KEY = 'pk.eyJ1Ijoic2FudGlhZ28xNzFjYyIsImEiOiJja2NjZTkzOTkwM3ZxMndxa296YTVseGNkIn0.EFcvvL83cLQZYsqSgLVa6A';
+            const tooltip = {
+                'html':'<b>Valor : </b>  <b>{name}</b>, Hora: <b>{timestamp}</b>',
+                'style': {'background': 'grey', 'color': 'white', 'font-family': '"Helvetica Neue", Arial', 'z-index': '10000'}
+            };
+            const customLibraries = null;
+
+            const deck = createDeck({
+              mapboxApiKey: MAPBOX_API_KEY,
+              container: document.getElementById('deck-container'),
+              jsonInput,
+              tooltip,
+              customLibraries
+            });
+            </script>
+
+            {#     violin plot       #}
             <div class="chart" id = 'histDiv' style="width:100%;">
                 <script>
                     var y0 = {{box | safe}};

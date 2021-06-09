@@ -68,7 +68,7 @@
           google.visualization.events.addListener(table, 'select', selectHandler);
 
                function selectHandler() {
-                    item = table.getSelection()[0]
+                   var item = table.getSelection()[0]
                    let req;
                    if (item.row != null) {
                        console.log(data_vehicles[item.row]);
@@ -85,7 +85,7 @@
                                console.log('activo');
                            } else {
                                console.log('no_activo');
-                               window.location.reload();
+                               window.location.href = "/";
                            }
                        });
 
@@ -106,32 +106,9 @@
       overflow-y: scroll;
     }
 
-    #deck-map-container {
-      width: 96%;
-      height: 90%;
-      background-color: black;
-    }
-
-    #map {
-      pointer-events: none;
-      height: 96%;
-      width: 90%;
-      position: absolute;
-      z-index: 1;
-    }
-
-    #deckgl-overlay {
-      z-index: 2;
-    }
-
-    #deck-map-wrapper {
-      width: 96%;
-      height: 90%;
-    }
-
     #deck-container {
       width: 96vw;
-      height: 90vh;
+      height: 80vh;
     }
     </style>
   </head>

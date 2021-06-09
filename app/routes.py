@@ -166,12 +166,27 @@ def show_entries():
         ]:
             session[var + "_pretty"] = open_dataframes.pretty_var_name(session[var])
 
+        # map graph
+        lines_df = open_dataframes.get_lines(
+            vehicle, session["d1"], session["h1"], session["h2"]
+        )
+        json_lines = Markup(lines_df.to_json(orient="records"))
+
+        alturas_df = open_dataframes.get_heights(
+            vehicle, session["graph_var_y2"], session["d1"], session["h1"], session["h2"]
+        )
+
+        session["map_var_pretty"] = open_dataframes.pretty_var_name(session["map_var"])
+        json_operation = Markup(alturas_df.to_json(orient="records"))
+
     else:
         scatter = 0
         scatter2 = 0
         box = 0
         box2 = 0
         df_calendar = pd.DataFrame()
+        json_lines = {},
+        json_operation = {},
     return render_template(
         "show_entries.html",
         plot=scatter,
@@ -180,6 +195,8 @@ def show_entries():
         box2=box2,
         calendar=df_calendar.to_json(orient="records"),
         vehicles=df_vehicles.to_json(orient="records"),
+        json_lines=json_lines,
+        json_operation=json_operation,
     )
 
 
@@ -440,7 +457,10 @@ def show_vehicle_map():
 
     vehicle_list = []
     for vehicle in (
-        db.session.query(Vehicle.placa).filter_by(user_id=current_user.id).distinct().all()
+        db.session.query(Vehicle.placa)
+        .filter_by(user_id=current_user.id)
+        .distinct()
+        .all()
     ):
         last = (
             db.session.query(Operation)
@@ -456,8 +476,11 @@ def show_vehicle_map():
             last["name"] = last.get("vehicle_id")
             # Closest station
             _, st_id = Trees.station_tree.query(
-                np.array([last["latitude"], last["longitude"]]).reshape(1, -1), k=1)
-            last["closest_station"] = stations_df["name"].reindex(index=st_id[0]).tolist()
+                np.array([last["latitude"], last["longitude"]]).reshape(1, -1), k=1
+            )
+            last["closest_station"] = (
+                stations_df["name"].reindex(index=st_id[0]).tolist()
+            )
             vehicle_list.append(last)
 
     # lines_df = open_dataframes.get_lines(
