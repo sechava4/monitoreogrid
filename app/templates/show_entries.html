@@ -37,19 +37,20 @@
             function drawChart() {
                var dataTable = new google.visualization.DataTable();
                dataTable.addColumn({ type: 'date', id: 'Date' });
-               dataTable.addColumn({ type: 'number', id: 'Won/Loss' });
+               dataTable.addColumn({ type: 'number', id: 'Drivetime'});
                for (var cal in data_cal) {
                        var cal_date = new Date(data_cal[cal]['date(timestamp)']);
                        cal_date.setDate(cal_date.getDate() + 1);
                        console.log(cal_date);
-                       dataTable.addRows([[ cal_date, Math.round(data_cal[cal]['max_value']*100)/100 ]]);
+                       dataTable.addRows([[ cal_date, (Math.round(data_cal[cal]['max_value']*10)/10) ]]);
                     }
                var chart = new google.visualization.Calendar(document.getElementById('calendar_basic'));
                var options = {
-                    title: "Tiempo de manejo por día",
+                    title: "Tiempo de manejo por día (H)",
                     allowHtml: true,
                     showRowNumber: true,
-                    width: '100%',
+                    width: 1500,
+                    height: 350
               };
 
                chart.draw(dataTable, options);
@@ -150,7 +151,7 @@
         <div class="variables">
             <form role="form" class="form-inline" id="Mainform" action="{{ url_for('show_entries') }}" method=post>
 
-                <div id="calendar_basic" style="width: 100%; margin: 20px;"></div>
+                <div id="calendar_basic" style="width: 90%; height: 190px; margin: 20px; overflow-y:auto;"></div>
 
                 <div class="col-auto" style="margin: 20px;">
                     <label class="label label-default" for="exampleFormControlSelect2"> Visualizar </label>

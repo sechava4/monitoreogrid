@@ -57,7 +57,8 @@ def form_var(titles):
 
 def get_lines(vehicle, d1, h1, h2):
     query = (
-        'SELECT latitude, longitude from operation WHERE vehicle_id = "'
+        'SELECT latitude, longitude from operation WHERE '
+        ' latitude != 0 AND longitude != 0 AND vehicle_id = "'
         + str(vehicle.placa)
         + '" AND timestamp BETWEEN "'
         + str(d1)
@@ -91,7 +92,7 @@ def get_heights(vehicle, var, d1, h1, h2):
     query = (
         "SELECT timestamp, "
         + var
-        + ', latitude, longitude from operation WHERE vehicle_id = "'
+        + ', latitude, longitude from operation WHERE latitude != 0 AND longitude != 0 AND vehicle_id = "'
         + str(vehicle.placa)
         + '" AND timestamp BETWEEN "'
         + str(d1)

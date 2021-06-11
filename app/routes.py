@@ -140,18 +140,10 @@ def show_entries():
 
         df_calendar = pd.read_sql_query(calendar_query.query, db.engine)
         df_calendar = df_calendar.dropna()
+        if session.get("calendar_var") == "drivetime":
+            df_calendar["max_value"] = df_calendar["max_value"] / 3600
         df_o = pd.read_sql_query(operation_query.query_1, db.engine)
         df_o2 = pd.read_sql_query(operation_query.query_2, db.engine)
-
-        try:
-            pearson_coef = stats.pearsonr(
-                df_o[session["graph_var_x"]].to_numpy(),
-                df_o[session["graph_var_y"]].to_numpy(),
-            )
-        except (ValueError, TypeError):
-            pearson_coef = 0
-            pass
-        logger.info("Pearson corr = {}".format(pearson_coef))
 
         scatter = plot.create_plot(df_o, session["graph_var_x"], session["graph_var_y"])
         scatter2 = plot.create_plot(
@@ -467,12 +459,11 @@ def show_vehicle_map():
             .filter(Operation.vehicle_id == vehicle.placa)
             .order_by(Operation.id.desc())
             .first()
-            .__dict__
         )
         keys = ["latitude", "longitude", "elevation", "vehicle_id", "timestamp"]
 
         if last:
-            last = {key: value for key, value in last.items() if key in keys}
+            last = {key: value for key, value in last.__dict__.items() if key in keys}
             last["name"] = last.get("vehicle_id")
             # Closest station
             _, st_id = Trees.station_tree.query(
