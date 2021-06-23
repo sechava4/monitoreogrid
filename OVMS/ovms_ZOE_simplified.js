@@ -1,7 +1,7 @@
 //const vehicle_id = "FSV110";
 const vehicle_id = "GHW284";
 //const URL = "http://157.230.209.3/addjson";
-const URL = "http://ec2-3-234-243-227.compute-1.amazonaws.com/addjson";
+const URL = "http://104.236.94.94/addjson";
 var espurl = 2;
 var objTLM;
 var objTimer;
@@ -43,7 +43,7 @@ function GetUrlABRP() {
     urljson += "mean_speed=" + (sum_speed / i).toFixed(2) + "&";
     urljson += "speed=" + OvmsMetrics.AsFloat(["v.p.speed"]) + "&";
     urljson += "mean_acc=" + (sum_acc / i).toFixed(2) + "&";       //potencia promedio
-    urljson += "user_id=" + "Esteban_Betancur" + "&";
+    urljson += "user_name=" + "usuarios_eafit_vehiculo_2" + "&";
     urljson += "mass=" + 1528 + "&";
     urljson += "freeram=" + OvmsMetrics.Value("m.freeram") + "&";
     urljson += "odometer=" + OvmsMetrics.AsFloat("v.p.odometer") + "&";
@@ -79,7 +79,6 @@ function GetUrlABRP() {
     urljson += "coulomb=" + OvmsMetrics.AsFloat("v.b.coulomb.used") + "&";
     urljson += "energy=" + OvmsMetrics.AsFloat("v.b.energy.used") + "&";
     urljson += "rpm=" + OvmsMetrics.AsFloat("v.m.rpm") + "&";
-    urljson += "tpms=" + OvmsMetrics.AsFloat("v.tp.fl.p") + "&";
     urljson += "charge_time=" + OvmsMetrics.AsFloat("v.c.time") + "&";
     urljson += "charger_type=" + OvmsMetrics.AsFloat("v.c.type") + "&";
 
