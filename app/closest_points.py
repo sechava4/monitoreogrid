@@ -1,7 +1,6 @@
-from app import open_dataframes, app
 from sklearn.neighbors import KDTree
-import pandas as pd
-import os
+
+from app import open_dataframes
 
 
 class Trees:

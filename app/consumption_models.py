@@ -1,10 +1,10 @@
-import math
+import json
+import time
+
 import numpy as np
 import pandas as pd
-import time
-from scipy import integrate
 import requests
-import json
+from scipy import integrate
 
 
 def jimenez(mass, frontal_area, cd, slope, speed, acc):

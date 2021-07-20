@@ -1,7 +1,8 @@
 import math
+import time
+
 import numpy as np
 import pandas as pd
-import time
 
 
 def wang(current, delta_t, batt_temp):

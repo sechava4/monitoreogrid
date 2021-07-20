@@ -135,7 +135,7 @@ function SendLiveData() {
             if (i > 7) {
                 Make_Request();
             }
-            if ((speed <= 1) && (Boolean(OvmsMetrics.Value("v.e.on")) === false)) { //&& ((cms - time_to_os4_millis) > 90000) ) {
+            if ((speed <= 1) && (Boolean(OvmsMetrics.Value("v.e.on")) === false)) {
                 operative_state = 4;
                 Make_Request();
             } else if ((speed >= 1) && (OvmsMetrics.AsFloat("v.b.current") > 0)) {

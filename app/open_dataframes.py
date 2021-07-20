@@ -1,11 +1,12 @@
-import pandas as pd
 import os
-from app import app
+
 import geopandas as gpd
 import matplotlib as plt
 import matplotlib.pyplot as plt
-from shapely.geometry import Point, Polygon
+import pandas as pd
 from rq import get_current_job
+
+from app import app
 from app import db
 from app.models import Task, Operation
 
@@ -57,7 +58,7 @@ def form_var(titles):
 
 def get_lines(vehicle, d1, h1, h2):
     query = (
-        'SELECT latitude, longitude from operation WHERE '
+        "SELECT latitude, longitude from operation WHERE "
         ' latitude != 0 AND longitude != 0 AND vehicle_id = "'
         + str(vehicle.placa)
         + '" AND timestamp BETWEEN "'

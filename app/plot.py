@@ -1,9 +1,10 @@
+import json
+import time
+
+import numpy as np
+import pandas as pd
 import plotly
 import plotly.graph_objs as go
-import json
-import pandas as pd
-import numpy as np
-import time
 
 
 def create_double_plot(data_frame, x_name, y_name):

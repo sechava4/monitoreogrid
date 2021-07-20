@@ -1,11 +1,12 @@
-from app import app, db, login
 from datetime import datetime
-from werkzeug.security import generate_password_hash, check_password_hash
-from flask_login import UserMixin
+
+import pytz
 import redis
 import rq
-import pytz
-import osmnx as ox
+from flask_login import UserMixin
+from werkzeug.security import generate_password_hash, check_password_hash
+
+from app import app, db, login
 
 
 class User(UserMixin, db.Model):

@@ -1,13 +1,13 @@
 import ast
+import json
+import logging
 import math
 import os
-import json
 from datetime import datetime, timedelta
-import logging
 
-import numpy as np
 import geopy.distance
 import googlemaps
+import numpy as np
 import pandas as pd
 import pytz
 import requests
@@ -23,7 +23,6 @@ from flask import (
     Response,
 )
 from flask_login import current_user, login_user, logout_user, login_required
-from scipy import stats
 from werkzeug.urls import url_parse
 
 from app import app, open_dataframes, plot, db, consumption_models, degradation_models
@@ -165,7 +164,11 @@ def show_entries():
         json_lines = Markup(lines_df.to_json(orient="records"))
 
         alturas_df = open_dataframes.get_heights(
-            vehicle, session["graph_var_y2"], session["d1"], session["h1"], session["h2"]
+            vehicle,
+            session["graph_var_y2"],
+            session["d1"],
+            session["h1"],
+            session["h2"],
         )
 
         session["map_var_pretty"] = open_dataframes.pretty_var_name(session["map_var"])
@@ -177,8 +180,8 @@ def show_entries():
         box = 0
         box2 = 0
         df_calendar = pd.DataFrame()
-        json_lines = {},
-        json_operation = {},
+        json_lines = ({},)
+        json_operation = ({},)
     return render_template(
         "show_entries.html",
         plot=scatter,
