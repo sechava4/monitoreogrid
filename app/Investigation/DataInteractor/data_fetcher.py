@@ -11,12 +11,15 @@ from app.Investigation.Route_segmentation.segmentation import gen_traces
 
 class DataFetcher:
     def __init__(self):
-        self.cnx = mysql.connector.connect(
-            user="admin",
-            password="actuadores",
-            host="104.236.94.94",
-            database="monitoreodb",
-        )
+        try:
+            self.cnx = mysql.connector.connect(
+                user="admin",
+                password="actuadores",
+                host="104.236.94.94",
+                database="monitoreodb",
+            )
+        except mysql.connector.errors.DatabaseError:
+            self.cnx = None
 
     def update_data(self, query):
         all_data = pd.read_sql_query(query, self.cnx, index_col="id")
@@ -49,26 +52,57 @@ class DataFetcher:
         except KeyError:
             return all_data_with_osm
 
-    def upload_data_to_h5(self, name, query="SELECT * from operation"):
-        all_data_with_osm = self.update_data(query)
+    def upload_data_to_h5(
+        self, name, query="SELECT * from operation", segment_length=1000
+    ):
         data_path = os.path.join(app.root_path) + "/DataBackup/" + name
-        all_data_with_osm.to_hdf(
-            data_path + "_data.h5", key=name + "_updated_df_operation", mode="w"
-        )
-        loaded_data = pd.read_hdf(
-            data_path + "_data.h5", key=name + "_updated_df_operation"
-        )
-        segments = gen_traces(loaded_data)
-        
+        try:
+            loaded_data = pd.read_hdf(
+                data_path + "_data.h5", key=name + "_updated_df_operation"
+            )
+        except FileNotFoundError:
+            all_data_with_osm = self.update_data(query)
+            all_data_with_osm.to_hdf(
+                data_path + "_data.h5", key=name + "_updated_df_operation", mode="w"
+            )
+            loaded_data = pd.read_hdf(
+                data_path + "_data.h5", key=name + "_updated_df_operation"
+            )
+        segments = gen_traces(loaded_data, length=segment_length)
+
         # Cleaning segments
         segments.replace([np.inf, -np.inf], np.nan, inplace=True)
         for col in ["mean_temp", "idle_time", "speed_ind"]:
             segments[col].fillna(value=np.mean(segments[col]), inplace=True)
         segments.end_odometer.ffill(inplace=True)
         segments.dropna(inplace=True)
-        segments = segments[segments['kms'] < 20]
-        segments = segments[segments['consumption'] < 40]
+        segments = segments[segments["mean_speed"] != 0]
+        segments = segments[segments["kms"] < 20]
+        segments = segments[segments["consumption"] < 40]
 
-        segments['slope_cat'] = pd.cut(segments["slope"], np.arange(-10, 10.1, 2.5))
-        segments['slope_cat'] = segments['slope_cat'].astype(str)
+        segments["slope_cat"] = pd.cut(segments["slope"], np.arange(-10, 10.1, 2.5))
+        segments["slope_cat"] = segments["slope_cat"].astype(str)
+
+        segments["speed_cat"] = pd.cut(segments["mean_speed"], np.arange(0, 150.1, 50))
+        segments["speed_cat"] = segments["speed_cat"].astype(str)
+        segments["road_clusters"] = "speed 0 - 50, slope -10 - -7.5"
+        speeds = [0, 50, 100]
+        slopes = [-10, -5, 0, 5]
+        for speed in speeds:
+            for slope in slopes:
+                segments.loc[
+                    (segments["mean_speed"] > speed) & (segments["slope"] > slope),
+                    "road_clusters",
+                ] = f"speed [{speed}-{speed + 50}], slope [{slope}-{slope + 2.5}]"
         segments.to_hdf(data_path + "_data.h5", key=name + "_segments")
+
+
+if __name__ == "__main__":
+    name = "renault"
+    data_path = os.path.join(app.root_path) + "/DataBackup/" + name
+    datafetcher = DataFetcher()
+    loaded_data = pd.read_hdf(
+        data_path + "_data.h5", key=name + "_updated_df_operation"
+    )
+    segments = gen_traces(loaded_data, length=300)
+    segments.to_hdf(data_path + "_data.h5", key=name + "_segments")

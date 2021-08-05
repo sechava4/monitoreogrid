@@ -4,7 +4,7 @@ from scipy.stats import skew
 import pandas as pd
 
 
-def gen_traces(df):
+def gen_traces(df, length=1200):
     try:
         df.drop(columns="Unnamed: 0", inplace=True)
         df.drop(columns="id", inplace=True)
@@ -21,13 +21,14 @@ def gen_traces(df):
         trace_array = np.append(trace_array, aux_trace_id)
         nan = row["name"] != row["name"]
 
-        # Si recorre mas de 300 metros - cambiele el id del segmento actual de aux a definitivo para que se tenga en cuenta
-        if suma >= 1200:  # 800
+        # Si recorre mas de length metros
+        # cambie el id del segmento actual de aux a definitivo(+) para que se tenga en cuenta
+        if suma >= length:
             trace_array = np.where(trace_array == aux_trace_id, trace_id, trace_array)
 
         # Si cambia de vía - empiece un nuevo tramo se escoge 1200 para ver cambios en consumo
         if (
-            suma >= 1200
+            suma >= length
             or (old_name != row["name"] and not nan)
             or row["operative_state"] == 3
         ):

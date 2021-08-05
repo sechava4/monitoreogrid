@@ -24,6 +24,9 @@ try:
         data_path + "_data.h5", key=name + "_updated_df_operation"
     )
     segments = pd.read_hdf(data_path + "_data.h5", key=name + "_segments")
+    segments = segments[segments["mean_speed"] > 0]
+    segments = segments[segments["consumption_per_km"] < 10]
+    segments = segments[segments["consumption_per_km"] > -10]
 
 except FileNotFoundError:
     print("Enter query")
@@ -54,6 +57,7 @@ X = segments.drop(
         "end_time",
         "slope_cat",
         "mass",
+        "speed_cat",
         "highway",
         "end_odometer",
         "consumption",
@@ -150,9 +154,6 @@ sns.pairplot(
     vars=[
         "max_power",
         "mean_speed",
-        "traffic_factor",
-        "std_power",
-        "consumption_per_km",
     ],
     kind="scatter",
 )
@@ -198,7 +199,7 @@ fig.show()
 from sklearn.metrics import silhouette_samples, silhouette_score
 import matplotlib.cm as cm
 
-range_n_clusters = [2, 3, 4]
+range_n_clusters = [2]
 
 for n_clusters in range_n_clusters:
     # Create a subplot with 1 row and 2 columns
@@ -298,3 +299,6 @@ for n_clusters in range_n_clusters:
     )
 
 plt.show()
+
+segments["driving_cluster"] = cluster_labels
+segments.to_hdf(data_path + "_data.h5", key=name + "_segments")
