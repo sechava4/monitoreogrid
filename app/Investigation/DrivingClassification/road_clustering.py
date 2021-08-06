@@ -19,8 +19,8 @@ try:
     loaded_data = pd.read_hdf(
         data_path + "_data.h5", key=name + "_updated_df_operation"
     )
-    segments = pd.read_hdf(data_path + "_data.h5", key=name + "_segments")
-    segments = segments[segments["mean_speed"] > 0]
+    raw_segments = pd.read_hdf(data_path + "_data.h5", key=name + "_segments_degradation")
+    segments = raw_segments[raw_segments["mean_speed"] > 0]
     segments = segments[segments["consumption_per_km"] < 10]
     segments = segments[segments["consumption_per_km"] > -10]
 
@@ -35,68 +35,73 @@ except FileNotFoundError:
     )
     segments = pd.read_hdf(data_path + "_data.h5", key=name + "_segments")
 
-X = segments[
+road_attributes = segments[
     [
         "slope",
         "mean_speed",
     ]
-].values
+].fillna(0)
+
+X = road_attributes.values
 
 X = StandardScaler().fit_transform(X)
 
-kmeans = KMeans(n_clusters=4, random_state=0).fit(X)
-core_samples_mask = np.zeros_like(kmeans.labels_, dtype=bool)
-labels = kmeans.labels_
+for n_clusters in [4]:   # [2, 3, 4, 5]
+    kmeans = KMeans(n_clusters=n_clusters, random_state=0).fit(X)
+    core_samples_mask = np.zeros_like(kmeans.labels_, dtype=bool)
+    labels = kmeans.labels_
 
-# Number of clusters in labels, ignoring noise if present.
-n_clusters_ = len(set(labels)) - (1 if -1 in labels else 0)
-n_noise_ = list(labels).count(-1)
+    # Number of clusters in labels, ignoring noise if present.
+    n_clusters_ = len(set(labels)) - (1 if -1 in labels else 0)
+    n_noise_ = list(labels).count(-1)
 
-print("Estimated number of clusters: %d" % n_clusters_)
-print("Estimated number of noise points: %d" % n_noise_)
-print("Silhouette Coefficient: %0.3f" % metrics.silhouette_score(X, labels))
+    print("Estimated number of clusters: %d" % n_clusters_)
+    print("Estimated number of noise points: %d" % n_noise_)
+    print("Silhouette Coefficient: %0.3f" % metrics.silhouette_score(X, labels))
 
-# Plot result
+    # Plot result
 
-# Black removed and is used for noise instead.
-unique_labels = set(labels)
-colors = [plt.cm.Spectral(each) for each in np.linspace(0, 1, len(unique_labels))]
-for k, col in zip(unique_labels, colors):
-    if k == -1:
-        # Black used for noise.
-        col = [0, 0, 0, 1]
+    # Black removed and is used for noise instead.
+    unique_labels = set(labels)
+    colors = [plt.cm.Spectral(each) for each in np.linspace(0, 1, len(unique_labels))]
+    for k, col in zip(unique_labels, colors):
+        if k == -1:
+            # Black used for noise.
+            col = [0, 0, 0, 1]
 
-    class_member_mask = labels == k
+        class_member_mask = labels == k
 
-    xy = X[class_member_mask & core_samples_mask]
-    plt.plot(
-        xy[:, 0],
-        xy[:, 1],
-        "o",
-        markerfacecolor=tuple(col),
-        markeredgecolor="k",
-        markersize=14,
+        xy = X[class_member_mask & core_samples_mask]
+        plt.plot(
+            xy[:, 0],
+            xy[:, 1],
+            "o",
+            markerfacecolor=tuple(col),
+            markeredgecolor="k",
+            markersize=14,
+        )
+
+        xy = X[class_member_mask & ~core_samples_mask]
+        plt.plot(
+            xy[:, 0],
+            xy[:, 1],
+            "o",
+            markerfacecolor=tuple(col),
+            markeredgecolor="k",
+            markersize=6,
+        )
+
+    plt.title("Estimated number of clusters: %d" % n_clusters_)
+    plt.show()
+    segments["road_clusters"] = labels
+    plt.figure()
+    sns.pairplot(
+        segments.sort_values(["slope"]),
+        hue="road_clusters",
+        palette="Paired",
+        vars=["mean_speed", "slope"],
+        kind="scatter",
     )
+    plt.show()
 
-    xy = X[class_member_mask & ~core_samples_mask]
-    plt.plot(
-        xy[:, 0],
-        xy[:, 1],
-        "o",
-        markerfacecolor=tuple(col),
-        markeredgecolor="k",
-        markersize=6,
-    )
-
-plt.title("Estimated number of clusters: %d" % n_clusters_)
-plt.show()
-segments["road_clusters"] = labels
-sns.pairplot(
-    segments.sort_values(["slope"]),
-    hue="road_clusters",
-    palette="Paired",
-    vars=["mean_speed", "slope"],
-    kind="scatter",
-)
-
-segments.to_hdf(data_path + "_data.h5", key=name + "_segments")
+    # segments.to_hdf(data_path + "_data.h5", key=name + "_segments")

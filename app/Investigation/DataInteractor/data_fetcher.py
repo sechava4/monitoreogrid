@@ -6,7 +6,7 @@ import numpy as np
 
 from app import app
 from app.Investigation.OpenStreetMaps.associate_edges_to_operation import OsmDataAdapter
-from app.Investigation.Route_segmentation.segmentation import gen_traces
+from app.Investigation.Route_segmentation.segmentation import gen_traces, SegmentTypes
 
 
 class DataFetcher:
@@ -62,6 +62,8 @@ class DataFetcher:
             )
         except FileNotFoundError:
             all_data_with_osm = self.update_data(query)
+            all_data_with_osm = all_data_with_osm[all_data_with_osm.operative_state > 0]
+            all_data_with_osm.name.fillna("undefined", inplace=True)
             all_data_with_osm.to_hdf(
                 data_path + "_data.h5", key=name + "_updated_df_operation", mode="w"
             )
@@ -100,9 +102,12 @@ class DataFetcher:
 if __name__ == "__main__":
     name = "renault"
     data_path = os.path.join(app.root_path) + "/DataBackup/" + name
-    datafetcher = DataFetcher()
+    # datafetcher = DataFetcher()
     loaded_data = pd.read_hdf(
         data_path + "_data.h5", key=name + "_updated_df_operation"
     )
-    segments = gen_traces(loaded_data, length=300)
-    segments.to_hdf(data_path + "_data.h5", key=name + "_segments")
+    segments = gen_traces(
+        loaded_data, length=None, segment_type=SegmentTypes.degradation
+    )
+    segments = segments[segments.kms < 60]
+    segments.to_hdf(data_path + "_data.h5", key=name + "_segments_degradation")

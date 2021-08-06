@@ -1,15 +1,19 @@
 import numpy as np
+from enum import Enum
 from scipy import integrate
 from scipy.stats import skew
 import pandas as pd
 
+# estados de consumo y regeneración
+vehicle_states = {1: "driving", 2: "driving", 3: "charging", 4: "idle"}
 
-def gen_traces(df, length=1200):
-    try:
-        df.drop(columns="Unnamed: 0", inplace=True)
-        df.drop(columns="id", inplace=True)
-    except KeyError:
-        pass
+
+class SegmentTypes(Enum):
+    consumption = "consumption"
+    degradation = "degradation"
+
+
+def consumption_traces(df, length):
     trace_id = 1
     aux_trace_id = -1
     trace_array = np.array([])
@@ -23,16 +27,12 @@ def gen_traces(df, length=1200):
 
         # Si recorre mas de length metros
         # cambie el id del segmento actual de aux a definitivo(+) para que se tenga en cuenta
-        if suma >= length:
-            trace_array = np.where(trace_array == aux_trace_id, trace_id, trace_array)
-
-        # Si cambia de vía - empiece un nuevo tramo se escoge 1200 para ver cambios en consumo
         if (
             suma >= length
             or (old_name != row["name"] and not nan)
             or row["operative_state"] == 3
         ):
-            # if suma >=1100: # or (old_name != row['name'] and not nan):  # pendiente
+            trace_array = np.where(trace_array == aux_trace_id, trace_id, trace_array)
             suma = 0
             trace_id += 1
             aux_trace_id -= 1
@@ -45,6 +45,41 @@ def gen_traces(df, length=1200):
         pass
 
     df.insert(2, "trace_id", trace_array, True)
+    return df
+
+
+def degradation_traces(df):
+    trace_id = 1
+    trace_array = np.array([])
+    old_name = ""
+    old_state = "idle"
+
+    for _, row in df.iterrows():
+        trace_array = np.append(trace_array, trace_id)
+        state = vehicle_states.get(row["operative_state"])
+
+        # Si cambia de vía o empieza a cargar
+        # empiece un nuevo tramo
+        if (old_name != row["name"]) or state != old_state:
+            trace_id += 1
+
+        old_name = row["name"]
+        old_state = state
+    try:
+        df.drop(["trace_id"], axis=1, inplace=True)
+    except KeyError:
+        pass
+
+    df.insert(2, "trace_id", trace_array, True)
+    return df
+
+
+def gen_traces(raw_df, length=1200, segment_type=SegmentTypes.consumption):
+    """"generate traces id according to either consumption needs or marcov"""
+    if segment_type == SegmentTypes.consumption:
+        df = consumption_traces(raw_df, length)
+    elif segment_type == SegmentTypes.degradation:
+        df = degradation_traces(raw_df)
     positive_traces = df[df["trace_id"] > 0]
     traces = positive_traces.groupby(["trace_id"])
     lst = []
@@ -78,10 +113,6 @@ def feature_extraction(trace):
     acc = trace["mean_acc"].to_numpy()
     mean_acc, prom_abs_acc, std_acc, max_acc, min_acc, skew_acc = peak_features(acc)
 
-    # Derivative of da/dt to find Jerk  - partir en otra función
-    time_indexed_acc = pd.Series(acc, index=trace["timestamp2"])
-    jerk = time_indexed_acc.diff().to_numpy()
-
     # Picos corriente
     current = trace["current"].to_numpy()
     (
@@ -104,6 +135,9 @@ def feature_extraction(trace):
         min_power,
         skew_power,
     ) = peak_features(power)
+
+    energy_rec = trace["energy_rec"].iloc[1] - trace["energy_rec"].iloc[0]
+    energy = trace["energy"].iloc[0] - trace["energy"].iloc[-1]
 
     # With battery capacity
     consumption2 = trace["capacity"].iloc[0] - trace["capacity"].iloc[-1]
@@ -128,20 +162,6 @@ def feature_extraction(trace):
 
     time = trace["timestamp2"].iloc[-1] - trace["timestamp2"].iloc[0]
 
-    stopped_time = 0
-    old_time = trace["timestamp2"].iloc[0]
-    prev = False
-
-    for index, row in trace[["timestamp2", "mean_speed"]].iterrows():
-        if row["mean_speed"] < 2:
-            if prev:
-                stopped_time += row["timestamp2"] - old_time
-
-            old_time = row["timestamp2"]
-            prev = True
-        else:
-            prev = False
-    idle_time = stopped_time / time
     traffic_factor = mean_speed / std_speed if std_speed != 0 else 0
     mean_temp = trace["ext_temp"].mean()
     nominal_speed = trace["speed_kph"].iloc[0]
@@ -180,13 +200,14 @@ def feature_extraction(trace):
         kms,
         consumption_per_km,
         consumption,
+        energy,
+        energy_rec,
         trace["highway"].iloc[0],
         slope,
         nominal_speed,
         trace["soc"].mean(),
         mean_temp,
         time,
-        idle_time,
         traffic_factor,
         trace["user_name"].iloc[0],
         trace["vehicle_id"].iloc[0],
@@ -227,13 +248,14 @@ def generate_features_df(lst):
         "kms",
         "consumption_per_km",
         "consumption",
+        "energy",
+        "energy_rec",
         "highway",
         "slope",
         "nominal_speed",
         "mean_soc",
         "mean_temp",
         "time",
-        "idle_time",
         "traffic_factor",
         "user_name",
         "vehicle_id",
