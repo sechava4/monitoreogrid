@@ -1,13 +1,8 @@
-import osmnx as ox
 import networkx as nw
-import numpy as np
-import geopandas as gpd
-import matplotlib as mpl
+import osmnx as ox
 from googlemaps import Client
 
 ox.config(log_file=True, log_console=True, use_cache=True)
-
-import googlemaps as gm
 
 mapService = Client(
     "AIzaSyChV7Sy3km3Fi8hGKQ8K9t7n7J9f6yq9cI", client_id="santiago171cc@gmail.com"

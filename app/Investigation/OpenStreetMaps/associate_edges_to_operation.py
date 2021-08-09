@@ -1,29 +1,22 @@
-import pandas as pd
+import os
+import time
 
 import numpy as np
-
-import time
 import osmnx as ox
+import pandas as pd
 
-import mysql.connector
-import seaborn as sns
 from app import app
-import os
 
 
 class OsmDataAdapter:
     def __init__(self):
         filepath = os.path.join(app.root_path) + "/Investigation/OpenStreetMaps/osm_data/medellin.graphml"
         self.G = ox.load_graphml(filepath)
-        self.UG = ox.get_undirected(self.G).edges(keys=True, data=True)
 
     def get_nearest_edges_of_segments(self, nearest_edges):
         list_attr = []
         for edge in nearest_edges:
-            for u, v, k, data in self.UG:
-                if [edge[0], edge[1]] == [v, u] or [edge[0], edge[1]] == [u, v]:
-                    list_attr.append(data)
-                    break
+            list_attr.append(self.G.get_edge_data(edge[0], edge[1]).get(0))
         return list_attr
 
     def add_osmn_attributes(self, dataframe):

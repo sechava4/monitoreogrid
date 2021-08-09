@@ -1,8 +1,9 @@
-import numpy as np
 from enum import Enum
+
+import numpy as np
+import pandas as pd
 from scipy import integrate
 from scipy.stats import skew
-import pandas as pd
 
 # estados de consumo y regeneración
 vehicle_states = {1: "driving", 2: "driving", 3: "charging", 4: "idle"}
@@ -15,27 +16,27 @@ class SegmentTypes(Enum):
 
 def consumption_traces(df, length):
     trace_id = 1
-    aux_trace_id = -1
     trace_array = np.array([])
     suma = 0
     old_name = ""
 
     for _, row in df.iterrows():
         suma = suma + row["run"]
-        trace_array = np.append(trace_array, aux_trace_id)
+        trace_array = np.append(trace_array, -trace_id)
         nan = row["name"] != row["name"]
 
         # Si recorre mas de length metros
         # cambie el id del segmento actual de aux a definitivo(+) para que se tenga en cuenta
+        if suma >= length:
+            trace_array = np.where(trace_array == -trace_id, trace_id, trace_array)
+
         if (
             suma >= length
             or (old_name != row["name"] and not nan)
             or row["operative_state"] == 3
         ):
-            trace_array = np.where(trace_array == aux_trace_id, trace_id, trace_array)
             suma = 0
             trace_id += 1
-            aux_trace_id -= 1
 
         old_name = row["name"]
 
@@ -92,7 +93,6 @@ def gen_traces(raw_df, length=1200, segment_type=SegmentTypes.consumption):
 
 
 def peak_features(var):
-    # Promedio de valor absoluto de la aceleración
     mean_val = np.mean(var)
     prom_abs = np.mean(np.absolute(var))
     std = np.std(var)
@@ -103,7 +103,6 @@ def peak_features(var):
 
 def feature_extraction(trace):
     """
-
     :param trace: slice of operation_df for an specific trace number
     :return: list of attributes for that trace
     """
@@ -165,7 +164,9 @@ def feature_extraction(trace):
     traffic_factor = mean_speed / std_speed if std_speed != 0 else 0
     mean_temp = trace["ext_temp"].mean()
     nominal_speed = trace["speed_kph"].iloc[0]
-    speed_ind = nominal_speed / np.max(trace["speed"])
+    speed_ind = (
+        nominal_speed / np.max(trace["speed"]) if np.max(trace["speed"]) > 0 else 1
+    )
 
     try:
         test_id = trace["test_id"].iloc[0]
@@ -203,6 +204,8 @@ def feature_extraction(trace):
         energy,
         energy_rec,
         trace["highway"].iloc[0],
+        trace["name"].iloc[0],
+        vehicle_states.get(trace["operative_state"].iloc[0]),
         slope,
         nominal_speed,
         trace["soc"].mean(),
@@ -251,6 +254,8 @@ def generate_features_df(lst):
         "energy",
         "energy_rec",
         "highway",
+        "road_name",
+        "vehicle_state",
         "slope",
         "nominal_speed",
         "mean_soc",

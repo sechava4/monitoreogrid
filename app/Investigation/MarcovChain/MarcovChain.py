@@ -1,11 +1,15 @@
 from collections import defaultdict
 
+from scipy import stats
+
+stats
+
 
 class MarcovChain:
     def __init__(self, road_cluster_labels):
         self.counters = defaultdict(int)
-        prev = road_cluster_labels[0]
-        for x in road_cluster_labels[1:]:
+        prev = road_cluster_labels.iloc[0]
+        for x in road_cluster_labels.iloc[1:]:
             self.counters[f"{prev}_{x}"] += 1
             prev = x
 
@@ -23,10 +27,9 @@ class MarcovChain:
 if __name__ == "__main__":
     import pandas as pd
     import os
-
     from app import app
 
     name = "renault"  # input()
     data_path = os.path.join(app.root_path) + "/DataBackup/" + name
-    segments = pd.read_hdf(data_path + "_data.h5", key=name + "_segments")
+    segments = pd.read_hdf(data_path + "_data.h5", key=name + "_segments_degradation")
     chain = MarcovChain(segments.road_clusters)

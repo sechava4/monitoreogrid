@@ -53,7 +53,11 @@ class DataFetcher:
             return all_data_with_osm
 
     def upload_data_to_h5(
-        self, name, query="SELECT * from operation", segment_length=1000
+        self,
+        name,
+        query="SELECT * from operation",
+        segment_length=300,
+        segment_type=SegmentTypes.consumption,
     ):
         data_path = os.path.join(app.root_path) + "/DataBackup/" + name
         try:
@@ -70,32 +74,20 @@ class DataFetcher:
             loaded_data = pd.read_hdf(
                 data_path + "_data.h5", key=name + "_updated_df_operation"
             )
-        segments = gen_traces(loaded_data, length=segment_length)
+        segments = gen_traces(
+            loaded_data, length=segment_length, segment_type=segment_type
+        )
 
         # Cleaning segments
         segments.replace([np.inf, -np.inf], np.nan, inplace=True)
-        for col in ["mean_temp", "idle_time", "speed_ind"]:
+        for col in ["mean_temp", "speed_ind"]:
             segments[col].fillna(value=np.mean(segments[col]), inplace=True)
         segments.end_odometer.ffill(inplace=True)
         segments.dropna(inplace=True)
-        segments = segments[segments["mean_speed"] != 0]
+        segments = segments[segments.kms < 60]
         segments = segments[segments["kms"] < 20]
         segments = segments[segments["consumption"] < 40]
 
-        segments["slope_cat"] = pd.cut(segments["slope"], np.arange(-10, 10.1, 2.5))
-        segments["slope_cat"] = segments["slope_cat"].astype(str)
-
-        segments["speed_cat"] = pd.cut(segments["mean_speed"], np.arange(0, 150.1, 50))
-        segments["speed_cat"] = segments["speed_cat"].astype(str)
-        segments["road_clusters"] = "speed 0 - 50, slope -10 - -7.5"
-        speeds = [0, 50, 100]
-        slopes = [-10, -5, 0, 5]
-        for speed in speeds:
-            for slope in slopes:
-                segments.loc[
-                    (segments["mean_speed"] > speed) & (segments["slope"] > slope),
-                    "road_clusters",
-                ] = f"speed [{speed}-{speed + 50}], slope [{slope}-{slope + 2.5}]"
         segments.to_hdf(data_path + "_data.h5", key=name + "_segments")
 
 

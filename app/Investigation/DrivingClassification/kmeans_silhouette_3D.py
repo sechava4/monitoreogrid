@@ -1,16 +1,13 @@
-from sklearn.datasets import make_blobs
 from sklearn.cluster import KMeans
-from sklearn.metrics import silhouette_samples, silhouette_score
-from sklearn import preprocessing
-from mpl_toolkits.mplot3d import Axes3D
-import addcopyfighandler
-
-import matplotlib.pyplot as plt
 import matplotlib.cm as cm
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from mpl_toolkits.mplot3d import Axes3D
+from sklearn import preprocessing
+from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
-
+from sklearn.metrics import silhouette_samples, silhouette_score
 
 features = pd.read_csv("mixed_segment_features.csv")
 # features = pd.read_csv('features.csv')
