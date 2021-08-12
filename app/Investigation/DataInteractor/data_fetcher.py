@@ -89,17 +89,3 @@ class DataFetcher:
         segments = segments[segments["consumption"] < 40]
 
         segments.to_hdf(data_path + "_data.h5", key=name + "_segments")
-
-
-if __name__ == "__main__":
-    name = "renault"
-    data_path = os.path.join(app.root_path) + "/DataBackup/" + name
-    # datafetcher = DataFetcher()
-    loaded_data = pd.read_hdf(
-        data_path + "_data.h5", key=name + "_updated_df_operation"
-    )
-    segments = gen_traces(
-        loaded_data, length=None, segment_type=SegmentTypes.degradation
-    )
-    segments = segments[segments.kms < 60]
-    segments.to_hdf(data_path + "_data.h5", key=name + "_segments_degradation")

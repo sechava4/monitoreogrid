@@ -67,6 +67,5 @@ for driving_style in driving_classifier.cluster_labels.unique():
     drivers = driving_segments[driving_segments["driving_cluster"] == driving_style]
     drivers = drivers.append(common_states)
     road_classifier = RoadClassifier(drivers)
-    chain = MarcovChain(road_classifier.road_clusters)
+    chain = MarcovChain(road_classifier.road_segments)
     chains[driving_style] = chain
-a = 0

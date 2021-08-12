@@ -45,3 +45,4 @@ class RoadClassifier:
             raw_segments["vehicle_state"], inplace=True
         )
         self.road_clusters = raw_segments["road_clusters"]
+        self.road_segments = raw_segments
