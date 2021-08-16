@@ -26,7 +26,7 @@ from flask_login import current_user, login_user, logout_user, login_required
 from werkzeug.urls import url_parse
 
 from app import app, open_dataframes, plot, db, consumption_models, degradation_models
-from app.Investigation.Google import google_linear_model as google_query
+from app.Research.Google import google_linear_model as google_query
 from app.closest_points import Trees
 from app.config import SessionConfig, OperationQuery, CalendarQuery
 from app.forms import (
@@ -244,14 +244,14 @@ def energy_monitor():
             segments = google_query.get_segments(a)
 
             estimation_path = os.path.join(
-                app.root_path, "Investigation/ConsumptionEstimationJournal"
+                app.root_path, "Research/ConsumptionEstimation"
             )
             # session['est_cons'], session['est_time'] = consumption_models.smartcharging_consumption_query(new_df)
             (
                 session["est_cons"],
                 session["est_time"],
                 _,
-            ) = google_query.calculate_consumption(segments, estimation_path)
+            ) = google_query.calculate_segments_consumption(segments, estimation_path)
         except SyntaxError:
             session["est_cons"] = 0
             session["est_time"] = 0
