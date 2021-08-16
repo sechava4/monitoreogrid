@@ -547,6 +547,7 @@ def add_entry():
         last = (
             db.session.query(Operation)
             .filter(Operation.vehicle_id == args.get("vehicle_id"))
+            .order_by(Operation.id.desc())
             .first()
         )
 

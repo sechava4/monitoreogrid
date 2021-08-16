@@ -50,10 +50,9 @@ models_path = os.path.join(
 
 try:
     # segments = pd.read_hdf(data_path + "_data.h5", key=name + "_segments")
-    loaded_data = pd.read_hdf(
-        data_path + "_data.h5", key=name + "_updated_df_operation"
-    )
+    loaded_data = pd.read_hdf(data_path + "_data.h5", key=name + "_updated_df_operation")
     segments = gen_traces(loaded_data)
+
 except (FileNotFoundError, KeyError):
     print("Enter query")
     query = (
