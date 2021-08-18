@@ -7,8 +7,8 @@ from flask_sqlalchemy import SQLAlchemy
 from app.config import DevConfig, Config
 
 app = Flask(__name__)
-app.config.from_object(DevConfig)
-# app.config.from_object(Config)
+# app.config.from_object(DevConfig)
+app.config.from_object(Config)
 
 db = SQLAlchemy(app)
 Bootstrap(app)
