@@ -583,17 +583,11 @@ def add_entry():
         if not vehicle:
             return "Please create the vehicle first"
         try:
-            vehicle.odometer = float(args["odometer"])
-        except KeyError:
-            try:
-                vehicle.odometer += run
-            except TypeError:
-                vehicle.odometer = run
+            vehicle.odometer = float(args.get("odometer", vehicle.odometer + run))
+        except TypeError:
+            vehicle.odometer = run
 
-        try:
-            slope = math.atan(rise / run)  # radians
-        except ZeroDivisionError:
-            slope = 0
+        slope = math.atan(rise / run) if run else 0  # radians
         degree = (slope * 180) / math.pi
         operation.slope = degree
 
@@ -605,7 +599,7 @@ def add_entry():
                 float(vehicle.weight),
             )
         elif "RENAULT" in vehicle.marca:
-            # JIMENEZ MODEL IMPLEMANTATION
+            # JIMENEZ MODEL IMPLEMENTATION
             consumption_values = consumption_models.jimenez(
                 vehicle.weight,
                 float(vehicle.frontal_area),
@@ -622,8 +616,8 @@ def add_entry():
 
             operation.en_pot = rise * 9.81 * vehicle.weight
 
-            # WANG MODEL IMPLEMANTATION
-            current = float(args.get("current"))
+            # WANG MODEL IMPLEMENTATION
+            current = float(args.get("current", 0))
             if current:
                 ah = current * delta_t / 3600
                 c_rate = current / 100  # 100 = Amperios hora totales bateria
@@ -633,7 +627,7 @@ def add_entry():
                         b
                         * math.exp(
                             (-31700 + (c_rate * 370.3))
-                            / (8.314472 * (float(args.get("batt_temp"))))
+                            / (8.314472 * (float(args.get("batt_temp", 22))))
                         )
                         * ah ** 0.552
                     )
