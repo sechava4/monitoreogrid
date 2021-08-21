@@ -6,7 +6,6 @@ import pandas as pd
 
 
 def wang(current, delta_t, batt_temp):
-
     ah = current * delta_t / 3600
     c_rate = current / 100  # 100 = Amperios hora totales bateria
     if c_rate > 0:

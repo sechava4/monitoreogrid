@@ -1,4 +1,8 @@
 from collections import defaultdict
+from dataclasses import dataclass
+from typing import List
+
+import numpy as np
 from numpy.random import default_rng
 from scipy import stats
 import matplotlib.pyplot as plt
@@ -7,9 +11,31 @@ import matplotlib.pyplot as plt
 rng = default_rng()
 
 
+@dataclass
+class VehicleSimulator:
+    min_charge_level_interval: List[int] = None
+    max_charge_level_interval: List[int] = None
+
+    def set_charge_levels(self, segments):
+        initial_charges = segments["ini_cap"][segments["vehicle_state"] == "charging"]
+        self.min_charge_level_interval = np.percentile(initial_charges, [25, 75])
+
+        final_charges = segments["fin_cap"][segments["vehicle_state"] == "charging"]
+        self.max_charge_level_interval = np.percentile(final_charges, [25, 75])
+
+
 class MarcovChain:
-    def __init__(self, segments, scaler=None, scaler_inv=None, model=None):
+    def __init__(
+        self,
+        segments,
+        vehicle: VehicleSimulator,
+        scaler=None,
+        scaler_inv=None,
+        model=None,
+    ):
         self.scaler = scaler
+        self.vehicle = vehicle
+        self.vehicle.set_charge_levels(segments)
         self.scaler_inv = scaler_inv
         self.model = model
         self.counters = defaultdict(int)
@@ -121,7 +147,9 @@ class MarcovChain:
             for transition in self.transition_probs.get(current_state).keys()
         ]
 
-        transition_probabilities = list(self.transition_probs.get(current_state).values())
+        transition_probabilities = list(
+            self.transition_probs.get(current_state).values()
+        )
         # normalize
         transition_probabilities /= sum(transition_probabilities)
 
@@ -129,10 +157,35 @@ class MarcovChain:
         return next_state
 
     def random_walk(self, state="idle", energy=40, iterations=10):
+        energy_history = []
         for i in range(iterations):
             if state.isdigit():
-                energy -= self.compute_consumption(state)
+                consumption = self.compute_consumption(state)
+                if (
+                    self.vehicle.min_charge_level_interval[0]
+                    < energy - consumption
+                    < self.vehicle.min_charge_level_interval[1]
+                ):
+                    energy -= consumption
+                    state = "charging"
+                # dont take this consumption into account
+                elif energy - consumption < self.vehicle.min_charge_level_interval[0]:
+                    continue
+                else:
+                    energy -= consumption
+                    state = self.decide_transition(state)
                 # degration += self.compute_degradation(state)
-            state = self.decide_transition(state)
 
+            elif state == "charging":
+                max_level = rng.integers(*self.vehicle.max_charge_level_interval)
+                if energy < max_level:
+                    # charge
+                    energy = max_level
+                state = self.decide_transition(state)
+            elif state == "idle":
+                state = self.decide_transition(state)
+
+            energy_history.append(energy)
+        plt.plot(energy_history)
+        plt.show()
         return energy

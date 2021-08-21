@@ -173,7 +173,7 @@ function SendLiveData() {
 
         case 4:
             // Detenido no en ruta
-            if (i > 60) {
+            if (i > 3600) {
                 Make_Request();
             }
             if (speed > 1) {

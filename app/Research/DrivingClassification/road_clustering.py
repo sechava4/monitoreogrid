@@ -5,7 +5,7 @@ from sklearn.preprocessing import StandardScaler
 
 
 class RoadClassifier:
-    def __init__(self, raw_segments=None, n_clusters=4, n_components=2):
+    def __init__(self, raw_segments=None, n_clusters=5, n_components=2):
         segments = raw_segments[raw_segments.vehicle_state == "driving"]
 
         road_attributes = segments[

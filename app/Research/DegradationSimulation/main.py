@@ -7,8 +7,10 @@ from app import app
 from app.Research.DataInteractor.data_fetcher import DataFetcher
 from app.Research.DrivingClassification.cluster import DrivingClassifier
 from app.Research.DrivingClassification.road_clustering import RoadClassifier
-from app.Research.MarcovChain.MarcovChain import MarcovChain
-from app.Research.Route_segmentation.segmentation import gen_traces
+from app.Research.DegradationSimulation.MarcovChain.MarcovChain import (
+    MarcovChain,
+    VehicleSimulator,
+)
 
 
 def common_states(segments_df):
@@ -44,14 +46,14 @@ name = "renault"
 data_path = os.path.join(app.root_path, "DataBackup", name)
 models_path = os.path.join(
     os.path.dirname(__file__),
-    "ConsumptionEstimation",
+    "../ConsumptionEstimation",
     "MachineLearningModels",
 )
 
 try:
-    # segments = pd.read_hdf(data_path + "_data.h5", key=name + "_segments")
-    loaded_data = pd.read_hdf(data_path + "_data.h5", key=name + "_updated_df_operation")
-    segments = gen_traces(loaded_data)
+    segments = pd.read_hdf(data_path + "_data.h5", key=name + "_segments")
+    # loaded_data = pd.read_hdf(data_path + "_data.h5", key=name + "_updated_df_operation")
+    # segments = gen_traces(loaded_data)
 
 except (FileNotFoundError, KeyError):
     print("Enter query")
@@ -82,8 +84,10 @@ for driving_style in driving_classifier.cluster_labels.unique():
     drivers = driving_segments[driving_segments["driving_cluster"] == driving_style]
     drivers = drivers.append(common_states)
     road_classifier = RoadClassifier(drivers)
-
+    vehicle = VehicleSimulator()
+    vehicle.set_charge_levels(road_classifier.road_segments)
     chain = MarcovChain(
+        vehicle=vehicle,
         segments=road_classifier.road_segments,
         scaler=scaler,
         scaler_inv=scaler_inv,

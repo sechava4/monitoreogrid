@@ -1,8 +1,7 @@
 import os
 
-import geopandas as gpd
-import matplotlib as plt
 import matplotlib.pyplot as plt
+import geopandas as gpd
 import pandas as pd
 from rq import get_current_job
 
@@ -133,7 +132,6 @@ def get_heights(vehicle, var, d1, h1, h2):
 
 
 def point_in_zone(day):
-    _set_task_progress(0)
     doc_var = os.path.join(app.root_path, "ZONAS SIT_2017/ZONAS SIT_2017.shp")
     gdf = gpd.read_file(doc_var)
     z = get_zones()
@@ -151,22 +149,7 @@ def point_in_zone(day):
     )
 
     a = gdf["geometry"].contains(points_gdf["geometry"].values[0])
-    _set_task_progress(0)
     return gdf.Nueva_Zona[a == True], gdf.Municipio[a == True]
-
-
-def _set_task_progress(progress):
-    job = get_current_job()
-    if job:
-        job.meta["progress"] = progress
-        job.save_meta()
-        task = Task.query.get(job.get_id())
-        task.user.add_notification(
-            "task_progress", {"task_id": job.get_id(), "progress": progress}
-        )
-        if progress >= 100:
-            task.complete = True
-        db.session.commit()
 
 
 if __name__ == "__main__":
