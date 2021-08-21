@@ -14,7 +14,7 @@ import pytz
 
 from app import app
 
-gmaps = googlemaps.Client(key="AIzaSyChV7Sy3km3Fi8hGKQ8K9t7n7J9f6yq9cI")
+gmaps = googlemaps.Client(key="<google_sdk>")
 
 
 def moving_average(x, w):

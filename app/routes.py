@@ -231,7 +231,7 @@ def energy_monitor():
             session["P_fin"] = ast.literal_eval(request.form["pos_d"])
             now = datetime.now()
             print(session["P_fin"])
-            gmaps = googlemaps.Client(key="AIzaSyChV7Sy3km3Fi8hGKQ8K9t7n7J9f6yq9cI")
+            gmaps = googlemaps.Client(key="<google_sdk>")
             a = gmaps.directions(
                 origin=session["P_ini"],
                 destination=session["P_fin"],
@@ -521,7 +521,7 @@ def show_vehicle_map():
 @app.route("/addjson", methods=["POST", "GET"])
 def add_entry():
     """
-    communication route for handling incoming vehicle osm_data
+    communication route for handling incoming vehicle data
     """
     # If its coming in json format:
     if request.method == "POST":
@@ -557,11 +557,11 @@ def add_entry():
             + str(coords_2[0])
             + ","
             + str(coords_2[1])
-            + "&key=AIzaSyChV7Sy3km3Fi8hGKQ8K9t7n7J9f6yq9cI"
+            + "&key="
         )
 
-        r = requests.get(google_url).json()
-        elevation = r["results"][0]["elevation"]
+        res = requests.get(google_url).json()
+        elevation = res.get("results", [{}])[0].get("elevation")
 
         if last:
             delta_t = (operation.timestamp - last.timestamp).total_seconds()

@@ -5,7 +5,7 @@ from googlemaps import Client
 ox.config(log_file=True, log_console=True, use_cache=True)
 
 mapService = Client(
-    "AIzaSyChV7Sy3km3Fi8hGKQ8K9t7n7J9f6yq9cI", client_id="santiago171cc@gmail.com"
+    "<google_sdk>", client_id="santiago171cc@gmail.com"
 )
 
 # get the street network for san francisco
@@ -15,7 +15,7 @@ place_query = {'city':'San Francisco', 'state':'California', 'country':'USA'}
 G = ox.graph_from_place(place_query, network_type='drive')
 
 # add elevation to each of the nodes, using the google elevation API, then calculate edge grades
-G = ox.add_node_elevations(G, api_key="AIzaSyChV7Sy3km3Fi8hGKQ8K9t7n7J9f6yq9cI")
+G = ox.add_node_elevations(G, api_key="<google_sdk>")
 G = ox.add_edge_grades(G)
 
 # project the street network to UTM
@@ -30,7 +30,7 @@ fig, ax = ox.plot_graph(G_proj, node_color=nc, node_size=12, node_zorder=2, edge
 MDE = ox.graph_from_address(
     "Medellin, Colombia", dist=11000, network_type="drive"
 )  # vehicles
-MDE_ELE = ox.add_node_elevations(MDE, api_key="AIzaSyChV7Sy3km3Fi8hGKQ8K9t7n7J9f6yq9cI")
+MDE_ELE = ox.add_node_elevations(MDE, api_key="<google_sdk>")
 MDE_ELE = ox.add_edge_grades(MDE_ELE)
 
 
