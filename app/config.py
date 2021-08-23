@@ -120,9 +120,9 @@ class Config(object):
         os.environ.get("SECRET_KEY") or "adljsakldjk72s4e21cjn!Ew@fhfghfghggg4565t@dsa"
     )
     SQLALCHEMY_DATABASE_URI = (
-        # os.environ.get("DATABASE_URL")
-        # or "mysql+pymysql://admin:5Actu_adores.@localhost:3306/monitoreodb"
-        "mysql+pymysql://admin:actuadores@104.236.94.94:3306/monitoreodb"
+        os.environ.get("DATABASE_URL")
+        or "mysql+pymysql://admin:5Actu_adores.@localhost:3306/monitoreodb"
+        # "mysql+pymysql://admin:actuadores@104.236.94.94:3306/monitoreodb"
     )
 
     SQLALCHEMY_TRACK_MODIFICATIONS = False
