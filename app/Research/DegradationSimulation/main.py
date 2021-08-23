@@ -5,6 +5,7 @@ from pickle import load
 
 from app import app
 from app.Research.DataInteractor.data_fetcher import DataFetcher
+from app.Research.DegradationSimulation.Charging.PiecewiseTimeSlots import Piecewise
 from app.Research.DrivingClassification.cluster import DrivingClassifier
 from app.Research.DrivingClassification.road_clustering import RoadClassifier
 from app.Research.DegradationSimulation.MarcovChain.MarcovChain import (
@@ -84,7 +85,8 @@ for driving_style in driving_classifier.cluster_labels.unique():
     drivers = driving_segments[driving_segments["driving_cluster"] == driving_style]
     drivers = drivers.append(common_states)
     road_classifier = RoadClassifier(drivers)
-    vehicle = VehicleSimulator()
+    charge_simulator = Piecewise()
+    vehicle = VehicleSimulator(charge_simulator=charge_simulator)
     vehicle.set_charge_levels(road_classifier.road_segments)
     chain = MarcovChain(
         vehicle=vehicle,

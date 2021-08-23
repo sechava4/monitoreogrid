@@ -7,6 +7,7 @@ from numpy.random import default_rng
 from scipy import stats
 import matplotlib.pyplot as plt
 
+from app.Research.DegradationSimulation.Charging.PiecewiseTimeSlots import Piecewise
 
 rng = default_rng()
 
@@ -15,13 +16,16 @@ rng = default_rng()
 class VehicleSimulator:
     min_charge_level_interval: List[int] = None
     max_charge_level_interval: List[int] = None
+    charge_simulator: Piecewise = None
+    capacity_kWh: float = 40
+    initial_Wh_capacity: int = 40000
 
     def set_charge_levels(self, segments):
         initial_charges = segments["ini_cap"][segments["vehicle_state"] == "charging"]
         self.min_charge_level_interval = np.percentile(initial_charges, [25, 75])
 
         final_charges = segments["fin_cap"][segments["vehicle_state"] == "charging"]
-        self.max_charge_level_interval = np.percentile(final_charges, [25, 75])
+        self.max_charge_level_interval = np.percentile(final_charges, [25, 100])
 
 
 class MarcovChain:
@@ -132,6 +136,7 @@ class MarcovChain:
     def compute_consumption(self, road_type):
         values = self.generate_values(road_type).copy()
         print(values)
+        seconds = values.get("kms") / values.get("mean_speed") * 3600
         kms = values.pop("kms")
         scaled_values = self.scaler.transform([list(values.values())])
         consumption = self.model.predict(scaled_values)
@@ -139,7 +144,7 @@ class MarcovChain:
             consumption / self.scaler_inv.scale_[4]
         )
         kWh = kWh_per_km * kms
-        return kWh[0]
+        return kWh[0], seconds
 
     def decide_transition(self, current_state):
         transition_states = [
@@ -157,10 +162,19 @@ class MarcovChain:
         return next_state
 
     def random_walk(self, state="idle", energy=40, iterations=10):
+        """
+        Random walk simulation to predict battery degradation
+
+        :param state:
+        :param energy:
+        :param iterations:
+        :return:
+        """
         energy_history = []
+        times = [0]
         for i in range(iterations):
             if state.isdigit():
-                consumption = self.compute_consumption(state)
+                consumption, seconds = self.compute_consumption(state)
                 if (
                     self.vehicle.min_charge_level_interval[0]
                     < energy - consumption
@@ -168,18 +182,31 @@ class MarcovChain:
                 ):
                     energy -= consumption
                     state = "charging"
+                    times.append(times[-1] + seconds)
+
                 # dont take this consumption into account
                 elif energy - consumption < self.vehicle.min_charge_level_interval[0]:
                     continue
                 else:
                     energy -= consumption
                     state = self.decide_transition(state)
+                    times.append(times[-1] + seconds)
                 # degration += self.compute_degradation(state)
 
             elif state == "charging":
                 max_level = rng.integers(*self.vehicle.max_charge_level_interval)
                 if energy < max_level:
                     # charge
+                    initial_soc = energy / self.vehicle.capacity_kWh
+                    final_soc = max_level / self.vehicle.capacity_kWh
+                    charge_dict = self.vehicle.charge_simulator.chargingTimeFunction(
+                        initial_soc,
+                        final_soc,
+                        inputPower=11,
+                        batterySize=self.vehicle.initial_Wh_capacity,
+                    )
+                    # energy_history.extend(charge_dict.get("eLevels")[:-1])
+                    times.append(times[-1] + charge_dict.get("serviceTime"))
                     energy = max_level
                 state = self.decide_transition(state)
             elif state == "idle":

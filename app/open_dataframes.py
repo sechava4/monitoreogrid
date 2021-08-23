@@ -1,20 +1,16 @@
 import os
 
-import matplotlib.pyplot as plt
-import geopandas as gpd
 import pandas as pd
-from rq import get_current_job
 
 from app import app
 from app import db
-from app.models import Task, Operation
+from app.models import Operation
 
 
 def get_stations():
     file = os.path.join(app.root_path, "stations.json")
     df = pd.read_json(file)
     df.columns = ["name", "latitude", "longitude", "charger_types"]
-    # df = df[["name","latitude","longitude"]]
     return df
 
 
@@ -46,10 +42,8 @@ def form_var(titles):
     variables = pd.read_csv(doc_var, index_col="id")
     groups_list = []
     for i in range(len(variables)):
-        if (variables["var"][i]) in titles:
-            if (variables["var"][i]) == "longitude":
-                continue
-            if (variables["var"][i]) == "latitude":
+        if variables["var"][i] in titles:
+            if variables["var"][i] in ["longitude", "latitude"]:
                 continue
             groups_list.insert(i, [(variables["var"][i]), (variables["var_pretty"][i])])
     return groups_list
@@ -109,47 +103,24 @@ def get_heights(vehicle, var, d1, h1, h2):
     if var not in df.columns:
         var = "elevation"
 
-    if all(elem in df.columns for elem in ["latitude", "longitude", "timestamp", var]):
-
+    if all(
+        elem in df.columns for elem in ["latitude", "longitude", "timestamp", var]
+    ) and len(df[var]):
         df = df[["latitude", "longitude", "timestamp", var]]
         df["name"] = df[var]
-        try:
-            if df[var].iloc[0] is not None:
-                if var in ("elevation", "elevation2"):
-                    df["var"] = df[var].map(lambda x: (x - 1400) * 0.5)
-                elif var in ("mec_power_delta_e", "mec_power"):
-                    df["var"] = df[var].map(lambda x: x * 35)
-                elif var in "mean_acc":
-                    df["var"] = df[var].map(lambda x: x * 45)
-                elif var in "angle_x":
-                    df["var"] = df[var].abs()
-                else:
-                    df["var"] = df[var].map(lambda x: x * 4)
-                df = df[["latitude", "longitude", "name", "var", "timestamp"]]
-        except IndexError:
-            pass
+        if df[var].iloc[0]:
+            if var in ("elevation", "elevation2"):
+                df["var"] = df[var].map(lambda x: (x - 1400) * 0.5)
+            elif var in ("mec_power_delta_e", "mec_power"):
+                df["var"] = df[var].map(lambda x: x * 35)
+            elif var in "mean_acc":
+                df["var"] = df[var].map(lambda x: x * 45)
+            elif var in "angle_x":
+                df["var"] = df[var].abs()
+            else:
+                df["var"] = df[var].map(lambda x: x * 4)
+            df = df[["latitude", "longitude", "name", "var", "timestamp"]]
     return df
-
-
-def point_in_zone(day):
-    doc_var = os.path.join(app.root_path, "ZONAS SIT_2017/ZONAS SIT_2017.shp")
-    gdf = gpd.read_file(doc_var)
-    z = get_zones()
-    centroids_gdf = gpd.GeoDataFrame(
-        z, geometry=gpd.points_from_xy(z.longitude, z.latitude)
-    )
-    fig, ax = plt.subplots(1, 1, sharex=True, sharey=True, figsize=(11, 11))
-    gdf.plot(ax=ax, color="blue")
-    centroids_gdf.plot(ax=ax, color="black")
-
-    alturas = alturas[["latitude", "longitude"]]
-    points_df = alturas.iloc[-2:-1]
-    points_gdf = gpd.GeoDataFrame(
-        points_df, geometry=gpd.points_from_xy(points_df.longitude, points_df.latitude)
-    )
-
-    a = gdf["geometry"].contains(points_gdf["geometry"].values[0])
-    return gdf.Nueva_Zona[a == True], gdf.Municipio[a == True]
 
 
 if __name__ == "__main__":

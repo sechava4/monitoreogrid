@@ -551,13 +551,11 @@ def add_entry():
             .first()
         )
 
+        google_sdk_key = os.environ.get("GOOGLE_SDK_KEY")
         coords_2 = (float(args.get("latitude")), float(args.get("longitude")))
         google_url = (
-            "https://maps.googleapis.com/maps/api/elevation/json?locations="
-            + str(coords_2[0])
-            + ","
-            + str(coords_2[1])
-            + "&key="
+            f"https://maps.googleapis.com/maps"
+            f"/api/elevation/json?locations={str(coords_2[0])},{str(coords_2[1])}&key={google_sdk_key}"
         )
 
         res = requests.get(google_url).json()

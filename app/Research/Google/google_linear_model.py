@@ -1,6 +1,7 @@
 import datetime
 import math
 import os
+import logging
 from pickle import load
 
 import geopy
@@ -14,14 +15,20 @@ import pytz
 
 from app import app
 
-gmaps = googlemaps.Client(key="<google_sdk>")
+logger = logging.Logger(__name__)
+google_sdk_key = os.environ.get("GOOGLE_SDK_KEY")
+
+try:
+    gmaps = googlemaps.Client(key=google_sdk_key)
+except ValueError:
+    logger.info("Google sdk key not set properly")
 
 
 def moving_average(x, w):
     return np.convolve(x, np.ones(w), "valid") / w
 
 
-def get_segments(g_json, n_segments=5):
+def get_segments(g_json):
     # The large segments taken from google
     steps = g_json[0]["legs"][0]["steps"]
     g_df = pd.DataFrame(steps)

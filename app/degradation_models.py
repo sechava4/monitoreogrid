@@ -18,8 +18,7 @@ def wang(current, delta_t, batt_temp):
     else:
         q_loss = 0
 
-    print("Wang degradation")
-    print(q_loss)
+    print("Wang degradation", q_loss)
     return q_loss
 
 
