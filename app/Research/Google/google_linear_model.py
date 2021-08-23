@@ -32,7 +32,6 @@ def get_segments(g_json):
     # The large segments taken from google
     steps = g_json[0]["legs"][0]["steps"]
     g_df = pd.DataFrame(steps)
-
     final_df = pd.DataFrame()
     for index, row in g_df.iterrows():
         m = row["distance"]["value"]
