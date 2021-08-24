@@ -6,16 +6,27 @@ from flask_sqlalchemy import SQLAlchemy
 
 from app.config import DevConfig, Config
 
-app = Flask(__name__)
-# app.config.from_object(DevConfig)
-app.config.from_object(Config)
 
-db = SQLAlchemy(app)
-Bootstrap(app)
-
-migrate = Migrate(app, db)
-
-login = LoginManager(app)
+db = SQLAlchemy()
+bootstrap = Bootstrap()
+migrate = Migrate()
+login = LoginManager()
 login.login_view = "login"
 
+
+def create_app(config_class):
+    application = Flask(__name__)
+    application.config.from_object(config_class)
+    db.init_app(application)
+    login.init_app(application)
+    migrate.init_app(application, db)
+    bootstrap.init_app(application)
+
+    from app.api import bp as api_bp
+    application.register_blueprint(api_bp)
+
+    return application
+
+
+app = create_app(Config)
 from app import routes, models
