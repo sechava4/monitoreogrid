@@ -38,6 +38,7 @@ from app.forms import (
 from app.models import User, Operation, Vehicle
 
 logger = logging.getLogger(__name__)
+google_sdk_key = os.environ.get("GOOGLE_SDK_KEY")
 
 
 # ---------------------------------Vehicle routes ----------------------------------#
@@ -231,8 +232,8 @@ def energy_monitor():
             session["P_fin"] = ast.literal_eval(request.form["pos_d"])
             now = datetime.now()
             print(session["P_fin"])
-            gmaps = googlemaps.Client(key="<google_sdk>")
-            a = gmaps.directions(
+            gmaps = googlemaps.Client(key=google_sdk_key)
+            google_client = gmaps.directions(
                 origin=session["P_ini"],
                 destination=session["P_fin"],
                 mode="driving",
@@ -241,7 +242,7 @@ def energy_monitor():
                 traffic_model="pessimistic",
             )  # departure_time=now
 
-            segments = google_query.get_segments(a)
+            segments = google_query.get_segments(google_client)
 
             estimation_path = os.path.join(
                 app.root_path, "Research/ConsumptionEstimation"
@@ -285,7 +286,11 @@ def energy_monitor():
     session["t_int_pretty"] = open_dataframes.pretty_var_name(session["time_interval"])
 
     return render_template(
-        "energy_monitor.html", plot=scatter_cons, donut=donut, vehicle=vehicle
+        "energy_monitor.html",
+        plot=scatter_cons,
+        donut=donut,
+        vehicle=vehicle,
+        google_sdk_key=google_sdk_key,
     )
 
 
@@ -477,36 +482,6 @@ def show_vehicle_map():
             )
             vehicle_list.append(last)
 
-    # lines_df = open_dataframes.get_lines(
-    #     vehicle, session["d1"], session["h1"], session["h2"]
-    # )
-    # json_lines = Markup(lines_df.to_json(orient="records"))
-    #
-    # alturas_df = open_dataframes.get_heights(
-    #     vehicle, session["map_var"], session["d1"], session["h1"], session["h2"]
-    # )
-    # # current_pos = alturas_df.iloc[1:2]
-    #
-    # session["map_var_pretty"] = open_dataframes.pretty_var_name(session["map_var"])
-
-    # if len(lines_df) > 0:
-    #         # Select nearest 2 stations (K-nearest)
-
-    #     )
-    #     alturas_df["closest_st_id1"] = a[:, 0]
-    #     alturas_df["closest_st_id2"] = a[:, 1]
-    #     alturas_df["closest_station1"] = (
-    #         stations_df["name"].reindex(index=alturas_df["closest_st_id1"]).tolist()
-    #     )  # map station id with station name
-    #     alturas_df["closest_station2"] = (
-    #         stations_df["name"].reindex(index=alturas_df["closest_st_id2"]).tolist()
-    #     )  # map station2  id with station name
-    # json_operation = Markup(alturas_df.to_json(orient="records"))
-    # else:
-    #     json_lines = 0
-    #     json_operation = 0
-    #     df_calendar = pd.DataFrame([])
-
     return render_template(
         "vehicle_map.html",
         json_stations=json_stations,
@@ -551,7 +526,6 @@ def add_entry():
             .first()
         )
 
-        google_sdk_key = os.environ.get("GOOGLE_SDK_KEY")
         coords_2 = (float(args.get("latitude")), float(args.get("longitude")))
         google_url = (
             f"https://maps.googleapis.com/maps"

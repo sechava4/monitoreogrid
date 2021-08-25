@@ -1,4 +1,4 @@
-<google_sdk>{% extends "layout.html" %}
+{% extends "layout.html" %}
 {% block body  %}
 <div>
     <head>
@@ -6,8 +6,8 @@
         <title>Energy monitor</title>
         <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
         <script
-          src="https://maps.googleapis.com/maps/api/js?key=<google_sdk>&callback=initMap&libraries=drawing&v=weekly"
-          defer
+                src="https://maps.googleapis.com/maps/api/js?key={{google_sdk_key}}&callback=initMap&libraries=drawing&v=weekly"
+                defer
         ></script>
         <script>
             let flightPath;

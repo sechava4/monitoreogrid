@@ -4,7 +4,7 @@ from app.api import bp
 from app.models import Operation
 
 
-@bp.route('/operation', methods=['GET'])
+@bp.route("/operation", methods=["GET"])
 def get_operation():
     args = request.args
     row = db.session.query(Operation).first()
