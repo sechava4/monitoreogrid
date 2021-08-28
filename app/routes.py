@@ -550,21 +550,7 @@ def add_entry():
                 float(operation.mean_acc),
                 float(vehicle.weight),
             )
-        elif "RENAULT" in vehicle.marca:
-            # JIMENEZ MODEL IMPLEMENTATION
-            consumption_values = consumption_models.jimenez(
-                vehicle.weight,
-                float(vehicle.frontal_area),
-                float(vehicle.cd),
-                operation.slope,
-                float(operation.mean_speed),
-                float(operation.mean_acc),
-            )
-
-            operation.consumption = float(consumption_values[0])
-            operation.mec_power = float(consumption_values[1])
-            operation.net_force = float(consumption_values[2])
-            operation.friction_force = float(consumption_values[3])
+        elif "renault" in vehicle.marca.lower():
 
             # WANG MODEL IMPLEMENTATION
             current = float(args.get("current", 0))
