@@ -6,6 +6,13 @@ import pandas as pd
 
 
 def wang(current, delta_t, batt_temp):
+    """
+
+    :param current: mean amperes during delta t seconds
+    :param delta_t: seconds
+    :param batt_temp: celcius degrees
+    :return: capacity loss in %
+    """
     ah = current * delta_t / 3600
     c_rate = current / 100  # 100 = Amperios hora totales bateria
     if c_rate > 0:
