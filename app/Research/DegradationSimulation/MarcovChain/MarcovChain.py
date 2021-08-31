@@ -167,7 +167,7 @@ class MarcovChain:
         next_state = rng.choice(a=transition_states, p=transition_probabilities)
         return next_state
 
-    def random_walk(self, state="idle", energy=40, iterations=10):
+    def random_walk(self, state="idle", energy=40, days=10):
         """
         Random walk simulation to predict battery degradation
 
@@ -177,9 +177,10 @@ class MarcovChain:
         :return:
         """
         energy_history = [energy]
-        degradation_history = [energy]
+        degradation_history = [0]
         times = [0]
-        for i in range(iterations):
+        end_time = days * 3600 * 24
+        while times[-1] < end_time:
             if state.isdigit():
                 consumption, seconds = self.compute_consumption(state)
                 watts = consumption * 1000 / (seconds / 3600)
@@ -204,8 +205,6 @@ class MarcovChain:
                     batt_temp=self.vehicle.mean_batt_temp,
                 )
 
-                # degration += self.compute_degradation(state)
-
             elif state == "charging":
                 max_level = rng.integers(*self.vehicle.max_charge_level_interval)
                 if energy < max_level:
@@ -221,15 +220,13 @@ class MarcovChain:
                     seconds = charge_dict.get("serviceTime")
                     energy = max_level
                     degradation = 0
-                else:
-                    continue
                 state = self.decide_transition(state)
             elif state == "idle":
                 seconds = rng.integers(*self.vehicle.idle_time_interval)
                 state = self.decide_transition(state)
                 degradation = 0
 
-            degradation_history.append(degradation_history[-1] - degradation_history[-1] * degradation)
+            degradation_history.append(degradation_history[-1] + degradation)
             times.append(times[-1] + seconds)
             energy_history.append(energy)
 
@@ -242,6 +239,6 @@ class MarcovChain:
         plt.figure()
         plt.plot([t / 3600 for t in times], degradation_history)
         plt.xlabel("Hours")
-        plt.ylabel("Capacity (kWh)")
+        plt.ylabel("Capacity loss(%)")
         plt.show()
         return energy
