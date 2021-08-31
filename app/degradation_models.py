@@ -6,19 +6,28 @@ import pandas as pd
 
 
 def wang(current, delta_t, batt_temp):
+    """
+
+    :param current: mean amperes during delta t seconds
+    :param delta_t: seconds
+    :param batt_temp: celcius degrees
+    :return: capacity loss in %
+    """
     ah = current * delta_t / 3600
     c_rate = current / 100  # 100 = Amperios hora totales bateria
     if c_rate > 0:
         b = 448.96 * c_rate ** 2 - 6301.1 * c_rate + 33840
-        q_loss = (
-            b
-            * math.exp((-31700 + (c_rate * 370.3)) / (8.314472 * (batt_temp)))
-            * ah ** 0.552
-        )
+        try:
+            q_loss = (
+                b
+                * math.exp((-31700 + (c_rate * 370.3)) / (8.314472 * (batt_temp)))
+                * ah ** 0.552
+            )
+        except OverflowError:
+            q_loss = 0
     else:
         q_loss = 0
 
-    print("Wang degradation", q_loss)
     return q_loss
 
 

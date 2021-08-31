@@ -24,9 +24,7 @@ class PiecewiseLinear:
 
 
 class Piecewise:
-    def __init__(
-        self, charging_powers: list = None, n_breakpoints: int = 4, E: object = None
-    ):
+    def __init__(self, charging_powers: list = None, n_breakpoints: int = 4, E=None):
         """
 
         :param charging_powers: allowed charging powers in kW
@@ -52,8 +50,8 @@ class Piecewise:
         # miu(ghl) g in G, h in B, l in E
 
         breakpoints = {
-            (g, e): [self.breakPoints[i] * e for i in self.n_breakpoints]
-            for g in self.charging_powers
+            (power, e): [self.breakPoints[i] * e for i in self.n_breakpoints]
+            for power in self.charging_powers
             for e in self.E
         }
 

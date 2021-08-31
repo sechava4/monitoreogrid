@@ -231,7 +231,6 @@ def energy_monitor():
             session["P_ini"] = ast.literal_eval(request.form["pos_o"])
             session["P_fin"] = ast.literal_eval(request.form["pos_d"])
             now = datetime.now()
-            print(session["P_fin"])
             gmaps = googlemaps.Client(key=google_sdk_key)
             google_client = gmaps.directions(
                 origin=session["P_ini"],
@@ -240,14 +239,13 @@ def energy_monitor():
                 alternatives=False,
                 departure_time=now,
                 traffic_model="pessimistic",
-            )  # departure_time=now
+            )
 
             segments = google_query.get_segments(google_client)
 
             estimation_path = os.path.join(
                 app.root_path, "Research/ConsumptionEstimation"
             )
-            # session['est_cons'], session['est_time'] = consumption_models.smartcharging_consumption_query(new_df)
             (
                 session["est_cons"],
                 session["est_time"],
@@ -257,8 +255,6 @@ def energy_monitor():
             session["est_cons"] = 0
             session["est_time"] = 0
 
-    # print(session["time_interval"])
-    now = datetime.now(pytz.timezone("America/Bogota"))
     session["energy_t1"] = now
 
     number = int(session["time_interval"].split()[0])  # example 10 h selects 20
@@ -527,29 +523,17 @@ def add_entry():
         )
 
         coords_2 = (float(args.get("latitude")), float(args.get("longitude")))
-        google_url = (
-            f"https://maps.googleapis.com/maps"
-            f"/api/elevation/json?locations={str(coords_2[0])},{str(coords_2[1])}&key={google_sdk_key}"
-        )
-
-        res = requests.get(google_url).json()
-        elevation = res.get("results", [{}])[0].get("elevation")
 
         if last:
             delta_t = (operation.timestamp - last.timestamp).total_seconds()
             coords_1 = (last.latitude, last.longitude)
-            rise = elevation - last.elevation
 
         else:
             coords_1 = coords_2
             delta_t = 7
-            rise = 0
 
         run = geopy.distance.distance(coords_1, coords_2).m  # meters
-
-        distance = math.sqrt(run ** 2 + rise ** 2)
-        operation.elevation = elevation
-        operation.run = distance
+        operation.run = run
         print(operation.vehicle_id)
         vehicle = Vehicle.query.filter_by(placa=operation.vehicle_id).first()
         if not vehicle:
@@ -559,10 +543,6 @@ def add_entry():
         except TypeError:
             vehicle.odometer = run
 
-        slope = math.atan(rise / run) if run else 0  # radians
-        degree = (slope * 180) / math.pi
-        operation.slope = degree
-
         vehicle.weight = float(args.get("mass"))
         if "bote" in operation.vehicle_id.lower():
             operation.mec_power, operation.net_force = consumption_models.zavitsky(
@@ -570,23 +550,7 @@ def add_entry():
                 float(operation.mean_acc),
                 float(vehicle.weight),
             )
-        elif "RENAULT" in vehicle.marca:
-            # JIMENEZ MODEL IMPLEMENTATION
-            consumption_values = consumption_models.jimenez(
-                vehicle.weight,
-                float(vehicle.frontal_area),
-                float(vehicle.cd),
-                operation.slope,
-                float(operation.mean_speed),
-                float(operation.mean_acc),
-            )
-
-            operation.consumption = float(consumption_values[0])
-            operation.mec_power = float(consumption_values[1])
-            operation.net_force = float(consumption_values[2])
-            operation.friction_force = float(consumption_values[3])
-
-            operation.en_pot = rise * 9.81 * vehicle.weight
+        elif "renault" in vehicle.marca.lower():
 
             # WANG MODEL IMPLEMENTATION
             current = float(args.get("current", 0))

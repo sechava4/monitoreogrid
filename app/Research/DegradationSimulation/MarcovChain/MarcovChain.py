@@ -8,6 +8,7 @@ from scipy import stats
 import matplotlib.pyplot as plt
 
 from app.Research.DegradationSimulation.Charging.PiecewiseTimeSlots import Piecewise
+from app.degradation_models import wang
 
 rng = default_rng()
 
@@ -16,7 +17,10 @@ rng = default_rng()
 class VehicleSimulator:
     min_charge_level_interval: List[int] = None
     max_charge_level_interval: List[int] = None
+    idle_time_interval: List[int] = None
     charge_simulator: Piecewise = None
+    mean_voltage: float = 365.88
+    mean_batt_temp: float = 26.0423
     capacity_kWh: float = 40
     initial_Wh_capacity: int = 40000
 
@@ -26,6 +30,9 @@ class VehicleSimulator:
 
         final_charges = segments["fin_cap"][segments["vehicle_state"] == "charging"]
         self.max_charge_level_interval = np.percentile(final_charges, [25, 100])
+
+        idle_times = segments["time"][segments["vehicle_state"] == "idle"]
+        self.idle_time_interval = np.percentile(idle_times, [25, 75])
 
 
 class MarcovChain:
@@ -128,8 +135,7 @@ class MarcovChain:
             # We create a copy since we are popping the method
             gen_copy = generator.copy()
             method = gen_copy.pop("method")
-            # if attr == "kms"
-            #     limitar segun rango del vehiculo
+
             values[attr] = method.rvs(*tuple(gen_copy.values()))
         return values
 
@@ -161,7 +167,7 @@ class MarcovChain:
         next_state = rng.choice(a=transition_states, p=transition_probabilities)
         return next_state
 
-    def random_walk(self, state="idle", energy=40, iterations=10):
+    def random_walk(self, state="idle", energy=40, days=10):
         """
         Random walk simulation to predict battery degradation
 
@@ -170,11 +176,15 @@ class MarcovChain:
         :param iterations:
         :return:
         """
-        energy_history = []
+        energy_history = [energy]
+        degradation_history = [0]
         times = [0]
-        for i in range(iterations):
+        end_time = days * 3600 * 24
+        while times[-1] < end_time:
             if state.isdigit():
                 consumption, seconds = self.compute_consumption(state)
+                watts = consumption * 1000 / (seconds / 3600)
+                amperes = watts / self.vehicle.mean_voltage
                 if (
                     self.vehicle.min_charge_level_interval[0]
                     < energy - consumption
@@ -182,16 +192,18 @@ class MarcovChain:
                 ):
                     energy -= consumption
                     state = "charging"
-                    times.append(times[-1] + seconds)
 
-                # dont take this consumption into account
+                # dont take deeper than allowed consumptions into account
                 elif energy - consumption < self.vehicle.min_charge_level_interval[0]:
                     continue
                 else:
                     energy -= consumption
                     state = self.decide_transition(state)
-                    times.append(times[-1] + seconds)
-                # degration += self.compute_degradation(state)
+                degradation = wang(
+                    current=amperes,
+                    delta_t=seconds,
+                    batt_temp=self.vehicle.mean_batt_temp,
+                )
 
             elif state == "charging":
                 max_level = rng.integers(*self.vehicle.max_charge_level_interval)
@@ -205,14 +217,28 @@ class MarcovChain:
                         inputPower=11,
                         batterySize=self.vehicle.initial_Wh_capacity,
                     )
-                    # energy_history.extend(charge_dict.get("eLevels")[:-1])
-                    times.append(times[-1] + charge_dict.get("serviceTime"))
+                    seconds = charge_dict.get("serviceTime")
                     energy = max_level
+                    degradation = 0
                 state = self.decide_transition(state)
             elif state == "idle":
+                seconds = rng.integers(*self.vehicle.idle_time_interval)
                 state = self.decide_transition(state)
+                degradation = 0
 
+            degradation_history.append(degradation_history[-1] + degradation)
+            times.append(times[-1] + seconds)
             energy_history.append(energy)
-        plt.plot(energy_history)
+
+        plt.figure()
+        plt.plot([t / 3600 for t in times], energy_history)
+        plt.xlabel("Hours")
+        plt.ylabel("Capacity (kWh)")
+        plt.show()
+
+        plt.figure()
+        plt.plot([t / 3600 for t in times], degradation_history)
+        plt.xlabel("Hours")
+        plt.ylabel("Capacity loss(%)")
         plt.show()
         return energy
