@@ -1,11 +1,13 @@
+from dictalchemy.utils import make_class_dictable
 from flask import jsonify, request
-from app import db
+
 from app.api import bp
 from app.models import Operation
 
 
-@bp.route("/operation", methods=["GET"])
-def get_operation():
-    args = request.args
-    row = db.session.query(Operation).first()
-    return jsonify(str(row))
+@bp.route('/returndata')
+def returndata():
+    placa = request.args.get('placa')
+    make_class_dictable(Operation)
+    query = Operation.query.filter(Operation.vehicle_id == placa).order_by(Operation.id.desc()).first()
+    return jsonify(query.asdict())
