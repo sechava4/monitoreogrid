@@ -23,7 +23,7 @@ def create_app(config_class):
     bootstrap.init_app(application)
 
     from app.api import bp as api_bp
-    application.register_blueprint(api_bp)
+    application.register_blueprint(api_bp, url_prefix="/api")
 
     return application
 
