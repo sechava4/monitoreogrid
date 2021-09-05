@@ -10,7 +10,6 @@ import googlemaps
 import numpy as np
 import pandas as pd
 import pytz
-import requests
 from flask import (
     request,
     session,
@@ -25,7 +24,8 @@ from flask import (
 from flask_login import current_user, login_user, logout_user, login_required
 from werkzeug.urls import url_parse
 
-from app import app, open_dataframes, plot, db, consumption_models, degradation_models
+from app import app, open_dataframes, plot, db, consumption_models
+from app.Research.DegradationSimulation.Degradation import degradation_models
 from app.Research.Google import google_linear_model as google_query
 from app.closest_points import Trees
 from app.config import SessionConfig, OperationQuery, CalendarQuery

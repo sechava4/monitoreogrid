@@ -8,7 +8,7 @@ from scipy import stats
 import matplotlib.pyplot as plt
 
 from app.Research.DegradationSimulation.Charging.PiecewiseTimeSlots import Piecewise
-from app.degradation_models import wang
+from app.Research.DegradationSimulation.Degradation.degradation_models import wang
 
 rng = default_rng()
 
@@ -168,6 +168,8 @@ class MarcovChain:
         return next_state
 
     def random_walk(self, state="idle", energy=40, days=10):
+        # TODO: For each of the driver types generate random distribution of battery heat,
+        #  in order to input the degradation model
         """
         Random walk simulation to predict battery degradation
 
