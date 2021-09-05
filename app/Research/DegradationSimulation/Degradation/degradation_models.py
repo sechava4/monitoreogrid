@@ -54,7 +54,7 @@ def add_wang_column(df):
 class XuDegradationModel:
     # TODO: add helper to append a row
     def __init__(
-        self, soc: List, dod: List, c_rates: List, temp: List, n: List, days: int
+        self, soc: List, dod: List, c_rates: List, temp: List, n: List, seconds: int
     ):
         """
 
@@ -63,6 +63,7 @@ class XuDegradationModel:
         c_rates:  (C1, C2, . . . , Cn)
         temp:  (T1, T2, . . . , Tn) in kelvin degrees
         n:  (n1, n2, . . . , nn) where ni = 1 if full cycle or 0.5 if half cycle
+        Half-cycle means one single charge or discharge event
         """
 
         self.soc = soc
@@ -75,12 +76,25 @@ class XuDegradationModel:
         self.soc_avg = stats.mean(self.soc)
         self.t_avg = stats.mean(self.temp)
 
-        self.days = days
+        self.seconds = seconds
 
     def compute_degradation(self) -> float:
+        """
+        The capacity degradation model begins with the nonlinear degradation function,
+        which models SEI formation process and the effect of lithium loss on
+        degradation, shown as:
+        L = 1 − (pSEI · e**−rSEI·fd + (1 − pSEI) · e**−fd )
 
+        SoH = 1 − L
+
+        :rtype: loss: % of capacity loss
+        """
         self.validate()
-        return self.f_cycle() + self.f_calendar()
+        fd = self.f_cycle() + self.f_calendar()
+        r_sei = 121
+        p_sei = 5.75E-2
+        loss = 1 - (p_sei * math.exp(-r_sei * fd) + (1 - p_sei) * math.exp(-fd))
+        return loss
 
     def f_cycle(self):
         """
@@ -102,9 +116,8 @@ class XuDegradationModel:
         Calculates degradation due to calendar ageing
         :return: degradation in x units
         """
-        self.days
-        kt = float()
-        return kt * self._f_soc(self.soc_avg) * self._f_temp(self.t_avg)
+        kt = 4.14E-10  # 4.14E-10/s
+        return kt * self.seconds * self._f_soc(self.soc_avg) * self._f_temp(self.t_avg)
 
     @staticmethod
     def _f_soc(soc):
@@ -114,7 +127,7 @@ class XuDegradationModel:
         :param soc: 0 to 1
         :return:
         """
-        k_soc = float()
+        k_soc = 1.04
         soc_ref = 0.5
         return math.exp(k_soc * (soc - soc_ref))
 
@@ -128,24 +141,29 @@ class XuDegradationModel:
 
         :param dod:
         """
-        k_dod_1 = float()
-        k_dod_2 = float()
-        k_dod_3 = float()
-        return (k_dod_1 * (dod**k_dod_2) + k_dod_3)**-1
+        k_dod_1 = 8.95E4
+        k_dod_2 = -4.86E-1
+        k_dod_3 = -7.28E4
+        return (k_dod_1 * (dod ** k_dod_2) + k_dod_3) ** -1
 
     @staticmethod
     def _f_c_rate(c_rate):
         """
         Thus C-rate capacity
         fading tests must be carefully designed to avoid the influence from temperature
+        C = |I| · (1h) / Qr
+
+        Qr is the remaining or total charge capacity of the battery at current
+        status
         :param c_rate:
         :return:
         """
-        c_ref = float()
-        return math.exp(c_rate - c_ref)
+        c_ref = 1
+        k_c = 2.63E-1
+        return math.exp(k_c*(c_rate - c_ref))
 
     @staticmethod
-    def _f_temp(t):
+    def _f_temp(t) -> float:
         """
         where kT is the temperature stress coefficient,
         Tref is the reference temperature, in Kelvin.
@@ -153,8 +171,8 @@ class XuDegradationModel:
         in which most of the calendar ageing experiments are performed
         :rtype: object
         """
-        k_t = float()
-        t_ref = 293
+        k_t = 6.93E-2
+        t_ref = 293  # or 25 celsius
         return math.exp(k_t * (t - t_ref) * (t_ref / t))
 
     def validate(self):
