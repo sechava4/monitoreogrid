@@ -4,8 +4,8 @@ __pycache__/
 venv/
 
 =======
-app/DataBackup/monitoreogrid.sql
-app/DataBackup/operation_FVQ731.csv
+managev_app/DataBackup/monitoreogrid.sql
+managev_app/DataBackup/operation_FVQ731.csv
 nearest.py
 nearestneighbor.py
 monitoreogrid.pub
@@ -17,14 +17,14 @@ venv/
 __pycache__/
 >>>>>>> master
 
-/app/app.db
+/managev_app/app.db
 /Nodeserver/libraries
 /Nodeserver/.vscode/
-/app/db.sql
-/app/operation.csv
-/app/DataBackup/old_vehicle_operation.csv
-/app/Research/ArcGis
-/app/Research/OpenStreetMaps
+/managev_app/db.sql
+/managev_app/operation.csv
+/managev_app/DataBackup/old_vehicle_operation.csv
+/managev_app/Research/ArcGis
+/managev_app/Research/OpenStreetMaps
 
 /Backup_monitoreo_data/
 /NodeServer/.pio
