@@ -37,7 +37,6 @@ class DrivingClassifier:
                 "end_time",
                 "road_name",
                 "time",
-                "mean_temp",
                 "mean_soc",
                 "nominal_speed",
                 "kms",

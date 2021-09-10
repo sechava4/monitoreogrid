@@ -5,8 +5,13 @@ import pandas as pd
 import numpy as np
 
 from managev_app import app
-from managev_app.Research.OpenStreetMaps.associate_edges_to_operation import OsmDataAdapter
-from managev_app.Research.Route_segmentation.segmentation import gen_traces, SegmentTypes
+from managev_app.Research.OpenStreetMaps.associate_edges_to_operation import (
+    OsmDataAdapter,
+)
+from managev_app.Research.Route_segmentation.segmentation import (
+    gen_traces,
+    SegmentTypes,
+)
 
 
 class DataFetcher:
@@ -80,7 +85,7 @@ class DataFetcher:
 
         # Cleaning segments
         segments.replace([np.inf, -np.inf], np.nan, inplace=True)
-        for col in ["mean_temp", "speed_ind"]:
+        for col in ["batt_temp", "speed_ind"]:
             segments[col].fillna(value=np.mean(segments[col]), inplace=True)
         segments.end_odometer.ffill(inplace=True)
         segments.dropna(inplace=True)

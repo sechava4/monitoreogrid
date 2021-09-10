@@ -59,11 +59,13 @@ class XuDegradationModel:
         """
         n:  (n1, n2, . . . , nn) where ni = 1 if full cycle or 0.5 if half cycle
         Half-cycle means one single charge or discharge event
-        # TODO: Find if soc and temp for each cicle are average
         soc: (SoC1, SoC2, . . . , SoCn) float numbers ranging from 0 to 1
         dod: (DoD1, DoD2, . . . , DoDn) float numbers ranging from 0 to 1
         c_rates:  (C1, C2, . . . , Cn)
         temp:  (T1, T2, . . . , Tn) in kelvin degrees
+
+        Ci = DoDi· 2n · (3600s) / tend − tstart where time are in the unit of second, and
+        Ti = T(tend) + T(tstart) / 2
 
         """
 
@@ -93,7 +95,7 @@ class XuDegradationModel:
         self.validate()
         fd = self.f_cycle() + self.f_calendar()
         r_sei = 121
-        p_sei = 5.75E-2
+        p_sei = 5.75e-2
         loss = 1 - (p_sei * math.exp(-r_sei * fd) + (1 - p_sei) * math.exp(-fd))
         return loss
 
@@ -117,7 +119,7 @@ class XuDegradationModel:
         Calculates degradation due to calendar ageing
         :return: degradation in x units
         """
-        kt = 4.14E-10  # 4.14E-10/s
+        kt = 4.14e-10  # 4.14E-10/s
         return kt * self.seconds * self._f_soc(self.soc_avg) * self._f_temp(self.t_avg)
 
     @staticmethod
@@ -142,9 +144,9 @@ class XuDegradationModel:
 
         :param dod:
         """
-        k_dod_1 = 8.95E4
-        k_dod_2 = -4.86E-1
-        k_dod_3 = -7.28E4
+        k_dod_1 = 8.95e4
+        k_dod_2 = -4.86e-1
+        k_dod_3 = -7.28e4
         return (k_dod_1 * (dod ** k_dod_2) + k_dod_3) ** -1
 
     @staticmethod
@@ -160,8 +162,8 @@ class XuDegradationModel:
         :return:
         """
         c_ref = 1
-        k_c = 2.63E-1
-        return math.exp(k_c*(c_rate - c_ref))
+        k_c = 2.63e-1
+        return math.exp(k_c * (c_rate - c_ref))
 
     @staticmethod
     def _f_temp(t) -> float:
@@ -172,7 +174,7 @@ class XuDegradationModel:
         in which most of the calendar ageing experiments are performed
         :rtype: object
         """
-        k_t = 6.93E-2
+        k_t = 6.93e-2
         t_ref = 293  # or 25 celsius
         return math.exp(k_t * (t - t_ref) * (t_ref / t))
 

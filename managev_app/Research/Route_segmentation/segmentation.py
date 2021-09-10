@@ -162,7 +162,7 @@ def feature_extraction(trace):
     time = trace["timestamp2"].iloc[-2] - trace["timestamp2"].iloc[0]
 
     traffic_factor = mean_speed / std_speed if std_speed != 0 else 0
-    mean_temp = trace["ext_temp"].mean()
+    batt_temp = trace["batt_temp"].mean()
     nominal_speed = trace["speed_kph"].iloc[0]
     speed_ind = (
         nominal_speed / np.max(trace["speed"]) if np.max(trace["speed"]) > 0 else 1
@@ -211,7 +211,7 @@ def feature_extraction(trace):
         slope,
         nominal_speed,
         trace["soc"].mean(),
-        mean_temp,
+        batt_temp,
         time,
         traffic_factor,
         trace["user_name"].iloc[0],
@@ -263,7 +263,7 @@ def generate_features_df(lst):
         "slope",
         "nominal_speed",
         "mean_soc",
-        "mean_temp",
+        "batt_temp",
         "time",
         "traffic_factor",
         "user_name",

@@ -26,7 +26,7 @@ from werkzeug.urls import url_parse
 
 from managev_app import app, open_dataframes, plot, db, consumption_models
 from managev_app.Research.DegradationSimulation.Degradation import degradation_models
-from managev_app.Research.Google import google_linear_model as google_query
+from managev_app.Research.Google import google_interactor as google_query
 from managev_app.closest_points import Trees
 from managev_app.config import SessionConfig, OperationQuery, CalendarQuery
 from managev_app.forms import (
@@ -242,12 +242,13 @@ def energy_monitor():
             )
 
             segments = google_query.get_segments(google_client)
-            coords = list(segments['location'])
+            coords = list(segments["location"])
             estimation_path = os.path.join(
                 app.root_path, "Research/ConsumptionEstimation"
             )
             (
                 session["est_cons"],
+                session["est_cons_wang"],
                 session["est_time"],
                 _,
             ) = google_query.calculate_segments_consumption(segments, estimation_path)
@@ -287,7 +288,7 @@ def energy_monitor():
         donut=donut,
         vehicle=vehicle,
         google_sdk_key=google_sdk_key,
-        coords=coords
+        coords=coords,
     )
 
 

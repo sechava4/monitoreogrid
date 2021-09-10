@@ -1,7 +1,7 @@
 import datetime
+import logging
 import math
 import os
-import logging
 from pickle import load
 
 import geopy
@@ -10,10 +10,12 @@ import networkx as nw
 import numpy as np
 import osmnx as ox
 import pandas as pd
-import plotly.graph_objects as go
 import pytz
 
 from managev_app import app
+from managev_app.Research.ConsumptionEstimation.Models.consumption_models import (
+    WangModel,
+)
 
 logger = logging.Logger(__name__)
 google_sdk_key = os.environ.get("GOOGLE_SDK_KEY")
@@ -252,8 +254,12 @@ def calculate_segments_consumption(
         )
 
     estimated_time = segments_consolidated["travel_time"].sum() / 60
+    wang_model = WangModel()
+    wang_consumption_list = wang_model.compute_consumption(segments_consolidated)
+    wang_consumption = np.nansum(wang_consumption_list).round(3)
     return (
         (segments_consolidated["consumptionWh_linear"].sum() / 1000).round(3),
+        wang_consumption,
         estimated_time.round(3),
         segments_consolidated,
     )

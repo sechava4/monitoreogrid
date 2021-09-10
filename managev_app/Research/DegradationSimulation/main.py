@@ -5,7 +5,9 @@ from pickle import load
 
 from managev_app import app
 from managev_app.Research.DataInteractor.data_fetcher import DataFetcher
-from managev_app.Research.DegradationSimulation.Charging.PiecewiseTimeSlots import Piecewise
+from managev_app.Research.DegradationSimulation.Charging.PiecewiseTimeSlots import (
+    Piecewise,
+)
 from managev_app.Research.DrivingClassification.cluster import DrivingClassifier
 from managev_app.Research.DrivingClassification.road_clustering import RoadClassifier
 from managev_app.Research.DegradationSimulation.MarcovChain.MarcovChain import (
@@ -60,7 +62,9 @@ except (FileNotFoundError, KeyError):
     print("Enter query")
     query = (
         input()
-        or "select * from operation where vehicle_id in ('GHW284', 'GVQ446', 'EGZ112') order by vehicle_id desc;"
+        or "select * from operation where "
+        "vehicle_id in ('GHW284', 'GVQ446', 'EGZ112') and "
+        "elevation is not null order by vehicle_id desc;"
     )
     print(query)
     data_fetcher = DataFetcher()

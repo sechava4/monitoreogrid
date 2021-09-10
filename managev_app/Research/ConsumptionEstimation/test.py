@@ -1,26 +1,25 @@
-import pandas as pd
-import numpy as np
-from managev_app import app
 import os
-import TraceFeatures
-
-# import PlotPath
-import plotly.graph_objects as go
-import plotly
 import time
 from pickle import load
+
+import numpy as np
+import pandas as pd
+import plotly
+import plotly.graph_objects as go
 import statsmodels.api as sm
+
+from managev_app import app
+from managev_app.Research.Route_segmentation.segmentation import (
+    feature_extraction,
+    generate_features_df,
+)
 
 path = os.path.join(app.root_path)
 
 # Data cleaning
 op = pd.read_csv(path + "/DataBackup/updated_old_vehicle_operation.csv")
 op = op.dropna(subset=["power_kw", "odometer"])
-# op = op[(op['vehicle_id'] == 'FSV110') | (op['vehicle_id'] == "GHW284")]
-# op = op[(op['vehicle_id'] == 'FSV110') ]
 op = op[(op["odometer"] > 1)]
-# op = op[(op['power_kw'] != 0)]
-
 op.drop(columns=["placa"], inplace=True)
 
 
@@ -44,10 +43,8 @@ def gen_test_traces(df):
     old_date = df["timestamp2"].iloc[0]
 
     for index, row in df.iterrows():
-        # for index, row in test.iterrows():
         suma = suma + row["run"]
         suma_testing = suma_testing + row["run"]
-        # row['slope']
         trace_array = np.append(trace_array, aux_trace_id)
 
         nan = row["name"] != row["name"]
@@ -66,7 +63,6 @@ def gen_test_traces(df):
         # Si lleva más de 20km en ruta
         if suma_testing >= 25000 and row["operative_state"] < 3:
             test_array = np.append(test_array, testear_id)
-            # test_array = np.where(test_array == testear_id, consolidar_id, test_array)
             if suma_testing >= 50000:
                 consolidar_id += 1
                 testear_id -= 1
@@ -157,17 +153,17 @@ for index, segment in segments:
     if len(segment) > 1 and index > 0:
         if abs(segment["test_id"].iloc[0]) > 3:
             if segment["test_id"].iloc[0] > 0:
-                lst_measure.append(TraceFeatures.feature_extraction(segment))
+                lst_measure.append(feature_extraction(segment))
 
             if segment["test_id"].iloc[0] < 0:
-                lst_test.append(TraceFeatures.feature_extraction(segment))
+                lst_test.append(feature_extraction(segment))
 
         elif abs(segment["test_id"].iloc[0]) > 15:
             break
 
 
-measure_segments = TraceFeatures.generate_features_df(lst_measure)
-test_segments = TraceFeatures.generate_features_df(lst_test)
+measure_segments = generate_features_df(lst_measure)
+test_segments = generate_features_df(lst_test)
 
 # Assign the slope categorical variable
 measure_segments["slope_cat"] = pd.cut(
@@ -201,12 +197,6 @@ def test(i):
     mean_max_p_per_user_and_slope.rename(
         columns={"max_power": "mean_max_power_usr", "slope": "slope_cat"}, inplace=True
     )
-    m = pd.merge(
-        left=m,
-        right=mean_max_p_per_user_and_slope,
-        left_on=["user_id", "slope_cat"],
-        right_on=["user_id", "slope_cat"],
-    )
 
     # -------------------------- Add atributes to prediction dataset--------------------------------------------
     p = test_segments[test_segments["test_id"] == -i]
@@ -236,11 +226,6 @@ def test(i):
         else row["mean_max_power_usr"],
         axis=1,
     )
-
-    pred = 0
-    # p['mean_soc'] = p['mean_soc'].iloc[0]
-
-    # row['mean_soc'] = row['mean_soc'] + (pred * 2.5)
 
     # Apply scaling
     scaler = load(open(path + "/Develops/ConsumptionEstimation/scaler_lm.pkl", "rb"))
@@ -347,7 +332,6 @@ for t in range(5, 14):  # [5, 7, 10, 13, 15]:
             "lenght=",
             plot_test["odometer"].iloc[-1] - plot_test["odometer"].iloc[0],
         )
-        # map_plot(plot_consolidate, plot_test, t)
         e = test(t)
         l.append(e)
 

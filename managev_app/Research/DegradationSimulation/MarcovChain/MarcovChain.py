@@ -7,8 +7,12 @@ from numpy.random import default_rng
 from scipy import stats
 import matplotlib.pyplot as plt
 
-from managev_app.Research.DegradationSimulation.Charging.PiecewiseTimeSlots import Piecewise
-from managev_app.Research.DegradationSimulation.Degradation.degradation_models import wang
+from managev_app.Research.DegradationSimulation.Charging.PiecewiseTimeSlots import (
+    Piecewise,
+)
+from managev_app.Research.DegradationSimulation.Degradation.degradation_models import (
+    wang,
+)
 
 rng = default_rng()
 
@@ -50,7 +54,14 @@ class MarcovChain:
         self.scaler_inv = scaler_inv
         self.model = model
         self.counters = defaultdict(int)
-        self.attr_names = ["max_power", "min_acc", "mean_speed", "slope", "kms"]
+        self.attr_names = [
+            "max_power",
+            "min_acc",
+            "mean_speed",
+            "slope",
+            "kms",
+            "batt_temp",
+        ]
         road_cluster_labels = segments.road_clusters
         prev = road_cluster_labels.iloc[0]
         for x in road_cluster_labels.iloc[1:]:
@@ -68,7 +79,7 @@ class MarcovChain:
                 for attr in self.attr_names:
                     data = segments[attr][segments.road_clusters == road_type]
                     var[attr] = data
-                    if attr == "mean_speed":
+                    if attr in ["mean_speed", "batt_temp"]:
                         shape, floc, scale = stats.lognorm.fit(data)
                         generator[attr] = {
                             "method": stats.lognorm,
@@ -144,13 +155,14 @@ class MarcovChain:
         print(values)
         seconds = values.get("kms") / values.get("mean_speed") * 3600
         kms = values.pop("kms")
+        batt_temp = values.pop("batt_temp")
         scaled_values = self.scaler.transform([list(values.values())])
         consumption = self.model.predict(scaled_values)
         kWh_per_km = self.scaler_inv.data_min_[4] + (
             consumption / self.scaler_inv.scale_[4]
         )
         kWh = kWh_per_km * kms
-        return kWh[0], seconds
+        return kWh[0], seconds, batt_temp
 
     def decide_transition(self, current_state):
         transition_states = [
@@ -184,7 +196,7 @@ class MarcovChain:
         end_time = days * 3600 * 24
         while times[-1] < end_time:
             if state.isdigit():
-                consumption, seconds = self.compute_consumption(state)
+                consumption, seconds, batt_temp = self.compute_consumption(state)
                 watts = consumption * 1000 / (seconds / 3600)
                 amperes = watts / self.vehicle.mean_voltage
                 if (
