@@ -59,13 +59,14 @@ class XuDegradationModel:
         """
         n:  (n1, n2, . . . , nn) where ni = 1 if full cycle or 0.5 if half cycle
         Half-cycle means one single charge or discharge event
+
         soc: (SoC1, SoC2, . . . , SoCn) float numbers ranging from 0 to 1
         dod: (DoD1, DoD2, . . . , DoDn) float numbers ranging from 0 to 1
         c_rates:  (C1, C2, . . . , Cn)
         temp:  (T1, T2, . . . , Tn) in kelvin degrees
 
-        Ci = DoDi· 2n · (3600s) / tend − tstart where time are in the unit of second, and
-        Ti = T(tend) + T(tstart) / 2
+        Ci = DoDi· 2n · (3600s) / tend − tstart where time are in the unit of second
+        Ti = average in Kelvin
 
         """
 
@@ -117,7 +118,7 @@ class XuDegradationModel:
     def f_calendar(self):
         """
         Calculates degradation due to calendar ageing
-        :return: degradation in x units
+        :return: fc non-dimensional parameter
         """
         kt = 4.14e-10  # 4.14E-10/s
         return kt * self.seconds * self._f_soc(self.soc_avg) * self._f_temp(self.t_avg)
@@ -128,7 +129,7 @@ class XuDegradationModel:
         kSoC is the SoC stress coefficient and SoCref is the reference SoC
         level
         :param soc: 0 to 1
-        :return:
+        :return: f_soc non-dimensional parameter
         """
         k_soc = 1.04
         soc_ref = 0.5
@@ -143,6 +144,7 @@ class XuDegradationModel:
         fitted according to 20% capacity loss
 
         :param dod:
+        :return: f_dod non-dimensional parameter
         """
         k_dod_1 = 8.95e4
         k_dod_2 = -4.86e-1
@@ -159,7 +161,7 @@ class XuDegradationModel:
         Qr is the remaining or total charge capacity of the battery at current
         status
         :param c_rate:
-        :return:
+        :return: f_c_rate non-dimensional parameter
         """
         c_ref = 1
         k_c = 2.63e-1
@@ -172,7 +174,7 @@ class XuDegradationModel:
         Tref is the reference temperature, in Kelvin.
         Here the reference temperature is set to 293K or 25◦C,
         in which most of the calendar ageing experiments are performed
-        :rtype: object
+        :rtype: f_temp non-dimensional parameter
         """
         k_t = 6.93e-2
         t_ref = 293  # or 25 celsius

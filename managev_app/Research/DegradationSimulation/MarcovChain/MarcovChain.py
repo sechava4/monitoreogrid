@@ -1,6 +1,7 @@
 from collections import defaultdict
 from dataclasses import dataclass
 from typing import List
+from statistics import mean
 
 import numpy as np
 from numpy.random import default_rng
@@ -11,7 +12,7 @@ from managev_app.Research.DegradationSimulation.Charging.PiecewiseTimeSlots impo
     Piecewise,
 )
 from managev_app.Research.DegradationSimulation.Degradation.degradation_models import (
-    wang,
+    XuDegradationModel,
 )
 
 rng = default_rng()
@@ -26,7 +27,14 @@ class VehicleSimulator:
     mean_voltage: float = 365.88
     mean_batt_temp: float = 26.0423
     capacity_kWh: float = 40
+    capacity_AH: float = 100
     initial_Wh_capacity: int = 40000
+
+    # These variables are used to compute averages within a cycle
+    cycle_soc = []
+    cycle_c_rates = []
+    cycle_temperatures = []
+    cycle_times = []
 
     def set_charge_levels(self, segments):
         initial_charges = segments["ini_cap"][segments["vehicle_state"] == "charging"]
@@ -37,6 +45,12 @@ class VehicleSimulator:
 
         idle_times = segments["time"][segments["vehicle_state"] == "idle"]
         self.idle_time_interval = np.percentile(idle_times, [25, 75])
+
+    def reset_degradation_helpers(self):
+        self.cycle_soc = []
+        self.cycle_c_rates = []
+        self.cycle_temperatures = []
+        self.cycle_times = []
 
 
 class MarcovChain:
@@ -152,7 +166,6 @@ class MarcovChain:
 
     def compute_consumption(self, road_type):
         values = self.generate_values(road_type).copy()
-        print(values)
         seconds = values.get("kms") / values.get("mean_speed") * 3600
         kms = values.pop("kms")
         batt_temp = values.pop("batt_temp")
@@ -179,26 +192,39 @@ class MarcovChain:
         next_state = rng.choice(a=transition_states, p=transition_probabilities)
         return next_state
 
-    def random_walk(self, state="idle", energy=40, days=10):
+    def random_walk(
+        self, state="idle", energy=40, days=10, degradation_model=XuDegradationModel
+    ):
         # TODO: For each of the driver types generate random distribution of battery heat,
         #  in order to input the degradation model
         """
         Random walk simulation to predict battery degradation
 
-        :param state:
-        :param energy:
-        :param iterations:
-        :return:
+        :param state: initial chain state
+        :param energy: initial battery kwh
+        :param days:
+        :return: graphs of driving cycles and degradation
         """
         energy_history = [energy]
         degradation_history = [0]
         times = [0]
         end_time = days * 3600 * 24
+
+        # Degradation vector params
+        cycles = []
+        soc = []
+        dod = []
+        temp = []
+        c_rates = []
+        durations = []
+
         while times[-1] < end_time:
             if state.isdigit():
                 consumption, seconds, batt_temp = self.compute_consumption(state)
                 watts = consumption * 1000 / (seconds / 3600)
                 amperes = watts / self.vehicle.mean_voltage
+
+                # if its time to charge
                 if (
                     self.vehicle.min_charge_level_interval[0]
                     < energy - consumption
@@ -207,17 +233,31 @@ class MarcovChain:
                     energy -= consumption
                     state = "charging"
 
+                    # add a half life cycle
+                    cycles.append(0.5)
+                    soc.append(mean(self.vehicle.cycle_soc))
+                    dod.append(self.vehicle.cycle_soc[0] - self.vehicle.cycle_soc[-1])
+                    temp.append(mean(self.vehicle.cycle_temperatures))
+                    c_rates.append(mean(self.vehicle.cycle_c_rates))
+                    durations.append(sum(self.vehicle.cycle_times))
+
+                    self.vehicle.reset_degradation_helpers()
+
                 # dont take deeper than allowed consumptions into account
                 elif energy - consumption < self.vehicle.min_charge_level_interval[0]:
                     continue
                 else:
-                    energy -= consumption
+                    final_energy = energy - consumption
+                    # if regeneration happens at top level charge
+                    if final_energy <= self.vehicle.capacity_kWh:
+                        energy = final_energy
                     state = self.decide_transition(state)
-                degradation = wang(
-                    current=amperes,
-                    delta_t=seconds,
-                    batt_temp=self.vehicle.mean_batt_temp,
-                )
+
+                # Kelvin degrees
+                self.vehicle.cycle_temperatures.append(batt_temp + 273.15)
+                self.vehicle.cycle_soc.append(energy / self.vehicle.capacity_kWh)
+                self.vehicle.cycle_c_rates.append(amperes / self.vehicle.capacity_AH)
+                self.vehicle.cycle_times.append(seconds)
 
             elif state == "charging":
                 max_level = rng.integers(*self.vehicle.max_charge_level_interval)
@@ -234,6 +274,13 @@ class MarcovChain:
                     seconds = charge_dict.get("serviceTime")
                     energy = max_level
                     degradation = 0
+
+                    self.vehicle.reset_degradation_helpers()
+                    # todo add charging cycle
+                    # cycles.append(0.5)
+                    # soc.append ...
+                    # dod.append ...
+
                 state = self.decide_transition(state)
             elif state == "idle":
                 seconds = rng.integers(*self.vehicle.idle_time_interval)
@@ -244,6 +291,15 @@ class MarcovChain:
             times.append(times[-1] + seconds)
             energy_history.append(energy)
 
+        model = degradation_model(
+            soc=soc,
+            dod=dod,
+            c_rates=c_rates,
+            temp=temp,
+            n=cycles,
+            seconds=int(sum(durations)),
+        )
+        degradation = model.compute_degradation()
         plt.figure()
         plt.plot([t / 3600 for t in times], energy_history)
         plt.xlabel("Hours")
