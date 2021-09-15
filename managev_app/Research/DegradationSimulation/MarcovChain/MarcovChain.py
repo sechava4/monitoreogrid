@@ -36,6 +36,8 @@ class VehicleSimulator:
     cycle_temperatures = []
     cycle_times = []
 
+    model = XuDegradationModel
+
     def set_charge_levels(self, segments):
         initial_charges = segments["ini_cap"][segments["vehicle_state"] == "charging"]
         self.min_charge_level_interval = np.percentile(initial_charges, [25, 75])
@@ -51,6 +53,17 @@ class VehicleSimulator:
         self.cycle_c_rates = []
         self.cycle_temperatures = []
         self.cycle_times = []
+
+    def compute_degradation(self, soc, dod, c_rates, temp, cycles, durations):
+        model = self.model(
+            soc=soc,
+            dod=dod,
+            c_rates=c_rates,
+            temp=temp,
+            n=cycles,
+            seconds=int(sum(durations)),
+        )
+        return model.compute_degradation()
 
 
 class MarcovChain:
@@ -160,13 +173,15 @@ class MarcovChain:
             # We create a copy since we are popping the method
             gen_copy = generator.copy()
             method = gen_copy.pop("method")
-
-            values[attr] = method.rvs(*tuple(gen_copy.values()))
+            value = method.rvs(*tuple(gen_copy.values()))
+            if attr == "mean_speed":
+                value = abs(value)
+            values[attr] = value
         return values
 
     def compute_consumption(self, road_type):
         values = self.generate_values(road_type).copy()
-        seconds = values.get("kms") / values.get("mean_speed") * 3600
+        seconds = values.get("kms") / abs(values.get("mean_speed")) * 3600
         kms = values.pop("kms")
         batt_temp = values.pop("batt_temp")
         scaled_values = self.scaler.transform([list(values.values())])
@@ -192,23 +207,25 @@ class MarcovChain:
         next_state = rng.choice(a=transition_states, p=transition_probabilities)
         return next_state
 
-    def random_walk(
-        self, state="idle", energy=40, days=10, degradation_model=XuDegradationModel
-    ):
+    def random_walk(self, state="idle", energy=40, days=10):
         # TODO: For each of the driver types generate random distribution of battery heat,
         #  in order to input the degradation model
         """
         Random walk simulation to predict battery degradation
 
-        :param state: initial chain state
+        :param state: initial chain state 0,1,2,3,4 (driving states) or idle or charging
         :param energy: initial battery kwh
         :param days:
         :return: graphs of driving cycles and degradation
         """
         energy_history = [energy]
+        states = [state]
         degradation_history = [0]
         times = [0]
         end_time = days * 3600 * 24
+        max_idle_hours = 24
+        max_driving_hours = 3
+        idle_time = 0
 
         # Degradation vector params
         cycles = []
@@ -217,6 +234,7 @@ class MarcovChain:
         temp = []
         c_rates = []
         durations = []
+        degradation = 0
 
         while times[-1] < end_time:
             if state.isdigit():
@@ -233,27 +251,22 @@ class MarcovChain:
                     energy -= consumption
                     state = "charging"
 
-                    # add a half life cycle
-                    cycles.append(0.5)
-                    soc.append(mean(self.vehicle.cycle_soc))
-                    dod.append(self.vehicle.cycle_soc[0] - self.vehicle.cycle_soc[-1])
-                    temp.append(mean(self.vehicle.cycle_temperatures))
-                    c_rates.append(mean(self.vehicle.cycle_c_rates))
-                    durations.append(sum(self.vehicle.cycle_times))
-
-                    self.vehicle.reset_degradation_helpers()
-
                 # dont take deeper than allowed consumptions into account
                 elif energy - consumption < self.vehicle.min_charge_level_interval[0]:
+                    continue
+                # If taking too long on a single state
+                elif seconds / 3600 > max_driving_hours:
                     continue
                 else:
                     final_energy = energy - consumption
                     # if regeneration happens at top level charge
+                    # dont allow more than max capacity
                     if final_energy <= self.vehicle.capacity_kWh:
                         energy = final_energy
                     state = self.decide_transition(state)
 
-                # Kelvin degrees
+                # for each battery half cycle we use this vectors to compute means
+                # those means are used to compute degradation on the cycle
                 self.vehicle.cycle_temperatures.append(batt_temp + 273.15)
                 self.vehicle.cycle_soc.append(energy / self.vehicle.capacity_kWh)
                 self.vehicle.cycle_c_rates.append(amperes / self.vehicle.capacity_AH)
@@ -262,53 +275,86 @@ class MarcovChain:
             elif state == "charging":
                 max_level = rng.integers(*self.vehicle.max_charge_level_interval)
                 if energy < max_level:
+                    if len(self.vehicle.cycle_soc) >= 2:
+                        # add a half life cycle
+                        cycles.append(0.5)
+                        soc.append(mean(self.vehicle.cycle_soc))
+                        dod.append(
+                            abs(self.vehicle.cycle_soc[0] - self.vehicle.cycle_soc[-1])
+                        )
+                        temp.append(mean(self.vehicle.cycle_temperatures))
+                        c_rates.append(mean(self.vehicle.cycle_c_rates))
+                        durations.append(sum(self.vehicle.cycle_times))
+
+                        degradation = self.vehicle.compute_degradation(
+                            soc, dod, c_rates, temp, cycles, durations
+                        )
+
+                        # Vectors for graphs
+                        times.append(times[-1])
+                        states.append(state)
+                        degradation_history.append(degradation * 100)
+                        energy_history.append(energy)
+                        self.vehicle.reset_degradation_helpers()
+
                     # charge
                     initial_soc = energy / self.vehicle.capacity_kWh
                     final_soc = max_level / self.vehicle.capacity_kWh
+                    charge_kw = 22
                     charge_dict = self.vehicle.charge_simulator.chargingTimeFunction(
                         initial_soc,
                         final_soc,
-                        inputPower=11,
+                        inputPower=charge_kw,
                         batterySize=self.vehicle.initial_Wh_capacity,
                     )
                     seconds = charge_dict.get("serviceTime")
                     energy = max_level
-                    degradation = 0
+
+                    cycles.append(0.5)
+                    soc.append(mean([initial_soc, final_soc]))
+                    dod.append(final_soc - initial_soc)
+                    # todo: fix this
+                    temp.append(30 + 273)
+                    c_rates.append(
+                        charge_kw
+                        * 1000
+                        / (self.vehicle.mean_voltage * self.vehicle.capacity_AH)
+                    )
+                    durations.append(seconds)
+                    degradation = self.vehicle.compute_degradation(
+                        soc, dod, c_rates, temp, cycles, durations
+                    )
 
                     self.vehicle.reset_degradation_helpers()
-                    # todo add charging cycle
-                    # cycles.append(0.5)
-                    # soc.append ...
-                    # dod.append ...
 
                 state = self.decide_transition(state)
             elif state == "idle":
                 seconds = rng.integers(*self.vehicle.idle_time_interval)
+                idle_time += seconds
                 state = self.decide_transition(state)
-                degradation = 0
+                if idle_time / 3600 > max_idle_hours:
+                    # Ensure to pass to a driving state
+                    while not state.isdigit():
+                        state = self.decide_transition(state)
+                    idle_time = 0
 
-            degradation_history.append(degradation_history[-1] + degradation)
             times.append(times[-1] + seconds)
+            states.append(state)
+            degradation_history.append(degradation * 100)
             energy_history.append(energy)
 
-        model = degradation_model(
-            soc=soc,
-            dod=dod,
-            c_rates=c_rates,
-            temp=temp,
-            n=cycles,
-            seconds=int(sum(durations)),
-        )
-        degradation = model.compute_degradation()
-        plt.figure()
-        plt.plot([t / 3600 for t in times], energy_history)
-        plt.xlabel("Hours")
-        plt.ylabel("Capacity (kWh)")
-        plt.show()
+        hours = [t / 3600 for t in times]
+        plot_dict = {
+            "Capacity (kWh)": energy_history,
+            "states": states,
+            "Capacity loss(%)": degradation_history,
+        }
 
-        plt.figure()
-        plt.plot([t / 3600 for t in times], degradation_history)
-        plt.xlabel("Hours")
-        plt.ylabel("Capacity loss(%)")
-        plt.show()
-        return energy
+        for label, data in plot_dict.items():
+            plt.figure()
+            plt.plot(hours, data)
+            plt.xlabel("Hours")
+            plt.ylabel(label)
+            plt.show()
+
+        return plot_dict, hours
