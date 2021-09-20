@@ -19,7 +19,6 @@
                 center: myLatlng,
               });
               var flightPlanCoordinates = JSON.parse('{{coords | tojson}}');
-              console.log(flightPlanCoordinates)
 
               const flightPath = new google.maps.Polyline({
                 path: flightPlanCoordinates,
@@ -30,9 +29,6 @@
               });
 
               // Functions to draw the line
-
-
-
               flightPath.setMap(map);
 
               // Create the initial InfoWindow.
@@ -98,34 +94,16 @@
      </div>
         <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 
-<div class="wrapper">
-  <div class="box header">
-      <form role="form" class="form-group form-inline" action="{{ url_for('energy_monitor') }}" method=post>
-        <h3>&nbsp Ver actividad de &nbsp</h3>
-            <select class="form-control" id="time_interval_select" name = time_interval onchange="this.form.submit();">
-              <option value="{{session.time_interval}}"> {{session.t_int_pretty}}</option>
-              <option value="1 h">Última hora</option>
-              <option value="2 h">Últimas 2 horas</option>
-              <option value="4 h">Últimas 4 horas</option>
-              <option value="1 d">Últimas 24 horas</option>
-              <option value="2 d">Últimos 2 días</option>
-              <option value="3 d">Últimos 3 días</option>
-              <option value="8 d">Ultima semana</option>
-              <option value="30 d">Ultimo mes</option>
-              <option value="60 d">Ultimos 60 días</option>
-              <option value="90 d">Ultimos 90 días</option>
-              <option value="365 d">Ultimo año</option>
-            </select>
-        </div>
-    </div>
-    <label for="pos_origin" style="margin: 20px;">Posición inicial:</label>
-    <input type="text" id="pos_origin" name="pos_o" style="margin: 20px;">
-    <label for="pos_dest" style="margin: 20px;">Posición final:</label>
-    <input type="text" id="pos_dest" name="pos_d" style="margin: 20px;">
+<div style="width:80%;height:70%" id="map_google"></div>
+
+<form role="form" class="form-group form-inline" action="{{ url_for('energy_monitor') }}" method=post>
+
+    <label for="pos_origin" style="display: inline-block; margin: 20px;">Posición inicial:</label>
+    <input type="text" id="pos_origin" name="pos_o" style="display: inline-block; margin: 20px;">
+    <label for="pos_dest" style="display: inline-block; margin: 20px;">Posición final:</label>
+    <input type="text" id="pos_dest" name="pos_d" style="display: inline-block; margin: 20px;">
     <input type="reset" value="Reset">
     <button class="btn btn-primary" type="submit" style="margin: 20px;" >Calcular consumo</button>
-
-    </form>
     {% if session.est_cons != 0%}
         <h4 style="width:100%;margin:20px"> Consumo esperado del trayecto (Ml): <b>{{session.est_cons}} kWh</b></h4>
         <h4 style="width:100%;margin:20px"> Consumo esperado del trayecto (Wang): <b>{{session.est_cons_wang}} kWh</b></h4>
@@ -136,21 +114,35 @@
     {% if session.lights != 0%}
         <h4 style="width:100%;margin:20px"> Cantidad de semáforos: <b>{{session.lights}}</b></h4>
     {% endif %}
+<div style="width: 100%"></div>
+    <div class="box header">
+        <h3>&nbsp Ver energía consumida y recuperada de &nbsp</h3>
+        <select class="form-control" id="time_interval_select" name = time_interval onchange="this.form.submit();">
+            <option value="{{session.time_interval}}"> {{session.t_int_pretty}}</option>
+            <option value="1 h">Última hora</option>
+            <option value="2 h">Últimas 2 horas</option>
+            <option value="4 h">Últimas 4 horas</option>
+            <option value="1 d">Últimas 24 horas</option>
+            <option value="2 d">Últimos 2 días</option>
+            <option value="3 d">Últimos 3 días</option>
+            <option value="8 d">Ultima semana</option>
+            <option value="30 d">Ultimo mes</option>
+            <option value="60 d">Ultimos 60 días</option>
+            <option value="90 d">Ultimos 90 días</option>
+            <option value="365 d">Ultimo año</option>
+        </select>
+    </div>
+</form>
 
-<div id="floating-panel">
-  <input onclick="removeLine();" type="button" value="Remove line" />
-  <input onclick="addLine();" type="button" value="Restore line" />
-</div>
 
-<div style="width:80%;height:70%" id="map_google"></div>
+
+
 <div>
-
     <script type="text/javascript">
         document.getElementById('pos_origin').defaultValue = 'Click on the map'
         document.getElementById('pos_dest').defaultValue = 'Click on the map'
     </script>
     </div>
-
 </div>
 
 

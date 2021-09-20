@@ -26,10 +26,6 @@ except ValueError:
     logger.info("Google sdk key not set properly")
 
 
-def moving_average(x, w):
-    return np.convolve(x, np.ones(w), "valid") / w
-
-
 def get_segments(g_json):
     # The large segments taken from google
     steps = g_json[0]["legs"][0]["steps"]

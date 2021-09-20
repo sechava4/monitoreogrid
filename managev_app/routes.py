@@ -26,7 +26,7 @@ from werkzeug.urls import url_parse
 
 from managev_app import app, open_dataframes, plot, db, consumption_models
 from managev_app.Research.DegradationSimulation.Degradation import degradation_models
-from managev_app.Research.Google import google_interactor as google_query
+from managev_app.Research.Google import google_interactor
 from managev_app.closest_points import Trees
 from managev_app.config import SessionConfig, OperationQuery, CalendarQuery
 from managev_app.forms import (
@@ -241,7 +241,7 @@ def energy_monitor():
                 traffic_model="pessimistic",
             )
 
-            segments = google_query.get_segments(google_client)
+            segments = google_interactor.get_segments(google_client)
             coords = list(segments["location"])
             estimation_path = os.path.join(
                 app.root_path, "Research/ConsumptionEstimation"
@@ -251,15 +251,15 @@ def energy_monitor():
                 session["est_cons_wang"],
                 session["est_time"],
                 _,
-            ) = google_query.calculate_segments_consumption(segments, estimation_path)
+            ) = google_interactor.calculate_segments_consumption(segments, estimation_path)
         except SyntaxError:
             session["est_cons"] = 0
             session["est_time"] = 0
 
     session["energy_t1"] = now
 
-    number = int(session["time_interval"].split()[0])  # example 10 h selects 20
-    unit = session["time_interval"].split()[1]  # example 10 h selects h
+    number = int(session["time_interval"].split()[0])
+    unit = session["time_interval"].split()[1]
     if "h" in unit:
         session["energy_t2"] = now - timedelta(hours=number)
     elif "d" in unit:
@@ -552,25 +552,6 @@ def add_entry():
                 float(operation.mean_acc),
                 float(vehicle.weight),
             )
-        elif "renault" in vehicle.marca.lower():
-
-            # WANG MODEL IMPLEMENTATION
-            current = float(args.get("current", 0))
-            if current:
-                ah = current * delta_t / 3600
-                c_rate = current / 100  # 100 = Amperios hora totales bateria
-                if c_rate > 0:
-                    b = 448.96 * c_rate ** 2 - 6301.1 * c_rate + 33840
-                    operation.q_loss = (
-                        b
-                        * math.exp(
-                            (-31700 + (c_rate * 370.3))
-                            / (8.314472 * (float(args.get("batt_temp", 22))))
-                        )
-                        * ah ** 0.552
-                    )
-                else:
-                    operation.q_loss = 0
 
         db.session.add(operation)
         db.session.commit()
