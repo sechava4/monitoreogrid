@@ -105,8 +105,11 @@
     <input type="reset" value="Reset">
     <button class="btn btn-primary" type="submit" style="margin: 20px;" >Calcular consumo</button>
     {% if session.est_cons != 0%}
-        <h4 style="width:100%;margin:20px"> Consumo esperado del trayecto (Ml): <b>{{session.est_cons}} kWh</b></h4>
-        <h4 style="width:100%;margin:20px"> Consumo esperado del trayecto (Wang): <b>{{session.est_cons_wang}} kWh</b></h4>
+        <h4 style="width:100%;margin:20px"> Consumo esperado del trayecto (ANN): <b>{{session.ANN}} kWh</b></h4>
+        <h4 style="width:100%;margin:20px"> Consumo esperado del trayecto (RF): <b>{{session.RF}} kWh</b></h4>
+        <h4 style="width:100%;margin:20px"> Consumo esperado del trayecto (XGB): <b>{{session.XGB}} kWh</b></h4>
+        <h4 style="width:100%;margin:20px"> Consumo esperado del trayecto (linear): <b>{{session.linear}} kWh</b></h4>
+        <h4 style="width:100%;margin:20px"> Consumo esperado del trayecto (Wang): <b>{{session.wang}} kWh</b></h4>
     {% endif %}
     {% if session.est_time != 0%}
         <h4 style="width:100%;margin:20px"> Tiempo de viaje: <b>{{session.est_time}} min</b></h4>

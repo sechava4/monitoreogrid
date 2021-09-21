@@ -250,9 +250,14 @@ def calculate_segments_consumption(
     wang_model = WangModel()
     wang_consumption_list = wang_model.compute_consumption(segments_consolidated)
     wang_consumption = np.nansum(wang_consumption_list).round(3)
+
+    model_to_consumption_map = {
+        mod: (segments_consolidated[f"consumptionWh_{mod}"].sum() / 1000).round(3)
+        for mod in models.keys()
+    }
+    model_to_consumption_map["wang"] = wang_consumption
     return (
-        (segments_consolidated["consumptionWh_linear"].sum() / 1000).round(3),
-        wang_consumption,
+        model_to_consumption_map,
         estimated_time.round(3),
         segments_consolidated,
     )

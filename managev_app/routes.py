@@ -246,12 +246,16 @@ def energy_monitor():
             estimation_path = os.path.join(
                 app.root_path, "Research/ConsumptionEstimation"
             )
+
             (
-                session["est_cons"],
-                session["est_cons_wang"],
+                model_to_consumption_map,
                 session["est_time"],
                 _,
-            ) = google_interactor.calculate_segments_consumption(segments, estimation_path)
+            ) = google_interactor.calculate_segments_consumption(
+                segments, estimation_path
+            )
+            session.update(model_to_consumption_map)
+
         except SyntaxError:
             session["est_cons"] = 0
             session["est_time"] = 0
