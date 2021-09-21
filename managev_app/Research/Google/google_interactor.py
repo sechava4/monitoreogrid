@@ -36,7 +36,7 @@ def get_segments(g_json):
         t = row["duration"]["value"]
 
         speed_kmh = (m / t) * 3.6
-        n_segments = round(np.cbrt(m))
+        n_segments = int(math.sqrt(m))
         line_path = gmaps.elevation_along_path(row["polyline"]["points"], n_segments)
         line_df = pd.DataFrame(line_path)
         line_df["m"] = m
@@ -129,7 +129,6 @@ def calc_shortest_path(G, lat_o, lon_o, lat_d, lon_d):
 def calculate_segments_consumption(
     segments,
     path=os.path.join(app.root_path) + "/Research/ConsumptionEstimation",
-    soc=70,
     user="Santiago_Echavarria_01",
 ):
     segments["id"] = segments.index
@@ -184,7 +183,6 @@ def calculate_segments_consumption(
         else row["mean_consumption_per_km_usr"],
         axis=1,
     )
-    segments_consolidated["mean_soc"] = soc
 
     # Apply scaling
     scaler = load(open(path + "/MachineLearningModels/scaler_lm.pkl", "rb"))
@@ -259,7 +257,6 @@ def calculate_segments_consumption(
     return (
         model_to_consumption_map,
         estimated_time.round(3),
-        segments_consolidated,
     )
 
 

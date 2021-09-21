@@ -243,17 +243,11 @@ def energy_monitor():
 
             segments = google_interactor.get_segments(google_client)
             coords = list(segments["location"])
-            estimation_path = os.path.join(
-                app.root_path, "Research/ConsumptionEstimation"
-            )
 
             (
                 model_to_consumption_map,
                 session["est_time"],
-                _,
-            ) = google_interactor.calculate_segments_consumption(
-                segments, estimation_path
-            )
+            ) = google_interactor.calculate_segments_consumption(segments)
             session.update(model_to_consumption_map)
 
         except SyntaxError:
