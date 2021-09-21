@@ -110,6 +110,7 @@ class Operation(db.Model):
     speed = db.Column(db.Float)
     mean_speed = db.Column(db.Float)
     odometer = db.Column(db.Float)
+    acceleration = db.Column(db.Float)
     user_name = db.Column(db.String(64))
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
     batt_temp = db.Column(db.Float)
