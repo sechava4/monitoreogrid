@@ -1,7 +1,22 @@
 import numpy as np
+from abc import ABC, abstractmethod
 
 
-class WangModel:
+class BaseModel(ABC):
+    @abstractmethod
+    def compute_consumption(self):
+        pass
+
+
+class MachineLearningConsumptionModel(BaseModel):
+    def __init__(self, mean_power_usr):
+        pass
+
+    def compute_consumption(self):
+        pass
+
+
+class WangModel(BaseModel):
     def __init__(
         self, v_i=10, acc=1.5, acc_fr=-2, frontal_area=2.43, cd=0.31, mass=1622
     ):

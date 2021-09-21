@@ -136,7 +136,6 @@ def calculate_segments_consumption(
     segments = segments.sort_values(by=["id"])
     segments["mass"] = 1604
     segments["user_id"] = user
-    # segments['user_id'] = 'Jose_Alejandro_Montoya'
 
     mean_features_by_slope = pd.read_csv(
         path + "/UserDrivingData/mean_features_by_slope.csv"
@@ -152,8 +151,6 @@ def calculate_segments_consumption(
     mean_features_by_slope["slope_cat"] = mean_features_by_slope["slope_cat"].astype(
         "string"
     )
-
-    print("no of segments", len(segments))
 
     segments_consolidated = pd.merge(
         left=segments,
