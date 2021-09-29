@@ -42,7 +42,7 @@ class User(UserMixin, db.Model):
 
 class Vehicle(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    placa = db.Column(db.String(64), index=True, unique=True)
+    placa = db.Column(db.String(64), index=True)
     marca = db.Column(db.String(64))
     modelo = db.Column(db.String(64))
     year = db.Column(db.Integer)

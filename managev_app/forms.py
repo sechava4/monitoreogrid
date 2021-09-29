@@ -64,8 +64,3 @@ class VehicleRegistrationForm(FlaskForm):
     marca = StringField("Marca", validators=[DataRequired()])
     year = IntegerField("Modelo", validators=[DataRequired()])
     submit = SubmitField("Register")
-
-    def validate_placa(self, placa):
-        vehicle = Vehicle.query.filter_by(placa=placa.data).first()
-        if vehicle is not None:
-            raise ValidationError("Por favor ingrese una placa diferente.")
