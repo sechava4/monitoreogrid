@@ -12,6 +12,6 @@ def returndata():
     query = (
         Operation.query.filter(Operation.vehicle_id == placa)
         .order_by(Operation.id.desc())
-        .first()
+        .limit(5)
     )
     return jsonify(query.asdict())
