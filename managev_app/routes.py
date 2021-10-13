@@ -39,6 +39,7 @@ from managev_app.models import User, Operation, Vehicle
 
 logger = logging.getLogger(__name__)
 google_sdk_key = os.environ.get("GOOGLE_SDK_KEY")
+users_list = ['esgomezo','auribev1','sechava4']
 
 
 # ---------------------------------Vehicle routes ----------------------------------#
@@ -193,6 +194,7 @@ def show_entries():
         vehicles=df_vehicles.to_json(orient="records"),
         json_lines=json_lines,
         json_operation=json_operation,
+        users_list=users_list,
     )
 
 
@@ -279,15 +281,17 @@ def energy_monitor():
         scatter_cons = 0
         donut = 0
     session["t_int_pretty"] = open_dataframes.pretty_var_name(session["time_interval"])
+    
+    if (current_user.username in users_list):
+        return render_template(
+            "energy_monitor.html",
+            plot=scatter_cons,
+            donut=donut,
+            vehicle=vehicle,
+            google_sdk_key=google_sdk_key,
+            coords=coords,
+        )
 
-    return render_template(
-        "energy_monitor.html",
-        plot=scatter_cons,
-        donut=donut,
-        vehicle=vehicle,
-        google_sdk_key=google_sdk_key,
-        coords=coords,
-    )
 
 
 @app.route("/tables", methods=["GET", "POST"])
@@ -420,6 +424,7 @@ def show_tables():
         plotint3=integral_fiori,
         calendar=df_calendar.to_json(orient="records"),
         vehicles=df_vehicles.to_json(orient="records"),
+        users_list=users_list,
     )
 
 
@@ -483,6 +488,7 @@ def show_vehicle_map():
         json_stations=json_stations,
         json_operation=json.dumps(vehicle_list, default=str),
         vehicles=df_vehicles.to_json(orient="records"),
+        users_list=users_list,
     )
 
 

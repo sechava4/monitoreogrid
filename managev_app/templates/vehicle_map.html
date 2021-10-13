@@ -6,9 +6,13 @@
     <title>Vehiculos</title>
     <div id="line_top_x"></div>
         <ul class="nav nav-tabs">
-          <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('energy_monitor') }}">Gestión de energía</a>
-          </li>
+          {% if current_user.username in users_list %}
+            {% block content %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('energy_monitor') }}">Gestión de energía</a>
+                </li>
+            {% endblock content %}
+          {% endif %}
           <li class="nav-item">
             <a class="nav-link active" href="{{ url_for('show_vehicle_map') }}" aria-selected="true">Mapa</a>
           </li>
