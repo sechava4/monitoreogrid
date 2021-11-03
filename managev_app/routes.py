@@ -530,13 +530,21 @@ def add_entry():
 
         coords_2 = (float(args.get("latitude")), float(args.get("longitude")))
 
+        elevation_request = requests.get(url = elevation_endpoint+"/?lat=" + args.get("latitude") + "&lng=" + args.get("longitude"))
+        if elevation_request.status_code == 200:
+            operation.elevation = float(elevation_request.content.decode("utf-8"))
+        else:
+            None
+
         if last:
             delta_t = (operation.timestamp - last.timestamp).total_seconds()
             coords_1 = (last.latitude, last.longitude)
+            rise = operation.elevation - last.elevation
 
         else:
             coords_1 = coords_2
             delta_t = 7
+            rise = 0
 
         run = geopy.distance.distance(coords_1, coords_2).m  # meters
         operation.run = run
@@ -557,11 +565,9 @@ def add_entry():
                 float(vehicle.weight),
             )
 
-        elevation_request = requests.get(url = elevation_endpoint+"/?lat=" + args.get("latitude") + "&lng=" + args.get("longitude"))
-        if elevation_request.status_code == 200:
-            operation.elevation = float(elevation_request.content.decode("utf-8"))
-        else:
-            None
+        slope = math.atan(rise / run) if run else 0
+        degree = (slope * 180) / math.pi
+        operation.slope = degree
 
         db.session.add(operation)
         db.session.commit()
