@@ -539,7 +539,10 @@ def add_entry():
         if last:
             delta_t = (operation.timestamp - last.timestamp).total_seconds()
             coords_1 = (last.latitude, last.longitude)
-            rise = operation.elevation - last.elevation
+            if last.elevation == None or operation.elevation == None:
+                rise = 0
+            else:
+                rise = operation.elevation - last.elevation
 
         else:
             coords_1 = coords_2
