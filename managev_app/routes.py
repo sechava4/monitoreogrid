@@ -534,7 +534,7 @@ def add_entry():
         if elevation_request.status_code == 200:
             operation.elevation = float(elevation_request.content.decode("utf-8"))
         else:
-            None
+            operation.elevation = last.elevation
 
         if last:
             delta_t = (operation.timestamp - last.timestamp).total_seconds()
