@@ -21,7 +21,7 @@ class DrivingClassifier:
         self.n_clusters = n_clusters
         x_scaled = self.prepare_data()
         self.x_transformed = self.make_pca(x_scaled, n_components)
-        self.generate_label(self.x_transformed, n_clusters)
+        self.generate_label(n_clusters)
         self.cluster_labels = self.segments.cluster
 
     def prepare_data(self):
@@ -73,9 +73,9 @@ class DrivingClassifier:
     def plot_clusters(self):
         plt.figure(figsize=[10, 5])
         sch.dendrogram(sch.linkage(self.x_transformed, method="ward"))
-        plt.title("Dendograma")
-        plt.xlabel("Segmentos")
-        plt.ylabel("Distancias Euclidianas")
+        plt.title("Dendrogram")
+        plt.xlabel("Segments")
+        plt.ylabel("Euclidean distances")
         plt.show()
 
         plt.figure(figsize=[9, 9])
@@ -90,14 +90,19 @@ class DrivingClassifier:
                 label=f"Cluster {i}",
             )
 
-        plt.title("Clusters of drivers")
-        plt.xlabel("Principal component 1")
-        plt.ylabel("Principal component 2")
+        plt.title("Driving Clusters")
+        plt.xlabel("First Principal Component")
+        plt.ylabel("Second Principal Component")
         plt.legend()
         plt.show()
 
+        plot_segments = self.segments.copy()
+        plot_segments.rename(
+            columns={"mean_speed": "mean_speed (km/h)", "max_power": "max_power (kW)"},
+            inplace=True,
+        )
         sns.pairplot(
-            self.segments.sort_values(["slope"]),
+            plot_segments.sort_values(["slope"]),
             hue="cluster",
             palette="Paired",
             vars=[
@@ -107,15 +112,15 @@ class DrivingClassifier:
             kind="scatter",
         )
 
-    def generate_label(self, X_transformed, n_clusters):
+    def generate_label(self, n_clusters):
         hc = AgglomerativeClustering(
             n_clusters=n_clusters, affinity="euclidean", linkage="ward"
         )
 
-        self.y_hc = hc.fit_predict(X_transformed)
+        self.y_hc = hc.fit_predict(self.x_transformed)
         self.segments["cluster"] = self.y_hc + 1
 
-    def plot_metrics(self, X_transformed):
+    def plot_metrics(self):
         t, p = scipy.stats.ttest_ind(
             self.segments["consumption_per_km"][(self.segments["cluster"] == 1)],
             self.segments["consumption_per_km"][self.segments["cluster"] == 2],
@@ -151,7 +156,7 @@ class DrivingClassifier:
         # fig = px.scatter_3d(x=X_transformed[:, 0], y=X_transformed[:, 1], z=X_transformed[:, 2], log_x=False, size=np.repeat([4], len(X)))
         #     fig.show()
 
-        # Evaluamos el performance del modelo medieante el coheficiente de silueta
+        # Evaluamos el performance del modelo mediante el coeficiente de silueta
 
         from sklearn.metrics import silhouette_samples, silhouette_score
         import matplotlib.cm as cm
@@ -169,19 +174,19 @@ class DrivingClassifier:
             ax1.set_xlim([-0.1, 1])
             # The (n_clusters+1)*10 is for inserting blank space between silhouette
             # plots of individual clusters, to demarcate them clearly.
-            ax1.set_ylim([0, len(X_transformed) + (n_clusters + 1) * 10])
+            ax1.set_ylim([0, len(self.x_transformed) + (n_clusters + 1) * 10])
 
             # Initialize the clusterer with n_clusters value and a random generator
             # seed of 10 for reproducibility.
             clusterer = AgglomerativeClustering(
                 n_clusters=n_clusters, affinity="euclidean", linkage="ward"
             )
-            cluster_labels = clusterer.fit_predict(X_transformed)
+            cluster_labels = clusterer.fit_predict(self.x_transformed)
 
             # The silhouette_score gives the average value for all the samples.
             # This gives a perspective into the density and separation of the formed
             # clusters
-            silhouette_avg = silhouette_score(X_transformed, cluster_labels)
+            silhouette_avg = silhouette_score(self.x_transformed, cluster_labels)
             print(
                 "For n_clusters =",
                 n_clusters,
@@ -190,7 +195,9 @@ class DrivingClassifier:
             )
 
             # Compute the silhouette scores for each sample
-            sample_silhouette_values = silhouette_samples(X_transformed, cluster_labels)
+            sample_silhouette_values = silhouette_samples(
+                self.x_transformed, cluster_labels
+            )
 
             y_lower = 10
             for i in range(n_clusters):
@@ -234,8 +241,8 @@ class DrivingClassifier:
             # 2nd Plot showing the actual clusters formed
             colors = cm.nipy_spectral(cluster_labels.astype(float) / n_clusters)
             ax2.scatter(
-                X_transformed[:, 0],
-                X_transformed[:, 1],
+                self.x_transformed[:, 0],
+                self.x_transformed[:, 1],
                 marker=".",
                 s=30,
                 lw=0,
@@ -258,9 +265,6 @@ class DrivingClassifier:
             )
 
         plt.show()
-
-        # self.segments["driving_cluster"] = cluster_labels
-        # self.segments.to_hdf(data_path + "_data.h5", key=name + "_self.segments")
 
 
 if __name__ == "__main__":

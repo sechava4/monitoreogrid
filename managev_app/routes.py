@@ -39,6 +39,8 @@ from managev_app.models import User, Operation, Vehicle
 
 logger = logging.getLogger(__name__)
 google_sdk_key = os.environ.get("GOOGLE_SDK_KEY")
+
+
 users_list = ['esgomezo','auribev1','sechava4']
 elevation_endpoint = "https://elevation.racemap.com/api"
 
@@ -281,8 +283,8 @@ def energy_monitor():
         scatter_cons = 0
         donut = 0
     session["t_int_pretty"] = open_dataframes.pretty_var_name(session["time_interval"])
-    
-    if (current_user.username in users_list):
+
+    if current_user.username in users_list:
         return render_template(
             "energy_monitor.html",
             plot=scatter_cons,
@@ -291,7 +293,6 @@ def energy_monitor():
             google_sdk_key=google_sdk_key,
             coords=coords,
         )
-
 
 
 @app.route("/tables", methods=["GET", "POST"])
@@ -539,7 +540,7 @@ def add_entry():
         if last:
             delta_t = (operation.timestamp - last.timestamp).total_seconds()
             coords_1 = (last.latitude, last.longitude)
-            if last.elevation == None or operation.elevation == None:
+            if not last.elevation or not operation.elevation:
                 rise = 0
             else:
                 rise = operation.elevation - last.elevation

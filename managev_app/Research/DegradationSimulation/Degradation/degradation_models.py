@@ -163,9 +163,14 @@ class XuDegradationModel:
         :param c_rate:
         :return: f_c_rate non-dimensional parameter
         """
-        c_ref = 1
-        k_c = 2.63e-1
-        return math.exp(k_c * (c_rate - c_ref))
+        try:
+            c_ref = 1
+            k_c = 2.63e-1
+            return math.exp(k_c * (c_rate - c_ref))
+
+        except OverflowError:
+            print("c-rate too large")
+            return 1
 
     @staticmethod
     def _f_temp(t) -> float:
