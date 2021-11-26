@@ -4,7 +4,7 @@ import logging
 import math
 import os
 from datetime import datetime, timedelta
-
+import requests
 import geopy.distance
 import googlemaps
 import numpy as np
@@ -39,8 +39,10 @@ from managev_app.models import User, Operation, Vehicle
 
 logger = logging.getLogger(__name__)
 google_sdk_key = os.environ.get("GOOGLE_SDK_KEY")
-users_list = ["esgomezo", "auribev1", "sechava4"]
 
+
+users_list = ['esgomezo','auribev1','sechava4']
+elevation_endpoint = "https://elevation.racemap.com/api"
 
 # ---------------------------------Vehicle routes ----------------------------------#
 @app.route("/my_vehicles/<username>")
@@ -529,13 +531,24 @@ def add_entry():
 
         coords_2 = (float(args.get("latitude")), float(args.get("longitude")))
 
+        elevation_request = requests.get(url = elevation_endpoint+"/?lat=" + args.get("latitude") + "&lng=" + args.get("longitude"))
+        if elevation_request.status_code == 200:
+            operation.elevation = float(elevation_request.content.decode("utf-8"))
+        else:
+            operation.elevation = last.elevation
+
         if last:
             delta_t = (operation.timestamp - last.timestamp).total_seconds()
             coords_1 = (last.latitude, last.longitude)
+            if not last.elevation or not operation.elevation:
+                rise = 0
+            else:
+                rise = operation.elevation - last.elevation
 
         else:
             coords_1 = coords_2
             delta_t = 7
+            rise = 0
 
         run = geopy.distance.distance(coords_1, coords_2).m  # meters
         operation.run = run
@@ -555,6 +568,10 @@ def add_entry():
                 float(operation.mean_acc),
                 float(vehicle.weight),
             )
+
+        slope = math.atan(rise / run) if run else 0
+        degree = (slope * 180) / math.pi
+        operation.slope = degree
 
         db.session.add(operation)
         db.session.commit()
