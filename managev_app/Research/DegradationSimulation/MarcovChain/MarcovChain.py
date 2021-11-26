@@ -75,6 +75,7 @@ class MarcovChain:
         scaler_inv=None,
         model=None,
     ):
+        self.segments = segments
         self.scaler = scaler
         self.vehicle = vehicle
         self.vehicle.set_charge_levels(segments)
@@ -101,14 +102,14 @@ class MarcovChain:
         for road_type in road_cluster_labels.unique():
             # if its a driving state
             if road_type.isdigit():
-                var = {}
-                generator = {}
+                variable_data = {}
+                generators_dict = {}
                 for attr in self.attr_names:
                     data = segments[attr][segments.road_clusters == road_type]
-                    var[attr] = data
+                    variable_data[attr] = data
                     if attr in ["mean_speed", "batt_temp"]:
                         shape, floc, scale = stats.lognorm.fit(data)
-                        generator[attr] = {
+                        generators_dict[attr] = {
                             "method": stats.lognorm,
                             "shape": shape,
                             "floc": floc,
@@ -116,7 +117,7 @@ class MarcovChain:
                         }
                     elif attr == "kms":
                         shape, floc, scale = stats.pareto.fit(data)
-                        generator[attr] = {
+                        generators_dict[attr] = {
                             "method": stats.pareto,
                             "shape": shape,
                             "floc": floc,
@@ -124,16 +125,16 @@ class MarcovChain:
                         }
                     elif attr == "slope":
                         mu, sigma = stats.norm.fit(data)
-                        generator[attr] = {
+                        generators_dict[attr] = {
                             "method": stats.norm,
                             "mu": mu,
                             "sigma": sigma,
                         }
                     # max_power and min_acc
                     else:
-                        generator[attr] = data.mean()
-                self.road_attr[road_type] = var
-                self.generators[road_type] = generator
+                        generators_dict[attr] = data.mean()
+                self.road_attr[road_type] = variable_data
+                self.generators[road_type] = generators_dict
 
             n = road_cluster_labels[road_cluster_labels == road_type].count()
             state_prob = {
@@ -168,14 +169,22 @@ class MarcovChain:
         values = {}
         for attr, generator in self.generators.get(road_type).items():
             if attr in {"min_acc", "max_power"}:
+                # This just gets the mean for that road type
                 values[attr] = generator
                 continue
+
             # We create a copy since we are popping the method
             gen_copy = generator.copy()
             method = gen_copy.pop("method")
             value = method.rvs(*tuple(gen_copy.values()))
             if attr == "mean_speed":
                 value = abs(value)
+
+            historic = self.road_attr[road_type].get(attr)
+            if value > historic.max():
+                value = historic.max()
+            elif value < historic.min():
+                value = historic.min()
             values[attr] = value
         return values
 
@@ -238,27 +247,29 @@ class MarcovChain:
 
         while times[-1] < end_time:
             if state.isdigit():
-                consumption, seconds, batt_temp = self.compute_consumption(state)
-                watts = consumption * 1000 / (seconds / 3600)
+                consumption_kwh, seconds, batt_temp = self.compute_consumption(state)
+                watts = consumption_kwh * 1000 / (seconds / 3600)
                 amperes = watts / self.vehicle.mean_voltage
 
                 # if its time to charge
                 if (
                     self.vehicle.min_charge_level_interval[0]
-                    < energy - consumption
+                    < energy - consumption_kwh
                     < self.vehicle.min_charge_level_interval[1]
                 ):
-                    energy -= consumption
+                    energy -= consumption_kwh
                     state = "charging"
 
                 # dont take deeper than allowed consumptions into account
-                elif energy - consumption < self.vehicle.min_charge_level_interval[0]:
+                elif (
+                    energy - consumption_kwh < self.vehicle.min_charge_level_interval[0]
+                ):
                     continue
                 # If taking too long on a single state
                 elif seconds / 3600 > max_driving_hours:
                     continue
                 else:
-                    final_energy = energy - consumption
+                    final_energy = energy - consumption_kwh
                     # if regeneration happens at top level charge
                     # dont allow more than max capacity
                     if final_energy <= self.vehicle.capacity_kWh:

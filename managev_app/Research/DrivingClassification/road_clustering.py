@@ -1,4 +1,5 @@
 import seaborn as sns
+import pandas as pd
 from sklearn import metrics
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
@@ -19,7 +20,7 @@ class RoadClassifier:
 
         X = StandardScaler().fit_transform(X)
 
-        for n_clusters in [n_clusters]:  # [2, 3, 4, 5]  # 4 has better coefficient
+        for n_clusters in [n_clusters]:  # [2, 3, 4, 5]  # 5 has better coefficient
             kmeans = KMeans(n_clusters=n_clusters, random_state=0).fit(X)
             labels = kmeans.labels_
 
@@ -32,11 +33,15 @@ class RoadClassifier:
             print("Silhouette Coefficient: %0.3f" % metrics.silhouette_score(X, labels))
 
             segments["road_clusters"] = labels
+            segments.rename(
+                columns={"mean_speed": "mean_speed (km/h)", "slope": "slope (°)"},
+                inplace=True,
+            )
             sns.pairplot(
-                segments.sort_values(["slope"]),
+                segments.sort_values(["mean_speed (km/h)"]),
                 hue="road_clusters",
                 palette="Paired",
-                vars=["mean_speed", "slope"],
+                vars=["mean_speed (km/h)", "slope (°)"],
                 kind="scatter",
             )
 

@@ -1,7 +1,9 @@
 import os
 
 import pandas as pd
+import numpy as np
 from pickle import load
+import matplotlib.pyplot as plt
 
 from managev_app import app
 from managev_app.Research.DataInteractor.data_fetcher import DataFetcher
@@ -40,6 +42,17 @@ def common_states(segments_df):
 
         prev_row = row
     return pd.DataFrame(result, index=indexes)
+
+
+def compute_matrix(chain):
+    positions = list(sorted(chain.transition_probs.keys()))
+    pos = {p: str(i) for i, p in enumerate(positions)}
+    mat = np.zeros([len(positions), len(positions)])
+    for state in sorted(chain.transition_probs.keys()):
+        for s in sorted(chain.transition_probs.get(state).keys()):
+            row, _, col = s.partition("_")
+            mat[int(pos[col]), int(pos[row])] = chain.transition_probs.get(state).get(s)
+    return mat
 
 
 print("Enter file prefix")
@@ -85,6 +98,7 @@ consumption_model = load(
 )
 
 chains = {}
+results = []
 for driving_style in driving_classifier.cluster_labels.unique():
     drivers = driving_segments[driving_segments["driving_cluster"] == driving_style]
     drivers = drivers.append(common_states)
@@ -100,3 +114,39 @@ for driving_style in driving_classifier.cluster_labels.unique():
         model=consumption_model,
     )
     chains[driving_style] = chain
+    mat = compute_matrix(chain)
+
+    # Perform a simulation for one year
+    results.append(chain.random_walk(days=973))
+
+nissan_benchmark = {
+    "hours": [0, 730, 1460, 2190, 2920, 3650, 4380, 5110, 5840, 6570, 7300, 8030, 8760, 9490, 10220, 10950, 11680, 12410, 13140, 13870, 14600, 15330, 16060, 16790, 17520, 18250, 18980, 19710],
+    "Capacity loss(%)": [0, 0, 0, 0.141495187, 0.495134185, 0.848773184, 1.202412183, 1.556051181, 1.90969018, 2.263329179, 2.616968178, 2.970607176, 3.324246175, 3.677885174, 4.031524172, 4.385163171, 4.73880217, 5.092441168, 5.446080167, 5.799719166, 6.153358165, 6.506997163, 6.860636162, 7.214275161, 7.567914159, 7.921553158, 8.275192157, 8.628831156]
+}
+
+fig = plt.figure()
+ax1 = fig.add_subplot(111)
+colors = ["b", "r"]
+labels = ["Non-aggressive", "Aggressive"]
+for i, result in enumerate(results):
+    ax1.scatter(
+        result[1],
+        result[0].get("Capacity loss(%)"),
+        s=5,
+        c=colors[i],
+        marker="s",
+        label=labels[i],
+    )
+
+ax1.scatter(
+        nissan_benchmark.get("hours"),
+        nissan_benchmark.get("Capacity loss(%)"),
+        s=5,
+        c="grey",
+        marker="s",
+        label="Nissan Leaf",
+    )
+
+plt.legend(loc="upper left")
+plt.show()
+end = True
