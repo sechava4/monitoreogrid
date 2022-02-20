@@ -12,11 +12,11 @@
     {% endwith %}
 </div>
 <div class="myforms" >
-  <form class="container" action="{{ url_for('login') }}" method=post novalidate>
+  <form class="container" action="{{ url_for('dashboard.login') }}" method=post novalidate>
       <div class="text-center mb-4">
         <img class="mb-4" src="/static/tracking-icon.png" alt="" width="72" height="72">
         <h1 class="h3 mb-3 font-weight-normal">Plataforma de vehículos electricos</h1>
-        <p>Nuevo usuario?.  <a href="{{ url_for('register') }}">Registrate!</a></p>
+        <p>Nuevo usuario?.  <a href="{{ url_for('dashboard.register') }}">Registrate!</a></p>
       </div>
         {{ form.hidden_tag() }}
               <d1>

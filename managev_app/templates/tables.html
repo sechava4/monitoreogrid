@@ -8,18 +8,18 @@
           {% if current_user.username in users_list %}
             {% block content %}
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('energy_monitor') }}">Gestión de energía</a>
+                    <a class="nav-link" href="{{ url_for('dashboard.energy_monitor') }}">Gestión de energía</a>
                 </li>
             {% endblock content %}
           {% endif %}
           <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('show_vehicle_map') }}" aria-selected="false">Mapa</a>
+            <a class="nav-link" href="{{ url_for('dashboard.show_vehicle_map') }}" aria-selected="false">Mapa</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('show_entries') }}" aria-selected="false" >Dashboard por vehículo</a>
+            <a class="nav-link" href="{{ url_for('dashboard.show_entries') }}" aria-selected="false" >Dashboard por vehículo</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link active" href="{{ url_for('show_tables') }}" aria-selected="true">Tablas</a>
+            <a class="nav-link active" href="{{ url_for('dashboard.show_tables') }}" aria-selected="true">Tablas</a>
           </li>
 
         </ul>
@@ -136,7 +136,7 @@
     <div id="table_div" style="width: 96%; margin: 20px;"></div>
 
     <div class="variables">
-        <form role="form" class="form-inline" id="Mainform" action="{{ url_for('show_tables') }}" method=post>
+        <form role="form" class="form-inline" id="Mainform" action="{{ url_for('dashboard.show_tables') }}" method=post>
             <div id="calendar_basic" style="width: 100%; height: 50%;margin: 20px;"></div>
 {#            <div style="width: 100%;margin: 20px;"><b>Tip</b>: seleccione: <li><b>Pendiente, Velocidad instantánea, Aceleración promedio y Potencia eléctrica</b> para evaluar diferentes modelos de consumo</li></div>#}
             <div class="col-auto">
@@ -406,7 +406,7 @@
     </div>
 </div>
 
-<a href="{{ url_for('download_csv', username=current_user.username) }}"
+<a href="{{ url_for('dashboard.download_csv', username=current_user.username) }}"
    style="margin: 10px; background-color: #80bdff; color: white;"
    class="btn"><i class="fa fa-download"></i> Download .csv
 </a>

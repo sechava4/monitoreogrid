@@ -33,20 +33,20 @@
         <div class="navbar-collapse collapse w-100 order-1 order-md-0 dual-collapse2">
             <<ul id="menu-main-nav" class="navbar-nav nav-fill w-100">
                 <li class="nav-item">
-                    <a href="{{ url_for('show_entries') }}">Home <span class="sr-only">(current)</span></a>
+                    <a href="{{ url_for('dashboard.show_entries') }}">Home <span class="sr-only">(current)</span></a>
                 </li>
             {% if current_user.is_anonymous %}
                 <li class="nav-item">
-                    <a href="{{ url_for('login') }}">'Login</a>
+                    <a href="{{ url_for('dashboard.login') }}">'Login</a>
                 </li>
             </ul>
         </div>
     {% else %}
             <li class="nav-item">
-                <a href="{{ url_for('my_vehicles', username=current_user.username) }}">Mis vehículos</a>
+                <a href="{{ url_for('dashboard.my_vehicles', username=current_user.username) }}">Mis vehículos</a>
             </li>
             <li class="nav-item">
-                <a href="{{ url_for('logout') }}">Logout</a>
+                <a href="{{ url_for('dashboard.logout') }}">Logout</a>
             </li>
         </ul>
     {% endif %}

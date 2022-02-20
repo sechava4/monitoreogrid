@@ -2,12 +2,13 @@ from datetime import datetime
 
 import pytz
 from flask_login import UserMixin
+from dictalchemy import DictableModel
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from managev_app import db, login
 
 
-class User(UserMixin, db.Model):
+class User(UserMixin, db.Model, DictableModel):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), index=True, unique=True)
     email = db.Column(db.String(120), index=True, unique=True)
@@ -40,7 +41,7 @@ class User(UserMixin, db.Model):
 # insert into vehicle(placa, marca, modelo, year, weight, odometer) values('BOTE02', 'ENERGETICA', 'ERICK', 2021, 9, 0);
 
 
-class Vehicle(db.Model):
+class Vehicle(db.Model, DictableModel):
     id = db.Column(db.Integer, primary_key=True)
     placa = db.Column(db.String(64), index=True)
     marca = db.Column(db.String(64))
@@ -83,7 +84,7 @@ def load_user(id):
     return User.query.get(int(id))
 
 
-class Operation(db.Model):
+class Operation(db.Model, DictableModel):
 
     id = db.Column(db.Integer, primary_key=True)
     timestamp = db.Column(

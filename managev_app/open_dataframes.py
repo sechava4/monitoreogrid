@@ -2,20 +2,20 @@ import os
 
 import pandas as pd
 
-from managev_app import app
+from flask import current_app
 from managev_app import db
 from managev_app.models import Operation
 
 
 def get_stations():
-    file = os.path.join(app.root_path, "stations.json")
+    file = os.path.join(current_app.root_path, "stations.json")
     df = pd.read_json(file)
     df.columns = ["name", "latitude", "longitude", "charger_types"]
     return df
 
 
 def get_zones():
-    file = os.path.join(app.root_path, "zones.csv")
+    file = os.path.join(current_app.root_path, "zones.csv")
     zones = pd.read_csv(file)
     zones = zones[["name", "longitude", "latitude"]]
     return zones
@@ -32,13 +32,13 @@ def filter_by_column_value(df, colname, value):
 
 
 def pretty_var_name(var_name):
-    doc_var = os.path.join(app.root_path, "variables.csv")
+    doc_var = os.path.join(current_app.root_path, "variables.csv")
     variables = pd.read_csv(doc_var, index_col="id")
     return variables.var_pretty[variables["var"] == var_name].values[0]
 
 
 def form_var(titles):
-    doc_var = os.path.join(app.root_path, "variables.csv")
+    doc_var = os.path.join(current_app.root_path, "variables.csv")
     variables = pd.read_csv(doc_var, index_col="id")
     groups_list = []
     for i in range(len(variables)):

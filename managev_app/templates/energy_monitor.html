@@ -78,16 +78,16 @@
     <div id="line_top_x"></div>
         <ul class="nav nav-tabs">
           <li class="nav-item">
-            <a class="nav-link active" href="{{ url_for('energy_monitor') }}">Panel de energía</a>
+            <a class="nav-link active" href="{{ url_for('dashboard.energy_monitor') }}">Panel de energía</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('show_vehicle_map') }}" aria-selected="false">Mapa</a>
+            <a class="nav-link" href="{{ url_for('dashboard.show_vehicle_map') }}" aria-selected="false">Mapa</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('show_entries') }}" aria-selected="true" >Dashboard</a>
+            <a class="nav-link" href="{{ url_for('dashboard.show_entries') }}" aria-selected="true" >Dashboard</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('show_tables') }}" aria-selected="false">Tablas</a>
+            <a class="nav-link" href="{{ url_for('dashboard.show_tables') }}" aria-selected="false">Tablas</a>
           </li>
 
         </ul>
@@ -96,7 +96,7 @@
 
 <div style="width:80%;height:70%" id="map_google"></div>
 
-<form role="form" class="form-group form-inline" action="{{ url_for('energy_monitor') }}" method=post>
+<form role="form" class="form-group form-inline" action="{{ url_for('dashboard.energy_monitor') }}" method=post>
 
     <label for="pos_origin" style="display: inline-block; margin: 20px;">Posición inicial:</label>
     <input type="text" id="pos_origin" name="pos_o" style="display: inline-block; margin: 20px;">

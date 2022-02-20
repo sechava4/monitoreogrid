@@ -14,17 +14,19 @@ from flask import (
     request,
     session,
     redirect,
+    Blueprint,
     url_for,
     Markup,
     render_template,
     flash,
     send_from_directory,
     Response,
+    current_app,
 )
 from flask_login import current_user, login_user, logout_user, login_required
 from werkzeug.urls import url_parse
 
-from managev_app import app, open_dataframes, plot, db, consumption_models
+from managev_app import open_dataframes, plot, db, consumption_models
 from managev_app.Research.DegradationSimulation.Degradation import degradation_models
 from managev_app.Research.Google import google_interactor
 from managev_app.closest_points import Trees
@@ -37,15 +39,18 @@ from managev_app.forms import (
 )
 from managev_app.models import User, Operation, Vehicle
 
+dashboard = Blueprint("dashboard", __name__)
+
 logger = logging.getLogger(__name__)
 google_sdk_key = os.environ.get("GOOGLE_SDK_KEY")
 
 
-users_list = ['esgomezo','auribev1','sechava4']
+users_list = ["esgomezo", "auribev1", "sechava4"]
 elevation_endpoint = "https://elevation.racemap.com/api"
 
+
 # ---------------------------------Vehicle routes ----------------------------------#
-@app.route("/my_vehicles/<username>")
+@dashboard.route("/my_vehicles/<username>")
 @login_required
 def my_vehicles(username):
     user = User.query.filter_by(username=username).first_or_404()
@@ -59,7 +64,7 @@ def my_vehicles(username):
     )
 
 
-@app.route("/update_vehicle/<placa>")
+@dashboard.route("/update_vehicle/<placa>")
 @login_required
 def update_vehicle(placa):
     vehicles = Vehicle.query.filter_by(user_id=current_user.id)
@@ -70,10 +75,10 @@ def update_vehicle(placa):
         else:
             vehicle.activo = False
     db.session.commit()
-    return redirect(url_for("show_entries"))
+    return redirect(url_for("dashboard.show_entries"))
 
 
-@app.route("/register_vehicle", methods=["GET", "POST"])
+@dashboard.route("/register_vehicle", methods=["GET", "POST"])
 @login_required
 def register_vehicle():
     form = VehicleRegistrationForm()
@@ -100,14 +105,16 @@ def register_vehicle():
         db.session.add(vehicle)
         db.session.commit()
         flash("Has registrado un nuevo vehículo!")
-        return redirect(url_for("my_vehicles", username=current_user.username))
+        return redirect(
+            url_for("dashboard.my_vehicles", username=current_user.username)
+        )
     return render_template("register_vehicle.html", title="Register", form=form)
 
 
 # ----------------------------------- Dashboards --------------------------------------------------#
 
 
-@app.route("/", methods=["GET", "POST"])
+@dashboard.route("/", methods=["GET", "POST"])
 @login_required
 def show_entries():
     """
@@ -116,12 +123,13 @@ def show_entries():
     """
     query = 'SELECT * FROM vehicle where user_id = "' + str(current_user.id) + '"'
     df_vehicles = pd.read_sql_query(query, db.engine)
+    # user_vehicles = Vehicle.query.filter
 
     vehicle = Vehicle.query.filter_by(user_id=current_user.id, activo=True).first()
     now = datetime.now(pytz.timezone("America/Bogota")) + timedelta(hours=1)
 
     sess_conf = SessionConfig(now)
-    sess_conf.assign_missing_variables(session)
+    sess_conf.assign_missing_variables()
 
     if request.method == "POST":
         for var in [
@@ -138,8 +146,8 @@ def show_entries():
         read_form_dates(session, day=2, hour=3)  # hours 3 and 4
 
     if vehicle:
-        operation_query = OperationQuery(session, vehicle)
-        calendar_query = CalendarQuery(session, vehicle)
+        operation_query = OperationQuery(vehicle)
+        calendar_query = CalendarQuery(vehicle)
 
         df_calendar = pd.read_sql_query(calendar_query.query, db.engine)
         df_calendar = df_calendar.dropna()
@@ -200,7 +208,7 @@ def show_entries():
     )
 
 
-@app.route("/updateplot")
+@dashboard.route("/updateplot")
 def update_plot():
     """
     updates graphs of main page
@@ -210,14 +218,14 @@ def update_plot():
     if "calendar_var" not in session.keys():
         session["calendar_var"] = "drivetime"
 
-    operation_query = OperationQuery(session, vehicle)
+    operation_query = OperationQuery(vehicle)
     df_o = pd.read_sql_query(operation_query.query_1, db.engine)
     scatter = plot.create_plot(df_o, session["graph_var_x"], session["graph_var_y"])
 
     return scatter
 
 
-@app.route("/energy", methods=["GET", "POST"])
+@dashboard.route("/energy", methods=["GET", "POST"])
 @login_required
 def energy_monitor():
     """
@@ -227,7 +235,7 @@ def energy_monitor():
     vehicle = Vehicle.query.filter_by(user_id=current_user.id, activo=True).first()
     now = datetime.now(pytz.timezone("America/Bogota"))
     sess_conf = SessionConfig(now)
-    sess_conf.assign_missing_variables(session)
+    sess_conf.assign_missing_variables()
     coords = []
     if request.method == "POST":
         session["time_interval"] = request.form["time_interval"]
@@ -295,7 +303,7 @@ def energy_monitor():
         )
 
 
-@app.route("/tables", methods=["GET", "POST"])
+@dashboard.route("/tables", methods=["GET", "POST"])
 @login_required
 def show_tables():
     """
@@ -308,7 +316,7 @@ def show_tables():
     vehicle = Vehicle.query.filter_by(user_id=current_user.id, activo=True).first()
     now = datetime.now(pytz.timezone("America/Bogota"))
     sess_conf = SessionConfig(now)
-    sess_conf.assign_missing_variables(session)
+    sess_conf.assign_missing_variables()
 
     if request.method == "POST":
         for i in range(1, 6):
@@ -350,7 +358,7 @@ def show_tables():
         )
 
         session["query"] = query
-        calendar_query = CalendarQuery(session, vehicle)
+        calendar_query = CalendarQuery(vehicle)
         df_calendar = pd.read_sql_query(calendar_query.query, db.engine)
         df_calendar = df_calendar.dropna()
         operation_df = pd.read_sql_query(query, db.engine)
@@ -429,7 +437,7 @@ def show_tables():
     )
 
 
-@app.route("/<username>/download-csv")
+@dashboard.route("/<username>/download-csv")
 def download_csv(username):
     query = session["query"] or "select 1"
     operation = pd.read_sql_query(query, db.engine)
@@ -444,11 +452,11 @@ def download_csv(username):
     )
 
 
-@app.route("/vehicle_map", methods=["GET", "POST"])
+@dashboard.route("/vehicle_map", methods=["GET", "POST"])
 @login_required
 def show_vehicle_map():
     """
-    page for showing osm_data in map
+    page for showing all user vehicles in map
     :return:
     """
     stations_df = open_dataframes.get_stations()
@@ -496,7 +504,7 @@ def show_vehicle_map():
 # --------------------------------- IoT routes ---------------------------------------------------#
 
 
-@app.route("/addjson", methods=["POST", "GET"])
+@dashboard.route("/addjson", methods=["POST", "GET"])
 def add_entry():
     """
     communication route for handling incoming vehicle data
@@ -531,7 +539,13 @@ def add_entry():
 
         coords_2 = (float(args.get("latitude")), float(args.get("longitude")))
 
-        elevation_request = requests.get(url = elevation_endpoint+"/?lat=" + args.get("latitude") + "&lng=" + args.get("longitude"))
+        elevation_request = requests.get(
+            url=elevation_endpoint
+            + "/?lat="
+            + args.get("latitude")
+            + "&lng="
+            + args.get("longitude")
+        )
         if elevation_request.status_code == 200:
             operation.elevation = float(elevation_request.content.decode("utf-8"))
         else:
@@ -578,7 +592,7 @@ def add_entry():
         return "Data received"
 
 
-@app.route("/login", methods=["GET", "POST"])
+@dashboard.route("/login", methods=["GET", "POST"])
 def login():
     """
     login page
@@ -587,31 +601,31 @@ def login():
     if current_user.is_authenticated:
         session["graph_var_x"] = "timestamp"
         session["graph_var_y"] = "soc"
-        return redirect(url_for("show_vehicle_map"))
+        return redirect(url_for("dashboard.show_vehicle_map"))
     form = LoginForm()
     if form.validate_on_submit():
         user = User.query.filter_by(username=form.username.data).first()
         if user is None or not user.check_password(form.password.data):
             flash("Invalid username or password")
-            return redirect(url_for("login"))
+            return redirect(url_for("dashboard.login"))
         login_user(user, remember=form.remember_me.data)
         next_page = request.args.get("next")
         if not next_page or url_parse(next_page).netloc != "":
-            next_page = url_for("show_vehicle_map")
+            next_page = url_for("dashboard.show_vehicle_map")
         session["graph_var_x"] = "timestamp"
         session["graph_var_y"] = "soc"
         return redirect(next_page)
     return render_template("login.html", title="Sign In", form=form)
 
 
-@app.route("/register", methods=["GET", "POST"])
+@dashboard.route("/register", methods=["GET", "POST"])
 def register():
     """
     register page
     :return:
     """
     if current_user.is_authenticated:
-        return redirect(url_for("show_vehicle_map"))
+        return redirect(url_for("dashboard.show_vehicle_map"))
     form = RegistrationForm()
     if form.validate_on_submit():
         user = User(username=form.username.data, email=form.email.data)
@@ -619,21 +633,21 @@ def register():
         db.session.add(user)
         db.session.commit()
         flash("Congratulations, you are now a registered user!")
-        return redirect(url_for("login"))
+        return redirect(url_for("dashboard.login"))
     return render_template("register.html", title="Register", form=form)
 
 
-@app.route("/logout")
+@dashboard.route("/logout")
 def logout():
     """
     logout page
     :return:
     """
     logout_user()
-    return redirect(url_for("show_entries"))
+    return redirect(url_for("dashboard.show_entries"))
 
 
-@app.route("/map_var", methods=["POST"])
+@dashboard.route("/map_var", methods=["POST"])
 def map_var():
     """
     redirects when map form is submitted
@@ -645,12 +659,14 @@ def map_var():
 
     read_form_dates(session, day=1, hour=1)
 
-    return redirect(url_for("show_vehicle_map"))
+    return redirect(url_for("dashboard.show_vehicle_map"))
 
 
-@app.route("/favicon.ico")
+@dashboard.route("/favicon.ico")
 def favicon():
     """
     favicon
     """
-    return send_from_directory(os.path.join(app.root_path, "static"), "monitor.ico")
+    return send_from_directory(
+        os.path.join(current_app.root_path, "static"), "monitor.ico"
+    )

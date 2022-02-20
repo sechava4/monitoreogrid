@@ -11,8 +11,8 @@ import numpy as np
 import osmnx as ox
 import pandas as pd
 import pytz
+from flask import current_app
 
-from managev_app import app
 from managev_app.Research.ConsumptionEstimation.Models.consumption_models import (
     WangModel,
 )
@@ -128,7 +128,7 @@ def calc_shortest_path(G, lat_o, lon_o, lat_d, lon_d):
 
 def calculate_segments_consumption(
     segments,
-    path=os.path.join(app.root_path) + "/Research/ConsumptionEstimation",
+    base_path=os.path.join(current_app.root_path) + "/Research/ConsumptionEstimation",
     user="Santiago_Echavarria_01",
 ):
     segments["id"] = segments.index
@@ -137,10 +137,10 @@ def calculate_segments_consumption(
     segments["user_id"] = user
 
     mean_features_by_slope = pd.read_csv(
-        path + "/UserDrivingData/mean_features_by_slope.csv"
+        base_path + "/UserDrivingData/mean_features_by_slope.csv"
     )
     mean_features_by_user_and_slope = pd.read_csv(
-        path + "/UserDrivingData/mean_features_by_user_and_slope.csv"
+        base_path + "/UserDrivingData/mean_features_by_user_and_slope.csv"
     )
 
     # Convert to string osm_data type for the inner join
@@ -185,7 +185,7 @@ def calculate_segments_consumption(
     )
 
     # Apply scaling
-    scaler = load(open(path + "/MachineLearningModels/scaler_lm.pkl", "rb"))
+    scaler = load(open(base_path + "/MachineLearningModels/scaler_lm.pkl", "rb"))
     columns = [
         "mean_power_usr",
         "mean_min_acc_usr",
@@ -196,27 +196,29 @@ def calculate_segments_consumption(
         scaler.transform(segments_consolidated[columns]), columns=columns
     )
     # Load inverse scaler
-    scaler_inv = load(open(path + "/MachineLearningModels/scaler.pkl", "rb"))
+    scaler_inv = load(open(base_path + "/MachineLearningModels/scaler.pkl", "rb"))
 
     # load random forest regresor
     r_forest_reg = load(
         open(
-            path
+            base_path
             + "/MachineLearningModels/randomForest_0_3_mean_consumption_maxerr_model.pkl",
             "rb",
         )
     )
 
     # Load XGBoost model
-    xgb_reg = load(open(path + "/MachineLearningModels/xg_reg_model.pickle.dat", "rb"))
+    xgb_reg = load(
+        open(base_path + "/MachineLearningModels/xg_reg_model.pickle.dat", "rb")
+    )
 
     # Load linear model
     linear_regr_sklearn = load(
-        open(path + "/MachineLearningModels/linear_regr_sklearn.pkl", "rb")
+        open(base_path + "/MachineLearningModels/linear_regr_sklearn.pkl", "rb")
     )
 
     # load ANN regressor
-    ann_reg = load(open(path + "/MachineLearningModels/ann_regr.pkl", "rb"))
+    ann_reg = load(open(base_path + "/MachineLearningModels/ann_regr.pkl", "rb"))
 
     models = {
         "linear": linear_regr_sklearn,
@@ -261,7 +263,7 @@ def calculate_segments_consumption(
 
 
 if __name__ == "__main__":
-    path = os.path.join(app.root_path) + "/Research/ConsumptionEstimation"
+    path = os.path.join(current_app.root_path) + "/Research/ConsumptionEstimation"
     now = datetime.datetime.now(pytz.timezone("America/Bogota"))
     test_date = datetime.datetime.strptime("2020-08-12 10:26:45", "%Y-%m-%d %H:%M:%S")
     a = gmaps.directions(
@@ -276,7 +278,7 @@ if __name__ == "__main__":
     df = get_segments(a)
 
     consumption, time, df = calculate_segments_consumption(
-        segments=df, path=path, soc=100, user="Santiago_Echavarria_01"
+        segments=df, base_path=path, soc=100, user="Santiago_Echavarria_01"
     )
 
     print("Consumo estimado", consumption, "kWh")

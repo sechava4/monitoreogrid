@@ -11,7 +11,7 @@ db = SQLAlchemy()
 bootstrap = Bootstrap()
 migrate = Migrate()
 login = LoginManager()
-login.login_view = "login"
+login.login_view = "dashboard.login"
 
 
 def create_app(config_class):
@@ -22,12 +22,16 @@ def create_app(config_class):
     migrate.init_app(application, db)
     bootstrap.init_app(application)
 
-    from managev_app.api import bp as api_bp
+    with application.app_context():
+        from managev_app.api import bp as api_bp
 
-    application.register_blueprint(api_bp, url_prefix="/api")
+        application.register_blueprint(api_bp, url_prefix="/api")
 
-    return application
+        from managev_app.routes import dashboard
+
+        application.register_blueprint(dashboard)
+
+        return application
 
 
 app = create_app(Config)
-from managev_app import routes, models

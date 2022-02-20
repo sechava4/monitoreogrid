@@ -8,19 +8,19 @@
             {% if current_user.username in users_list %}
                 {% block content %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('energy_monitor') }}">Gestión de energía</a>
+                        <a class="nav-link" href="{{ url_for('dashboard.energy_monitor') }}">Gestión de energía</a>
                     </li>
                 {% endblock content %}
             {% endif %}
           
           <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('show_vehicle_map') }}" aria-selected="false">Mapa</a>
+            <a class="nav-link" href="{{ url_for('dashboard.show_vehicle_map') }}" aria-selected="false">Mapa</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link active" href="{{ url_for('show_entries') }}" aria-selected="true" >Dashboard por vehículo</a>
+            <a class="nav-link active" href="{{ url_for('dashboard.show_entries') }}" aria-selected="true" >Dashboard por vehículo</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="{{ url_for('show_tables') }}" aria-selected="false">Tablas</a>
+            <a class="nav-link" href="{{ url_for('dashboard.show_tables') }}" aria-selected="false">Tablas</a>
           </li>
 
         </ul>
@@ -154,7 +154,7 @@
         <div id="table_div" style="width: 96%; margin: 20px;"></div>
 
         <div class="variables">
-            <form role="form" class="form-inline" id="Mainform" action="{{ url_for('show_entries') }}" method=post>
+            <form role="form" class="form-inline" id="Mainform" action="{{ url_for('dashboard.show_entries') }}" method=post>
 
                 <div id="calendar_basic" style="width: 90%; height: 190px; margin: 20px; overflow-y:auto;"></div>
 

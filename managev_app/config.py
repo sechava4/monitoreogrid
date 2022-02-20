@@ -1,6 +1,7 @@
 import os
 
 from dotenv import load_dotenv
+from flask import session
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 load_dotenv(os.path.join(basedir, ".env"))
@@ -39,16 +40,19 @@ class SessionConfig:
             "graph_var_y2": "capacity",
         }
 
-    def assign_missing_variables(self, session):
+    def assign_missing_variables(self):
+        """
+        Mutates flask session to add key, value pairs from self.sess
+        Returns:
+            object:
+        """
         for key in self.sess.keys():
             if key not in session.keys():
                 session[key] = self.sess.get(key)
 
-        return session
-
 
 class OperationQuery:
-    def __init__(self, session, vehicle):
+    def __init__(self, vehicle):
         self.query_1 = (
             "SELECT "
             + session["graph_var_x"]
@@ -91,7 +95,7 @@ class OperationQuery:
 
 
 class CalendarQuery:
-    def __init__(self, session, vehicle):
+    def __init__(self, vehicle):
         self.query = (
             "SELECT date(timestamp), MAX("
             + session["calendar_var"]
@@ -101,7 +105,7 @@ class CalendarQuery:
         )
 
 
-class DevConfig(object):
+class DevConfig:
     SECRET_KEY = (
         os.environ.get("SECRET_KEY") or "adljsakldjk72s4e21cjn!Ew@fhfghfghggg4565t@dsa"
     )
@@ -115,7 +119,7 @@ class DevConfig(object):
     TESTING = False
 
 
-class Config(object):
+class Config:
     SECRET_KEY = (
         os.environ.get("SECRET_KEY") or "adljsakldjk72s4e21cjn!Ew@fhfghfghggg4565t@dsa"
     )
