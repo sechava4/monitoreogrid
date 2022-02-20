@@ -26,124 +26,24 @@
     </div>
 
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-    <script type="text/javascript">
-        google.charts.load("current", {packages:["calendar"]});
-        google.charts.setOnLoadCallback(drawChart);
-        var data_cal = {{ calendar|safe }};
+    <script src="https://www.gstatic.com/charts/loader.js"></script>
 
-        function drawChart() {
-           var dataTable = new google.visualization.DataTable();
-           dataTable.addColumn({ type: 'date', id: 'Date' });
-           dataTable.addColumn({ type: 'number', id: 'Won/Loss' });
-           for (var cal in data_cal) {
-                   var cal_date = new Date(data_cal[cal]['date(timestamp)']);
-                   cal_date.setDate(cal_date.getDate() + 1);
-                   console.log(cal_date);
-                   dataTable.addRows([[ cal_date, Math.round(data_cal[cal]['max_value']*100)/100 ]]);
-                }
-
-           var chart = new google.visualization.Calendar(document.getElementById('calendar_basic'));
-
-           var options = {
-             title: "Tiempo de manejo",
-           };
-
-           chart.draw(dataTable, options);
-           google.visualization.events.addListener(chart, 'select', selectHandler);
-
-           function selectHandler() {
-
-                item = chart.getSelection()[0]
-                if (item.row != null) {
-
-                    var date1 = new Date(data_cal[item.row]['date(timestamp)']);
-                    date1.setDate(date1.getDate() + 1);
-                    var dd = String(date1. getDate())
-                    var mm = String(date1. getMonth() + 1). padStart(2, '0');
-                    var yyyy = date1. getFullYear();
-                    date1 = dd + '/' + mm + '/' + yyyy;
-                    console.log(date1);
-                    document.getElementById('d1_input').value = date1;
-                    document.getElementById('Mainform').submit();
-                };
-            };
-        }
+    {#  Function to draw vehicle calendar component  #}
+    <script src="../static/js/Components/vehicle_calendar_operation.js"></script>
+    <script>
+      google.charts.load("current", {packages:["calendar"]});
+      google.charts.setOnLoadCallback(drawChart);
+      let data_cal = {{ calendar|safe }};
     </script>
-    <script type="text/javascript">
+
+    {#  Function to draw user vehicles table component  #}
+    <script src="../static/js/Components/user_vehicles_table.js"></script>
+    <script>
       google.charts.load('current', {'packages':['table']});
       google.charts.setOnLoadCallback(drawTable);
-      var data_vehicles = {{ vehicles|safe }};
-
-      function drawTable() {
-        var data = new google.visualization.DataTable();
-
-        data.addColumn('number', 'Modelo');
-        data.addColumn('string', 'Placa');
-        data.addColumn('string', 'Marca');
-        data.addColumn('number', 'Odometro');
-
-
-        data_vehicles.forEach(vehicle => {
-            if (vehicle.activo) {
-                data.addRows([[
-                    {v: vehicle.year, p: {style: 'background-color: #58b2ff;'}},
-                    {v: vehicle.placa, p: {style: 'background-color: #58b2ff;'}},
-                    {v: vehicle.marca, p: {style: 'background-color: #58b2ff;'}},
-                    {v: vehicle.odometer, p: {style: 'background-color: #58b2ff;'}},
-                ]]);
-            }
-
-            else {
-                data.addRows([[
-                    vehicle.year,
-                    vehicle.placa,
-                    vehicle.marca,
-                    vehicle.odometer
-                ]]);
-            }
-        })
-
-        var table = new google.visualization.Table(document.getElementById('table_div'));
-        var options = {
-            allowHtml: true,
-            showRowNumber: true,
-            width: '100%',
-            cssClassNames: {
-              tableCell: 'small-font'
-            }
-          };
-        table.draw(data, options);
-
-        //{showRowNumber: true, width: '100%', height: '2000%'}
-          google.visualization.events.addListener(table, 'select', selectHandler);
-
-               function selectHandler() {
-                   console.log('holalala')
-                    item = table.getSelection()[0]
-                    if (item.row != null) {
-                        console.log(data_vehicles[item.row]);
-
-                        req2 = $.ajax({
-                                url : "/update_vehicle/" + data_vehicles[item.row]['placa'],
-                                type : "GET",
-                            });
-
-                        req2.done(function(res) {
-
-                            if (res == 1) {
-                                console.log('activo');
-                            } else {
-                                console.log('no_activo');
-                                window.location.reload();
-                            }
-                        });
-
-                    };
-                };
-      }
-
-
+      const data_vehicles = {{ vehicles|safe }};
     </script>
+
     <div id="table_div" style="width: 96%; margin: 20px;"></div>
 
     <div class="variables">
@@ -433,7 +333,6 @@
     </tbody>
             {{ table|safe }}
 </table>
-
 {% endblock %}
 
 

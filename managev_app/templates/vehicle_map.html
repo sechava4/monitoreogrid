@@ -32,82 +32,15 @@
     </ul>
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 
-    <script type="text/javascript">
+    {#  Function to draw user vehicles table component  #}
+    <script src="../static/js/Components/user_vehicles_table.js"></script>
+
+    <script>
       google.charts.load('current', {'packages':['table']});
       google.charts.setOnLoadCallback(drawTable);
-      var data_vehicles = {{ vehicles|safe }};
-      console.log(data_vehicles)
-
-      function drawTable() {
-        var data = new google.visualization.DataTable();
-
-        data.addColumn('number', 'Modelo');
-        data.addColumn('string', 'Placa');
-        data.addColumn('string', 'Marca');
-        data.addColumn('number', 'Odometro');
-
-        data_vehicles.forEach(vehicle => {
-            if (vehicle.activo) {
-                data.addRows([[
-                    {v: vehicle.year, p: {style: 'background-color: #58b2ff;'}},
-                    {v: vehicle.placa, p: {style: 'background-color: #58b2ff;'}},
-                    {v: vehicle.marca, p: {style: 'background-color: #58b2ff;'}},
-                    {v: vehicle.odometer, p: {style: 'background-color: #58b2ff;'}},
-                ]]);
-            }
-
-            else {
-                data.addRows([[
-                    vehicle.year,
-                    vehicle.placa,
-                    vehicle.marca,
-                    vehicle.odometer
-                ]]);
-            }
-        })
-
-        var table = new google.visualization.Table(document.getElementById('table_div'));
-        var options = {
-            allowHtml: true,
-            showRowNumber: true,
-            width: '100%',
-            cssClassNames: {
-              tableCell: 'small-font'
-            }
-          };
-        table.draw(data, options);
-
-        //{showRowNumber: true, width: '100%', height: '2000%'}
-          google.visualization.events.addListener(table, 'select', selectHandler);
-
-               function selectHandler() {
-                   var item = table.getSelection()[0]
-                   let req;
-                   if (item.row != null) {
-                       console.log(data_vehicles[item.row]);
-
-                       req = $.ajax({
-                           // activa el vehículo seleccionado
-                           url: "/update_vehicle/" + data_vehicles[item.row]['placa'],
-                           type: "GET",
-                       });
-
-                       req.done(function (res) {
-
-                           if (res === 1) {
-                               console.log('activo');
-                           } else {
-                               console.log('no_activo');
-                               window.location.href = "/";
-                           }
-                       });
-
-                   };
-                };
-      }
-
-
+      const data_vehicles = {{ vehicles|safe }};
     </script>
+
       <h4  style="margin: 20px;"> Seleccione un vehículo para ver detalle </h4>
     <div id="table_div" style="width: 96%; margin: 20px;"></div>
 
