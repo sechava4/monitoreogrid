@@ -1,10 +1,16 @@
 import os
 
+import numpy as np
 import pandas as pd
 
 from flask import current_app
+from scipy.stats import stats
+
 from managev_app import db
 from managev_app.models import Operation
+
+min_col_size = 0
+max_col_size = 150
 
 
 def get_stations():
@@ -108,18 +114,19 @@ def get_heights(vehicle, var, d1, h1, h2):
     ) and len(df[var]):
         df = df[["latitude", "longitude", "timestamp", var]]
         df["name"] = df[var]
-        if df[var].iloc[0]:
-            if var in ("elevation", "elevation2"):
-                df["var"] = df[var].map(lambda x: (x - 1400) * 0.5)
-            elif var in ("mec_power_delta_e", "mec_power"):
-                df["var"] = df[var].map(lambda x: x * 35)
-            elif var in "mean_acc":
-                df["var"] = df[var].map(lambda x: x * 45)
-            elif var in "angle_x":
-                df["var"] = df[var].abs()
-            else:
-                df["var"] = df[var].map(lambda x: x * 4)
-            df = df[["latitude", "longitude", "name", "var", "timestamp"]]
+        # Remove outliers
+        df = df[(np.abs(stats.zscore(df[var])) < 3)]
+
+        x_max = df[var].max()
+        x_min = df[var].min()
+        # Formula taken from
+        # https://www.atoti.io/articles/when-to-perform-a-feature-scaling/
+
+        visualization_scaler = lambda x: ((x - x_min) * (max_col_size)) / (
+            x_max - x_min
+        )
+        df["var"] = df[var].map(visualization_scaler)
+        df = df[["latitude", "longitude", "name", "var", "timestamp"]]
     return df
 
 

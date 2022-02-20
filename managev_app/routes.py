@@ -121,7 +121,9 @@ def show_entries():
     main page
     :return:
     """
-    user_vehicles = [v.asdict() for v in Vehicle.query.filter(Vehicle.user == current_user).all()]
+    user_vehicles = [
+        v.asdict() for v in Vehicle.query.filter(Vehicle.user == current_user).all()
+    ]
 
     vehicle = Vehicle.query.filter_by(user=current_user, activo=True).first()
     now = datetime.now(pytz.timezone("America/Bogota")) + timedelta(hours=1)
@@ -458,7 +460,7 @@ def show_vehicle_map():
     page for showing all user vehicles in map
     :return:
     """
-    stations_df = open_dataframes.get_stations()
+    stations_df = Trees.stations
     json_stations = Markup(stations_df.to_json(orient="records"))
 
     user_vehicles = Vehicle.query.filter(Vehicle.user == current_user).all()
