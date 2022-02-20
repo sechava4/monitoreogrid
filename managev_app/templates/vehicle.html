@@ -22,14 +22,25 @@
         data.addColumn('number', 'Odometro');
 
 
-        for (var row in data_vehicles) {
-            data.addRows([[
-                          data_vehicles[row]['year'],
-                          data_vehicles[row]['placa'],
-                          data_vehicles[row]['marca'],
-                          data_vehicles[row]['odometer']
-            ]]);
-        }
+        data_vehicles.forEach(vehicle => {
+            if (vehicle.activo) {
+                data.addRows([[
+                    {v: vehicle.year, p: {style: 'background-color: #58b2ff;'}},
+                    {v: vehicle.placa, p: {style: 'background-color: #58b2ff;'}},
+                    {v: vehicle.marca, p: {style: 'background-color: #58b2ff;'}},
+                    {v: vehicle.odometer, p: {style: 'background-color: #58b2ff;'}},
+                ]]);
+            }
+
+            else {
+                data.addRows([[
+                    vehicle.year,
+                    vehicle.placa,
+                    vehicle.marca,
+                    vehicle.odometer
+                ]]);
+            }
+        })
 
         var table = new google.visualization.Table(document.getElementById('table_div'));
         var options = {

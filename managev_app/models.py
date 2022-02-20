@@ -3,6 +3,7 @@ from datetime import datetime
 import pytz
 from flask_login import UserMixin
 from dictalchemy import DictableModel
+from sqlalchemy.orm import backref
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from managev_app import db, login
@@ -58,6 +59,11 @@ class Vehicle(db.Model, DictableModel):
     soh = db.Column(db.Float)
     rul = db.Column(db.Integer)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+
+    user = db.relationship(
+        "User", backref=backref("vehicles", cascade="all, delete-orphan")
+    )
+
     activo = db.Column(db.Boolean)
 
     # For debuging purposes, we type the instance name and it prints self,username

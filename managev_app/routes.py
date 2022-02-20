@@ -121,11 +121,9 @@ def show_entries():
     main page
     :return:
     """
-    query = 'SELECT * FROM vehicle where user_id = "' + str(current_user.id) + '"'
-    df_vehicles = pd.read_sql_query(query, db.engine)
-    # user_vehicles = Vehicle.query.filter
+    user_vehicles = [v.asdict() for v in Vehicle.query.filter(Vehicle.user == current_user).all()]
 
-    vehicle = Vehicle.query.filter_by(user_id=current_user.id, activo=True).first()
+    vehicle = Vehicle.query.filter_by(user=current_user, activo=True).first()
     now = datetime.now(pytz.timezone("America/Bogota")) + timedelta(hours=1)
 
     sess_conf = SessionConfig(now)
@@ -194,6 +192,7 @@ def show_entries():
         df_calendar = pd.DataFrame()
         json_lines = ({},)
         json_operation = ({},)
+
     return render_template(
         "show_entries.html",
         plot=scatter,
@@ -201,7 +200,7 @@ def show_entries():
         plot2=scatter2,
         box2=box2,
         calendar=df_calendar.to_json(orient="records"),
-        vehicles=df_vehicles.to_json(orient="records"),
+        vehicles=json.dumps(user_vehicles),
         json_lines=json_lines,
         json_operation=json_operation,
         users_list=users_list,
@@ -462,26 +461,20 @@ def show_vehicle_map():
     stations_df = open_dataframes.get_stations()
     json_stations = Markup(stations_df.to_json(orient="records"))
 
-    query = 'SELECT * FROM vehicle where user_id = "' + str(current_user.id) + '"'
-    df_vehicles = pd.read_sql_query(query, db.engine)
+    user_vehicles = Vehicle.query.filter(Vehicle.user == current_user).all()
 
     vehicle_list = []
-    for vehicle in (
-        db.session.query(Vehicle.placa)
-        .filter_by(user_id=current_user.id)
-        .distinct()
-        .all()
-    ):
+    keys = ["latitude", "longitude", "elevation", "vehicle_id", "timestamp"]
+    for vehicle in user_vehicles:
         last = (
             db.session.query(Operation)
             .filter(Operation.vehicle_id == vehicle.placa)
             .order_by(Operation.id.desc())
             .first()
         )
-        keys = ["latitude", "longitude", "elevation", "vehicle_id", "timestamp"]
 
         if last:
-            last = {key: value for key, value in last.__dict__.items() if key in keys}
+            last = {k: v for k, v in last.asdict().items() if k in keys}
             last["name"] = last.get("vehicle_id")
             # Closest station
             _, st_id = Trees.station_tree.query(
@@ -496,7 +489,7 @@ def show_vehicle_map():
         "vehicle_map.html",
         json_stations=json_stations,
         json_operation=json.dumps(vehicle_list, default=str),
-        vehicles=df_vehicles.to_json(orient="records"),
+        vehicles=json.dumps([v.asdict() for v in user_vehicles]),
         users_list=users_list,
     )
 
