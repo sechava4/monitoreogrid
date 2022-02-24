@@ -6,7 +6,7 @@ from sklearn.preprocessing import StandardScaler
 
 
 class RoadClassifier:
-    def __init__(self, raw_segments=None, n_clusters=5, n_components=2):
+    def __init__(self, raw_segments=None, n_clusters=5, n_components=2, **kwargs):
         segments = raw_segments[raw_segments.vehicle_state == "driving"]
 
         road_attributes = segments[
@@ -33,11 +33,15 @@ class RoadClassifier:
             print("Silhouette Coefficient: %0.3f" % metrics.silhouette_score(X, labels))
 
             segments["road_clusters"] = labels
+            if kwargs.get("swap_colors"):
+                segments.road_clusters.replace(
+                    {2: 0, 0: 2, 1: 4, 4: 3, 3: 1}, inplace=True
+                )
             segments.rename(
                 columns={"mean_speed": "mean_speed (km/h)", "slope": "slope (°)"},
                 inplace=True,
             )
-            sns.pairplot(
+            fig = sns.pairplot(
                 segments.sort_values(["mean_speed (km/h)"]),
                 hue="road_clusters",
                 palette="Paired",

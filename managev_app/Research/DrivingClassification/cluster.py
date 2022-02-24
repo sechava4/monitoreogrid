@@ -273,29 +273,8 @@ if __name__ == "__main__":
     name = "renault"
     data_path = os.path.join(app.root_path) + "/DataBackup/" + name
 
-    try:
-        loaded_data = pd.read_hdf(
-            data_path + "_data.h5", key=name + "_updated_df_operation"
-        )
-        segments = pd.read_hdf(
-            data_path + "_data.h5", key=name + "_segments_degradation"
-        )
-        segments = segments[segments["mean_speed"] > 0]
-        segments = segments[segments["consumption_per_km"] < 10]
-        segments = segments[segments["consumption_per_km"] > -10]
-
-    except FileNotFoundError:
-        print("Enter query")
-        query = input() or "SELECT * from operation limit 10"
-        print(query)
-        data_fetcher = DataFetcher()
-        data_fetcher.upload_data_to_h5(name, query)
-        loaded_data = pd.read_hdf(
-            data_path + "_data.h5", key=name + "_updated_df_operation"
-        )
-        segments = pd.read_hdf(
-            data_path + "_data.h5", key=name + "_segments_degradation"
-        )
+    data_fetcher = DataFetcher(name=name)
+    segments = data_fetcher.get_segments()
 
     segments["energy_rec"].fillna(0, inplace=True)
     classifier = DrivingClassifier(

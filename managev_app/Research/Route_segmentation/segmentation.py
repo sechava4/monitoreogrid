@@ -15,6 +15,13 @@ class SegmentTypes(Enum):
 
 
 def consumption_traces(df, length):
+    """
+    Consolidates puntual measurements into segments:
+    This type of segment takes into consideration length and road type change
+    to define a segment change
+
+    df comes chronologically ordered
+    """
     trace_id = 1
     trace_array = np.array([])
     suma = 0
@@ -50,6 +57,11 @@ def consumption_traces(df, length):
 
 
 def degradation_traces(df):
+    """
+    Consolidates puntual measurements into segments:
+    This type of segment don't take into consideration length, just road type change to define
+    a new segment start
+    """
     trace_id = 1
     trace_array = np.array([])
     old_name = ""
@@ -76,7 +88,7 @@ def degradation_traces(df):
 
 
 def gen_traces(raw_df, length=1000, segment_type=SegmentTypes.degradation):
-    """"generate traces id according to either consumption needs or marcov"""
+    """"generate traces id according to either consumption needs or Markov degradation model"""
     if segment_type == SegmentTypes.consumption:
         df = consumption_traces(raw_df, length)
     elif segment_type == SegmentTypes.degradation:
@@ -89,6 +101,9 @@ def gen_traces(raw_df, length=1000, segment_type=SegmentTypes.degradation):
             lst.append(feature_extraction(trace))
 
     features = generate_features_df(lst)
+    features["slope_cat"] = pd.cut(features["slope"], np.arange(-10, 10.1, 5)).astype(
+        "string"
+    )
     return features
 
 
@@ -135,7 +150,7 @@ def feature_extraction(trace):
         skew_power,
     ) = peak_features(power)
 
-    energy_rec = trace["energy_rec"].iloc[1] - trace["energy_rec"].iloc[0]
+    energy_rec = trace["energy_rec"].iloc[-1] - trace["energy_rec"].iloc[0]
     energy = trace["energy"].iloc[0] - trace["energy"].iloc[-2]
 
     # With battery capacity

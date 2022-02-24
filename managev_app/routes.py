@@ -124,7 +124,6 @@ def show_entries():
     user_vehicles = [
         v.asdict() for v in Vehicle.query.filter(Vehicle.user == current_user).all()
     ]
-
     vehicle = Vehicle.query.filter_by(user=current_user, activo=True).first()
     now = datetime.now(pytz.timezone("America/Bogota")) + timedelta(hours=1)
 

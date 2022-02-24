@@ -87,7 +87,6 @@ def zavitsky(v, a, m):
 
 def add_consumption_cols(df, mass, frontal_area, cd):
 
-    # revisar apply completo
     aux_j = jimenez(mass, frontal_area, cd, df["slope"], df["speed"], df["mean_acc"])
     df["jimenez_estimation"] = aux_j[0]
     df["req_power"] = aux_j[1]
@@ -116,8 +115,6 @@ def add_consumption_cols(df, mass, frontal_area, cd):
 
 
 def smartcharging_consumption_query(df):
-    # df = pd.read_csv('Develops/google_path_Eafit_Palmas.csv')
-
     to_ele = df["elevation"].iloc[1:]
     to_ele = to_ele.append(pd.Series(df["elevation"].iloc[-1]), ignore_index=True)
     df["toAltitude"] = to_ele
@@ -130,7 +127,6 @@ def smartcharging_consumption_query(df):
             "elevation": "fromAltitude",
         }
     )
-    print(df)
     df = df[
         [
             "segmentNumber",

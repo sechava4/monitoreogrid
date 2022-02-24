@@ -15,7 +15,13 @@ from managev_app.Research.Route_segmentation.segmentation import (
 
 
 class DataFetcher:
-    def __init__(self):
+    def __init__(
+        self,
+        name: str = None,
+        query: str = "SELECT * from operation",
+        segment_length=1000,
+        segment_type=SegmentTypes.degradation,
+    ):
         try:
             self.cnx = mysql.connector.connect(
                 user="admin",
@@ -26,7 +32,32 @@ class DataFetcher:
         except mysql.connector.errors.DatabaseError:
             self.cnx = None
 
-    def update_data(self, query):
+        self.name = name
+        self.data_path = os.path.join(app.root_path) + "/DataBackup/" + name
+
+        self.query = query
+        self.segment_length = segment_length
+        self.segment_type = segment_type
+
+    def get_operation_with_osm_data(self):
+        try:
+            loaded_data = pd.read_hdf(
+                self.data_path + "_data.h5", key=f"{self.name}_updated_df_operation"
+            )
+        except FileNotFoundError:
+            all_data_with_osm = self.update_operation_with_osm_data(self.query)
+            all_data_with_osm.name.fillna("undefined", inplace=True)
+            all_data_with_osm.to_hdf(
+                self.data_path + "_data.h5",
+                key=f"{self.name}_updated_df_operation",
+                mode="w",
+            )
+            loaded_data = pd.read_hdf(
+                self.data_path + "_data.h5", key=f"{self.name}_updated_df_operation"
+            )
+        return loaded_data
+
+    def update_operation_with_osm_data(self, query):
         all_data = pd.read_sql_query(query, self.cnx, index_col="id")
         all_data.dropna(axis=1, how="all", inplace=True)
 
@@ -57,30 +88,16 @@ class DataFetcher:
         except KeyError:
             return all_data_with_osm
 
-    def upload_data_to_h5(
+    def update_data_on_h5(
         self,
-        name,
-        query="SELECT * from operation",
-        segment_length=1000,
-        segment_type=SegmentTypes.degradation,
     ):
-        data_path = os.path.join(app.root_path) + "/DataBackup/" + name
-        try:
-            loaded_data = pd.read_hdf(
-                data_path + "_data.h5", key=name + "_updated_df_operation"
-            )
-        except FileNotFoundError:
-            all_data_with_osm = self.update_data(query)
-            all_data_with_osm = all_data_with_osm[all_data_with_osm.operative_state > 0]
-            all_data_with_osm.name.fillna("undefined", inplace=True)
-            all_data_with_osm.to_hdf(
-                data_path + "_data.h5", key=name + "_updated_df_operation", mode="w"
-            )
-            loaded_data = pd.read_hdf(
-                data_path + "_data.h5", key=name + "_updated_df_operation"
-            )
+
+        operation_with_osm_data = self.get_operation_with_osm_data()
+
         segments = gen_traces(
-            loaded_data, length=segment_length, segment_type=segment_type
+            operation_with_osm_data,
+            length=self.segment_length,
+            segment_type=self.segment_type,
         )
 
         # Cleaning segments
@@ -92,4 +109,15 @@ class DataFetcher:
         segments = segments[segments["kms"] < 20]
         segments = segments[segments["consumption"] < 40]
 
-        segments.to_hdf(data_path + "_data.h5", key=name + "_segments")
+        segments.to_hdf(self.data_path + "_data.h5", key=self.name + "_segments")
+        return segments
+
+    def get_segments(self):
+        try:
+            segments = pd.read_hdf(
+                self.data_path + "_data.h5", key=f"{self.name}_segments"
+            )
+
+        except FileNotFoundError:
+            segments = self.update_data_on_h5()
+        return segments

@@ -60,15 +60,10 @@ class Piecewise:
         self.powerStation = []
         time_points = {}
         power_to_coefficient_map = {
-            2.3: 9.76,
-            3: 7.48,
-            3.6: 6.23,
-            7.2: 3.12,
-            7.4: 3.03,
-            11: 2.04,
-            22: 1.01,
-            43: 0.51,
-            50: 0.45,
+            3: 32.48,
+            11: 16.04,
+            22: 8.01,
+            44: 4.01,
         }
         for power in self.charging_powers:
             self.powerStation.append(power)
@@ -119,7 +114,7 @@ class Piecewise:
             lowerBound = self.piecewise_linear.breakpoints[charge_config][i - 1]
             upperBound = self.piecewise_linear.breakpoints[charge_config][i]
 
-            # identifica en que tramo de la funcion inicia el vehiculo la carga
+            # identifica en que tramo de la función inicia el vehiculo la carga
             if lowerBound <= startLevel <= upperBound:
                 # alpha es el porcentaje que falta para finalizar el tramo
                 alpha = (startLevel - upperBound) / (lowerBound - upperBound)
