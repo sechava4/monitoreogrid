@@ -115,8 +115,8 @@ def get_heights(vehicle, var, d1, h1, h2):
         df = df[["latitude", "longitude", "timestamp", var]]
         df["name"] = df[var]
         # Remove outliers
-        df.fillna(0,inplace=True)
-        df = df[(np.abs(stats.zscore(df[var])) < 3)]
+        if not df.isnull().values.any():
+            df = df[(np.abs(stats.zscore(df[var])) < 3)]
 
         x_max = df[var].max()
         x_min = df[var].min()
