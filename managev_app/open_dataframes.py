@@ -111,7 +111,7 @@ def get_heights(vehicle, var, d1, h1, h2):
 
     if all(
         elem in df.columns for elem in ["latitude", "longitude", "timestamp", var]
-    ) and len(df[var]):
+    ) and len(df[var]) and vehicle.placa != "BICI01":
         df = df[["latitude", "longitude", "timestamp", var]]
         df["name"] = df[var]
         # Remove outliers
