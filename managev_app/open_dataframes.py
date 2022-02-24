@@ -111,10 +111,11 @@ def get_heights(vehicle, var, d1, h1, h2):
 
     if all(
         elem in df.columns for elem in ["latitude", "longitude", "timestamp", var]
-    ) and len(df[var]) and vehicle.placa != "BICI01":
+    ) and len(df[var]):
         df = df[["latitude", "longitude", "timestamp", var]]
         df["name"] = df[var]
         # Remove outliers
+        df.fillna("",inplace=True)
         df = df[(np.abs(stats.zscore(df[var])) < 3)]
 
         x_max = df[var].max()
