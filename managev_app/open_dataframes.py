@@ -118,8 +118,10 @@ def get_heights(vehicle, var, d1, h1, h2):
         if not df.isnull().values.any():
             df = df[(np.abs(stats.zscore(df[var])) < 3)]
         # Reemplaza por la media (revisar). Se hace cuando hay algún null antes de remover outliers
-        else: 
+        elif df.max(): 
             df.fillna(df.mean(),inplace=True)
+        else:
+            df.fillna(0,inplace=True)
 
         x_max = df[var].max()
         x_min = df[var].min()
