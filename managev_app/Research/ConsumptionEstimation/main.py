@@ -64,13 +64,17 @@ selected_ft = train[model_cols]
 
 print("\n", selected_ft.corr(), "\n")
 
-# For linear regression
 scaler = MinMaxScaler()
 scaler.fit(train[model_cols])
 dump(scaler, open("MachineLearningModels/scaler.pkl", "wb"))
 
+x_scaler = MinMaxScaler()
+x_scaler.fit(train[x_cols])
+dump(x_scaler, open('MachineLearningModels/x_scaler.pkl', 'wb'))
+
 train_scaled = pd.DataFrame(scaler.transform(train[model_cols]), columns=model_cols)
 
+# For linear regression
 formula = "consumption_per_km ~ mean_power_usr + mean_speed + slope -1"
 
 lm_consumo = ols(formula=formula, data=train_scaled).fit()

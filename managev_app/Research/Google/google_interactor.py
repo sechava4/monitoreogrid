@@ -93,7 +93,9 @@ def get_segments(g_json):
     final_df["end_lat"] = end_lat
     final_df["end_lng"] = end_lng
     final_df["travel_time"] = travel_time
-    final_df["slope_cat"] = pd.cut(final_df["slope"], np.arange(-10, 10.1, 2.5))
+    final_df["slope_cat"] = pd.cut(final_df["slope"], np.arange(-10, 10.1, 5)).astype(
+        "string"
+    )
     final_df["slope_cat"] = final_df["slope_cat"].astype("string")
 
     final_df = final_df.reset_index(drop=True)
@@ -135,21 +137,23 @@ def calculate_segments_consumption(
     user="Santiago_Echavarria_01",
 ):
     segments["id"] = segments.index
-    segments = segments.sort_values(by=["id"])
     segments["mass"] = 1604
     segments["user_name"] = user
 
     app_lookups = ConsumptionModelLookup(segments)
-    app_lookups.fill_with_lookups(segments)
+    segments = app_lookups.fill_with_lookups(segments)
 
+    segments = segments.sort_values(by=["id"])
     # Apply scaling
     scaler = load(open(base_path + "/MachineLearningModels/scaler.pkl", "rb"))
+    x_scaler = load(open(base_path + "/MachineLearningModels/x_scaler.pkl", "rb"))
+
     columns = [
         "mean_power_usr",
         "mean_speed",
         "slope",
     ]
-    segments_scaled = pd.DataFrame(scaler.transform(segments[columns]), columns=columns)
+    segments_scaled = pd.DataFrame(x_scaler.transform(segments[columns]), columns=columns)
 
     # load random forest regresor
     r_forest_reg = load(
@@ -166,7 +170,7 @@ def calculate_segments_consumption(
 
     # Load linear model
     linear_regr_sklearn = load(
-        open(base_path + "/MachineLearningModels/linear_model.pkl", "rb")
+        open(base_path + "/MachineLearningModels/linear_regr_sklearn.pkl", "rb")
     )
 
     # load ANN regressor
