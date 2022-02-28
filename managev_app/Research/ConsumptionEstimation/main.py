@@ -41,7 +41,10 @@ for col in ["kms", "min_acc", y_name, "consumption"]:
     segments = segments[(np.abs(stats.zscore(segments[col])) < 2.5)]
 
 # Exploratory analysis
-plot_exploratory_analysis(segments)
+# plot_exploratory_analysis(segments)
+
+app_lookups = ConsumptionModelLookup(segments, build_lookups=True, save_lookups=True)
+
 
 train, test = train_test_split(segments, test_size=0.2)
 
@@ -64,6 +67,7 @@ print("\n", selected_ft.corr(), "\n")
 # For linear regression
 scaler = MinMaxScaler()
 scaler.fit(train[model_cols])
+dump(scaler, open("MachineLearningModels/scaler.pkl", "wb"))
 
 train_scaled = pd.DataFrame(scaler.transform(train[model_cols]), columns=model_cols)
 
@@ -128,4 +132,4 @@ random_forest_regresor.fit(X, y)
 y_pred = random_forest_regresor.predict(test_scaled[x_cols].values)
 
 model_evaluation(y_test, y_pred)
-a = 0
+dump(random_forest_regresor, open("MachineLearningModels/random_forest.pkl", "wb"))

@@ -13,6 +13,9 @@ import pandas as pd
 import pytz
 from flask import current_app
 
+from managev_app.Research.ConsumptionEstimation.DataProcessing.lookup_tables import (
+    ConsumptionModelLookup,
+)
 from managev_app.Research.ConsumptionEstimation.Models.consumption_models import (
     WangModel,
 )
@@ -134,75 +137,24 @@ def calculate_segments_consumption(
     segments["id"] = segments.index
     segments = segments.sort_values(by=["id"])
     segments["mass"] = 1604
-    segments["user_id"] = user
+    segments["user_name"] = user
 
-    mean_features_by_slope = pd.read_csv(
-        base_path + "/UserDrivingData/mean_features_by_slope.csv"
-    )
-    mean_features_by_user_and_slope = pd.read_csv(
-        base_path + "/UserDrivingData/mean_features_by_user_and_slope.csv"
-    )
-
-    # Convert to string osm_data type for the inner join
-    mean_features_by_user_and_slope["slope_cat"] = mean_features_by_user_and_slope[
-        "slope_cat"
-    ].astype("string")
-    mean_features_by_slope["slope_cat"] = mean_features_by_slope["slope_cat"].astype(
-        "string"
-    )
-
-    segments_consolidated = pd.merge(
-        left=segments,
-        right=mean_features_by_slope,
-        left_on=["slope_cat"],
-        right_on=["slope_cat"],
-    )
-
-    segments_consolidated = pd.merge(
-        left=segments_consolidated,
-        right=mean_features_by_user_and_slope,
-        left_on=["slope_cat", "user_id"],
-        right_on=["slope_cat", "user_id"],
-    )
-
-    segments_consolidated["mean_power_usr"] = segments_consolidated.apply(
-        lambda row: row["mean_power_by_slope"]
-        if np.isnan(row["mean_power_usr"])
-        else row["mean_power_usr"],
-        axis=1,
-    )
-    segments_consolidated["mean_min_acc_usr"] = segments_consolidated.apply(
-        lambda row: row["mean_min_acc"]
-        if np.isnan(row["mean_min_acc_usr"])
-        else row["mean_min_acc_usr"],
-        axis=1,
-    )
-    segments_consolidated["mean_consumption_per_km_usr"] = segments_consolidated.apply(
-        lambda row: row["mean_consumption_per_km"]
-        if np.isnan(row["mean_consumption_per_km_usr"])
-        else row["mean_consumption_per_km_usr"],
-        axis=1,
-    )
+    app_lookups = ConsumptionModelLookup(segments)
+    app_lookups.fill_with_lookups(segments)
 
     # Apply scaling
-    scaler = load(open(base_path + "/MachineLearningModels/scaler_lm.pkl", "rb"))
+    scaler = load(open(base_path + "/MachineLearningModels/scaler.pkl", "rb"))
     columns = [
         "mean_power_usr",
-        "mean_min_acc_usr",
         "mean_speed",
         "slope",
     ]
-    segments_scaled = pd.DataFrame(
-        scaler.transform(segments_consolidated[columns]), columns=columns
-    )
-    # Load inverse scaler
-    scaler_inv = load(open(base_path + "/MachineLearningModels/scaler.pkl", "rb"))
+    segments_scaled = pd.DataFrame(scaler.transform(segments[columns]), columns=columns)
 
     # load random forest regresor
     r_forest_reg = load(
         open(
-            base_path
-            + "/MachineLearningModels/randomForest_0_3_mean_consumption_maxerr_model.pkl",
+            base_path + "/MachineLearningModels/random_forest.pkl",
             "rb",
         )
     )
@@ -214,7 +166,7 @@ def calculate_segments_consumption(
 
     # Load linear model
     linear_regr_sklearn = load(
-        open(base_path + "/MachineLearningModels/linear_regr_sklearn.pkl", "rb")
+        open(base_path + "/MachineLearningModels/linear_model.pkl", "rb")
     )
 
     # load ANN regressor
@@ -234,25 +186,22 @@ def calculate_segments_consumption(
 
         # Apply inverse scaling
         p_pred = pd.DataFrame(
-            scaler_inv.inverse_transform(segments_scaled),
+            scaler.inverse_transform(segments_scaled),
             columns=segments_scaled.columns,
         )
-        segments_consolidated["consumption_per_km_" + mod] = (
-            p_pred["consumption_per_km"] * 1000
+        segments["consumption_per_km_" + mod] = p_pred["consumption_per_km"] * 1000
+
+        segments["consumptionWh_" + mod] = (
+            segments["consumption_per_km_" + mod] * segments["kms"]
         )
 
-        segments_consolidated["consumptionWh_" + mod] = (
-            segments_consolidated["consumption_per_km_" + mod]
-            * segments_consolidated["kms"]
-        )
-
-    estimated_time = segments_consolidated["travel_time"].sum() / 60
+    estimated_time = segments["travel_time"].sum() / 60
     wang_model = WangModel()
-    wang_consumption_list = wang_model.compute_consumption(segments_consolidated)
+    wang_consumption_list = wang_model.compute_consumption(segments)
     wang_consumption = np.nansum(wang_consumption_list).round(3)
 
     model_to_consumption_map = {
-        mod: (segments_consolidated[f"consumptionWh_{mod}"].sum() / 1000).round(3)
+        mod: (segments[f"consumptionWh_{mod}"].sum() / 1000).round(3)
         for mod in models.keys()
     }
     model_to_consumption_map["wang"] = wang_consumption

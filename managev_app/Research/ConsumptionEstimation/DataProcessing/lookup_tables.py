@@ -1,24 +1,36 @@
+import os
+
 import numpy as np
 import pandas as pd
 
 
 class ConsumptionModelLookup:
-    def __init__(self, road_segments, build_lookups: bool = True):
+    def __init__(
+        self, road_segments, build_lookups: bool = False, save_lookups: bool = False
+    ):
         self.road_segments = road_segments
+        current_path = os.path.dirname(__file__)
+        os.chdir(os.path.dirname(current_path))  # move one level up
+
+        self.data_path = os.path.join(os.getcwd(), "UserDrivingData")
 
         # Would be nice to get these from a sql table if exists
         if build_lookups:
             self.user_slope_lookup = None
             self.slope_power_lookup = None
 
-            self.create_slope_lookup_table()
-            self.create_user_slope_to_power_lookup_table()
+            self.create_slope_lookup_table(save_lookups=save_lookups)
+            self.create_user_slope_to_power_lookup_table(save_lookups=save_lookups)
 
         else:
-            # Read from sql table
-            pass
+            self.user_slope_lookup = pd.read_csv(
+                f"{self.data_path}/mean_features_by_user_and_slope.csv"
+            )
+            self.slope_power_lookup = pd.read_csv(
+                f"{self.data_path}/mean_features_by_slope.csv"
+            )
 
-    def create_slope_lookup_table(self):
+    def create_slope_lookup_table(self, save_lookups=False):
         """
         # Lookup tables for getting all users average power according to slope
         Args:
@@ -40,12 +52,17 @@ class ConsumptionModelLookup:
         )
 
         self.slope_power_lookup = slope_power_lookup.sort_values(by=["slope_cat"])
+        if save_lookups:
+            self.slope_power_lookup.to_csv(
+                f"{self.data_path}/mean_features_by_slope.csv"
+            )
 
-    def create_user_slope_to_power_lookup_table(self):
+    def create_user_slope_to_power_lookup_table(self, save_lookups=False):
         """
         Lookup tables for getting all user specific average power according to slope
         Args:
-            road_segments:
+            self.road_segments: segments to build lookups from
+            save_lookups: save to csv
 
         Returns: lookup_table, road_segments with the new slope-based power column
 
@@ -64,6 +81,10 @@ class ConsumptionModelLookup:
         self.user_slope_lookup = user_slope_lookup.sort_values(
             by=["user_name", "slope_cat"]
         )
+        if save_lookups:
+            self.user_slope_lookup.to_csv(
+                f"{self.data_path}/mean_features_by_user_and_slope.csv"
+            )
 
     def fill_with_lookups(self, road_segments):
         concat = road_segments

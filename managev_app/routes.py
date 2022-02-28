@@ -237,6 +237,7 @@ def energy_monitor():
     sess_conf = SessionConfig(now)
     sess_conf.assign_missing_variables()
     coords = []
+    # todo: this post can be in another api endpoint
     if request.method == "POST":
         session["time_interval"] = request.form["time_interval"]
         try:
@@ -259,7 +260,9 @@ def energy_monitor():
             (
                 model_to_consumption_map,
                 session["est_time"],
-            ) = google_interactor.calculate_segments_consumption(segments)
+            ) = google_interactor.calculate_segments_consumption(
+                segments, user=current_user.username
+            )
             session.update(model_to_consumption_map)
 
         except SyntaxError:

@@ -119,9 +119,9 @@ def get_heights(vehicle, var, d1, h1, h2):
             df = df[(np.abs(stats.zscore(df[var])) < 3)]
         # Reemplaza por la 0 pero antes por backfill and fulfill (revisar). Se hace cuando hay algún null antes de remover outliers
         else:
-            df.fillna(method="ffill",inplace=True)
-            df.fillna(method="bfill",inplace=True)
-            df.fillna(0,inplace=True)
+            df.fillna(method="ffill", inplace=True)
+            df.fillna(method="bfill", inplace=True)
+            df.fillna(0, inplace=True)
 
         x_max = df[var].max()
         x_min = df[var].min()
