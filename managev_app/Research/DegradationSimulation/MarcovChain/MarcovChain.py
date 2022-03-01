@@ -40,13 +40,13 @@ class VehicleSimulator:
 
     def set_charge_levels(self, segments):
         initial_charges = segments["ini_cap"][segments["vehicle_state"] == "charging"]
-        self.min_charge_level_interval = np.percentile(initial_charges, [25, 75])
+        self.min_charge_level_interval = np.percentile(initial_charges, [10, 35])
 
         final_charges = segments["fin_cap"][segments["vehicle_state"] == "charging"]
-        self.max_charge_level_interval = np.percentile(final_charges, [25, 100])
+        self.max_charge_level_interval = np.percentile(final_charges, [50, 100])
 
         idle_times = segments["time"][segments["vehicle_state"] == "idle"]
-        self.idle_time_interval = np.percentile(idle_times, [25, 75])
+        self.idle_time_interval = np.percentile(idle_times, [70, 90])
 
     def reset_degradation_helpers(self):
         self.cycle_soc = []
@@ -72,14 +72,14 @@ class MarcovChain:
         segments,
         vehicle: VehicleSimulator,
         scaler=None,
-        scaler_inv=None,
+        x_scaler=None,
         model=None,
     ):
         self.segments = segments
         self.scaler = scaler
         self.vehicle = vehicle
         self.vehicle.set_charge_levels(segments)
-        self.scaler_inv = scaler_inv
+        self.x_scaler = x_scaler
         self.model = model
         self.counters = defaultdict(int)
         self.attr_names = [
@@ -193,10 +193,10 @@ class MarcovChain:
         seconds = values.get("kms") / abs(values.get("mean_speed")) * 3600
         kms = values.pop("kms")
         batt_temp = values.pop("batt_temp")
-        scaled_values = self.scaler.transform([list(values.values())])
+        scaled_values = self.x_scaler.transform([list(values.values())])
         consumption = self.model.predict(scaled_values)
-        kWh_per_km = self.scaler_inv.data_min_[4] + (
-            consumption / self.scaler_inv.scale_[4]
+        kWh_per_km = self.scaler.data_min_[4] + (
+            consumption / self.scaler.scale_[4]
         )
         kWh = kWh_per_km * kms
         return kWh[0], seconds, batt_temp
@@ -216,9 +216,7 @@ class MarcovChain:
         next_state = rng.choice(a=transition_states, p=transition_probabilities)
         return next_state
 
-    def random_walk(self, state="idle", energy=40, days=10):
-        # TODO: For each of the driver types generate random distribution of battery heat,
-        #  in order to input the degradation model
+    def random_walk(self, state="idle", energy=40, days=10, plot_charges=False):
         """
         Random walk simulation to predict battery degradation
 
@@ -318,6 +316,15 @@ class MarcovChain:
                         inputPower=charge_kw,
                         batterySize=self.vehicle.initial_Wh_capacity,
                     )
+                    if plot_charges:
+                        plt.figure()
+                        plt.plot(
+                            [c / 60 for c in charge_dict["times"]],
+                            [c / 10e5 for c in charge_dict["eLevels"]],
+                        )
+                        plt.ylabel("kWh")
+                        plt.xlabel("Minutes")
+                        plt.show()
                     seconds = charge_dict.get("serviceTime")
                     energy = max_level
 
