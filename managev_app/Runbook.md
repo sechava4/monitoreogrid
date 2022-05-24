@@ -18,6 +18,7 @@ mysql.connector.errors.DatabaseError: 1130: Host '179.14.141.215' is not allowed
 
 ```
 De allí extraemos el hostmane. En este caso 179.14.141.215
+La red no puede ser la de eafit, debe ser una red doméstica
 
 - Entramos al servidor con putty:
 
@@ -35,3 +36,20 @@ sudo ufw allow from 179.14.141.215 port 3306
 Finalente, configuramos mysql para conectarse a la base de datos remota:
 
 ![image](https://user-images.githubusercontent.com/37352122/139785496-d070dc6e-c4b8-4b7a-8e80-38ac89445d66.png)
+
+
+## Como desplegar ManagEV en tu máquina local
+
+1) Clonar el repositorio
+2) Instalaste requirements.txt
+3) Descargar la aplicación MYSQL
+4) Abrir mysql Shell
+5) Crear usuario en mysql:
+      usuario: admin@localhost
+      password: 5Actu_adores.
+6) Crear la base de datos llamada monitoreodb
+7) Luego se debe ejecutar en la terminal de la carpeta clonada
+      flask db migrate
+      flask db upgrade
+      
+En caso que aparezca que el usuario no tiene permisos sobre la tabla monitoreodb, se debe acceder a mysql shell con el usuario administrador y darle todos los permisos al usuario creado sobre las tablas con "GRANT....."
